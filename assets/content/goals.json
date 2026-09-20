@@ -1,0 +1,5 @@
+[
+  { "id": "goal_book", "title": "Новая книга", "targetAmount": 40 },
+  { "id": "goal_bike", "title": "Велосипед", "targetAmount": 150 },
+  { "id": "goal_gift", "title": "Подарок другу", "targetAmount": 30 }
+]

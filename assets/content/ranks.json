@@ -1,0 +1,6 @@
+[
+  { "id": "rank_novice", "title": "Новичок", "minPoints": 0 },
+  { "id": "rank_saver", "title": "Юный сберегатель", "minPoints": 30 },
+  { "id": "rank_planner", "title": "Финансовый планировщик", "minPoints": 70 },
+  { "id": "rank_expert", "title": "Эксперт Финни", "minPoints": 120 }
+]

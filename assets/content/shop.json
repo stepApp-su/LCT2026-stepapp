@@ -1,0 +1,6 @@
+[
+  { "id": "shop_hat", "title": "Шляпа для Финни", "cost": 20, "icon": "hat" },
+  { "id": "shop_scarf", "title": "Шарф для Финни", "cost": 25, "icon": "scarf" },
+  { "id": "shop_glasses", "title": "Очки для Финни", "cost": 30, "icon": "glasses" },
+  { "id": "shop_house", "title": "Домик для Финни", "cost": 60, "icon": "house" }
+]

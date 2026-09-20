@@ -1,0 +1,6 @@
+[
+  { "id": "line_welcome", "trigger": "welcome", "text": "Привет! Я Финни. Вместе научимся дружить с деньгами!" },
+  { "id": "line_task_done", "trigger": "task_completed", "text": "Отлично! Ты справился с заданием!" },
+  { "id": "line_purchase", "trigger": "purchase", "text": "Спасибо за подарок, мне очень нравится!" },
+  { "id": "line_not_enough", "trigger": "not_enough_points", "text": "Пока не хватает очков — накопим ещё немного!" }
+]

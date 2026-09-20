@@ -1,0 +1,14 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
+    - unawaited_futures
+
+import_lint:
+  rules:
+    domain_must_be_pure_dart:
+      target: "package:finni/domain/**.dart"
+      from: "package:flutter/**.dart"
+      except: []
