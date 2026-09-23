@@ -14,6 +14,7 @@ class ContentLoader {
   static const String tasksPath = 'assets/content/tasks.json';
   static const String competencesPath = 'assets/content/competences.json';
   static const String phrasesPath = 'assets/content/phrases.json';
+  static const String economyPath = 'assets/content/economy.json';
 
   /// Старые триггеры экранов-заглушек -> триггеры банка реплик.
   static const Map<String, String> _legacyTriggers = {
@@ -27,6 +28,13 @@ class ContentLoader {
   Future<domain.TaskCatalog> loadTaskCatalog() async {
     final raw = await rootBundle.loadString(tasksPath);
     return domain.TaskCatalog.fromJson(
+        (jsonDecode(raw) as Map).cast<String, Object?>());
+  }
+
+  /// Параметры экономики: правила шкал питомца.
+  Future<domain.EconomyConfig> loadEconomy() async {
+    final raw = await rootBundle.loadString(economyPath);
+    return domain.EconomyConfig.fromJson(
         (jsonDecode(raw) as Map).cast<String, Object?>());
   }
 

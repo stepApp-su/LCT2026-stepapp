@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "pet": {
+    "initial": { "satiety": 80, "care": 80, "mood": 80, "cozy": 10 },
+    "needs": [
+      {
+        "itemId": "food",
+        "missedEffects": [{ "stat": "satiety", "delta": -30 }],
+        "missedReason": "Сегодня не купили еду"
+      },
+      {
+        "itemId": "water_light",
+        "missedEffects": [{ "stat": "care", "delta": -10 }],
+        "missedReason": "Сегодня не заплатили за воду и свет"
+      },
+      {
+        "itemId": "cleaning",
+        "missedEffects": [{ "stat": "care", "delta": -10 }],
+        "missedReason": "Сегодня обошлись без мытья и уборки"
+      }
+    ],
+    "low": {
+      "satiety": { "atOrBelow": 50, "text": "Хочется перекусить" },
+      "care": { "atOrBelow": 30, "text": "Мне бы умыться" }
+    },
+    "nightly": {
+      "effects": [{ "stat": "mood", "delta": -10 }],
+      "reason": "Ночью настроение немного снижается — игры его поднимут"
+    },
+    "actions": {
+      "pet_tap": {
+        "effects": [{ "stat": "mood", "delta": 2 }],
+        "maxPerDay": 3,
+        "reason": "Погладили — приятно!"
+      },
+      "task_done": {
+        "effects": [{ "stat": "mood", "delta": 5 }],
+        "reason": "Сделали задание — стало веселее"
+      }
+    },
+    "moodLevels": {
+      "delight": { "from": 85, "label": "Восторг" },
+      "joy": { "from": 65, "label": "Радость" },
+      "calm": { "from": 45, "label": "Спокойствие" },
+      "bored": { "from": 30, "label": "Скука" }
+    },
+    "texts": {
+      "change": "{stat} {delta}",
+      "atMax": "{stat}: и так на максимуме",
+      "atFloor": "{stat}: ниже не опускается",
+      "purchase": "Купили {titleAccusative}",
+      "goalReached": "Цель достигнута: {title}",
+      "dailyItem": "{title} радует каждый день"
+    }
+  }
+}
