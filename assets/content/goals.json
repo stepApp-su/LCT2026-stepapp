@@ -1,5 +1,203 @@
-[
-  { "id": "goal_book", "title": "Новая книга", "targetAmount": 40 },
-  { "id": "goal_bike", "title": "Велосипед", "targetAmount": 150 },
-  { "id": "goal_gift", "title": "Подарок другу", "targetAmount": 30 }
-]
+{
+  "schemaVersion": 1,
+  "competenceIds": [
+    "savings_goal_plan",
+    "savings_regular",
+    "goal_short_term",
+    "money_for_goal"
+  ],
+  "settings": {
+    "averageWindowDays": 3,
+    "roundAverageTo": 1,
+    "milestonesPercent": [
+      25,
+      50,
+      75
+    ],
+    "starterRecommendationId": "ball_rope"
+  },
+  "texts": {
+    "starterHint": "Начни с цели поменьше: её легче достичь.",
+    "progress": "Накоплено {saved} из {price}",
+    "left": "Осталось {left} {coin}",
+    "eta": {
+      "noDeposits": "Начни откладывать, и я посчитаю, когда накопим.",
+      "estimate": "Ты откладываешь примерно по {avg} {coin}. Осталось {left}. Это ещё {days} {day}.",
+      "lastStep": "Ещё одно пополнение — и цель наша!",
+      "reached": "Хватает! Можно забирать."
+    },
+    "milestones": {
+      "25": "Четверть пути позади!",
+      "50": "Половина есть! Осталось столько же.",
+      "75": "Совсем чуть-чуть осталось!"
+    },
+    "reachedButton": "Ура, забираем!",
+    "changeGoal": {
+      "question": "Выбрать новую цель: {titleAccusative}?",
+      "keepSavings": "Все {saved} {coin} останутся в копилке.",
+      "confirm": "Да, выбираем",
+      "cancel": "Оставим как было"
+    },
+    "withdraw": {
+      "question": "Взять {amount} {coin} из копилки?",
+      "savedChange": "Было {before} из {price} → станет {after} из {price}",
+      "etaChange": "До цели: было {daysBefore} {dayBefore} → станет {daysAfter} {dayAfter}",
+      "etaUnknown": "Срок посчитаем, когда снова начнёшь откладывать.",
+      "confirm": "Да, взять",
+      "cancel": "Отмена"
+    },
+    "journal": {
+      "toSavings": "Отложили {amount} {coin} в копилку.",
+      "fromSavings": "Взяли {amount} {coin} из копилки.",
+      "goalReached": "Купили {titleAccusative} на накопленные монеты!"
+    },
+    "newGoalsUnlocked": "Появились новые большие цели!",
+    "unknownGoal": "Такой цели нет",
+    "goalLocked": "Эта цель откроется позже",
+    "goalAlreadyReached": "Эта цель уже достигнута",
+    "sameGoal": "Эта цель уже выбрана",
+    "noGoalSelected": "Сначала выбери цель",
+    "needsConfirmation": "Сначала спросим: выбираем?",
+    "notEnoughSavings": "В копилке пока меньше"
+  },
+  "goals": [
+    {
+      "id": "ball_rope",
+      "title": "Мячик и скакалка",
+      "titleAccusative": "мячик и скакалку",
+      "titleGenitive": "мячика и скакалки",
+      "price": 90,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 18
+          }
+        ]
+      },
+      "iconId": "icon_goal_ball_rope",
+      "assetId": "goal_ball_rope",
+      "description": "Играть во дворе хоть каждый день.",
+      "selectPhrase": "Мячик! Будем играть вместе!",
+      "reachedText": "Мячик и скакалка теперь наши навсегда!"
+    },
+    {
+      "id": "scooter",
+      "title": "Самокат",
+      "titleAccusative": "самокат",
+      "titleGenitive": "самоката",
+      "price": 120,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 24
+          }
+        ]
+      },
+      "iconId": "icon_goal_scooter",
+      "assetId": "goal_scooter",
+      "description": "Кататься быстро-быстро по дорожкам.",
+      "selectPhrase": "Самокат! Поедем кататься!",
+      "reachedText": "Самокат наш! Он встанет у стены."
+    },
+    {
+      "id": "telescope",
+      "title": "Телескоп",
+      "titleAccusative": "телескоп",
+      "titleGenitive": "телескопа",
+      "price": 160,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 32
+          }
+        ]
+      },
+      "iconId": "icon_goal_telescope",
+      "assetId": "goal_telescope",
+      "description": "Смотреть на звёзды и Луну.",
+      "selectPhrase": "Телескоп! Увидим звёзды близко-близко!",
+      "reachedText": "Телескоп наш! Он встанет у окна."
+    },
+    {
+      "id": "treehouse",
+      "title": "Домик на дереве",
+      "titleAccusative": "домик на дереве",
+      "titleGenitive": "домика на дереве",
+      "price": 200,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 40
+          }
+        ]
+      },
+      "iconId": "icon_goal_treehouse",
+      "assetId": "goal_treehouse",
+      "description": "Своё тайное место высоко-высоко.",
+      "selectPhrase": "Домик на дереве! Вот это мечта!",
+      "reachedText": "Домик наш! Его видно из окна."
+    },
+    {
+      "id": "bicycle",
+      "title": "Велосипед",
+      "titleAccusative": "велосипед",
+      "titleGenitive": "велосипеда",
+      "price": 250,
+      "unlock": {
+        "minGoalsReached": 3
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 50
+          }
+        ]
+      },
+      "iconId": "icon_goal_bicycle",
+      "assetId": "goal_bicycle",
+      "description": "Настоящий, с корзинкой и звонком.",
+      "selectPhrase": "Велосипед! Дзынь-дзынь!",
+      "reachedText": "Велосипед наш! Дзынь-дзынь!"
+    },
+    {
+      "id": "trampoline",
+      "title": "Батут",
+      "titleAccusative": "батут",
+      "titleGenitive": "батута",
+      "price": 300,
+      "unlock": {
+        "minGoalsReached": 4
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 60
+          }
+        ]
+      },
+      "iconId": "icon_goal_trampoline",
+      "assetId": "goal_trampoline",
+      "description": "Прыгать до самых облаков.",
+      "selectPhrase": "Батут! Попрыгаем до облаков!",
+      "reachedText": "Батут наш! Прыг-скок!"
+    }
+  ]
+}

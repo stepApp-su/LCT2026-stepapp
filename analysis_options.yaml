@@ -12,3 +12,7 @@ import_lint:
       target: "package:finni/domain/**.dart"
       from: "package:flutter/**.dart"
       except: []
+analyzer:
+  exclude:
+    - build/**
+    - android/**
