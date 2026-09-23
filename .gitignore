@@ -14,6 +14,7 @@ android/.gradle/
 android/gradlew
 android/gradlew.bat
 android/gradle/wrapper/gradle-wrapper.jar
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 **/*.jks
 **/*.keystore
 key.properties
@@ -26,3 +27,12 @@ key.properties
 # OS
 .DS_Store
 Thumbs.db
+
+# Local documentation and asset workbench
+*.md
+*.blend
+*.blend1
+art/
+docs/
+tools/blender/
+assets/models/

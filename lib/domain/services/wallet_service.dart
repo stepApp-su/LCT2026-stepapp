@@ -57,7 +57,13 @@ final class WalletService {
   List<Transaction> journalOfDay(int dayNumber) => List.unmodifiable(
       _journal.where((t) => t.dayNumber == dayNumber));
 
-  String _nextId(int dayNumber) => 'd$dayNumber-${++_txCounter}';
+  String _nextId(int dayNumber) {
+    String id;
+    do {
+      id = 'd$dayNumber-${++_txCounter}';
+    } while (_journal.any((entry) => entry.id == id));
+    return id;
+  }
 
   WalletOk earn({
     required int amount,
