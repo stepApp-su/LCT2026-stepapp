@@ -1,0 +1,193 @@
+{
+  "day": 1,
+  "balance": 60,
+  "savings": 0,
+  "income": 60,
+  "mandatoryCost": 25,
+  "goal": {
+    "title": "Самокат",
+    "price": 180,
+    "id": "scooter"
+  },
+  "plan": {
+    "mandatory": 0,
+    "optional": 0,
+    "savings": 0
+  },
+  "stats": {
+    "satiety": 80,
+    "care": 75,
+    "mood": 90,
+    "cozy": 0
+  },
+  "question": {
+    "title": "Что купить сначала?",
+    "text": "Мони проголодался. Что ему сейчас нужнее?",
+    "answers": [
+      "Порция корма",
+      "Новый бантик"
+    ],
+    "correct": 0,
+    "reward": 15,
+    "explanation": "Еда нужна каждый день. Бантик можно купить позже.",
+    "id": "needs_food"
+  },
+  "catalog": [
+    {
+      "id": "food",
+      "title": "Вкусный обед",
+      "price": 15,
+      "category": "mandatory",
+      "effects": [
+        {
+          "stat": "satiety",
+          "delta": 20
+        }
+      ],
+      "art": "props",
+      "cell": 0,
+      "note": "Сытость +20"
+    },
+    {
+      "id": "care",
+      "title": "Мягкая щётка",
+      "price": 10,
+      "category": "mandatory",
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 15
+        }
+      ],
+      "art": "props",
+      "cell": 3,
+      "note": "Уход +15"
+    },
+    {
+      "id": "bow",
+      "title": "Бантик",
+      "price": 25,
+      "category": "optional",
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 5
+        }
+      ],
+      "art": "accessories",
+      "cell": 0,
+      "note": "Настроение +5",
+      "slot": "head"
+    },
+    {
+      "id": "ball",
+      "title": "Весёлый мяч",
+      "price": 20,
+      "category": "optional",
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 15
+        }
+      ],
+      "art": "props",
+      "cell": 2,
+      "note": "Настроение +15"
+    },
+    {
+      "id": "cap",
+      "title": "Кепка",
+      "price": 35,
+      "category": "optional",
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 5
+        }
+      ],
+      "art": "accessories",
+      "cell": 1,
+      "note": "Настроение +5",
+      "slot": "head"
+    },
+    {
+      "id": "glasses",
+      "title": "Круглые очки",
+      "price": 65,
+      "category": "optional",
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 5
+        }
+      ],
+      "art": "accessories",
+      "cell": 2,
+      "note": "Настроение +5",
+      "slot": "eyes"
+    },
+    {
+      "id": "scarf",
+      "title": "Уютный шарф",
+      "price": 30,
+      "category": "optional",
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 10
+        }
+      ],
+      "art": "accessories",
+      "cell": 3,
+      "note": "Уют +10",
+      "slot": "neck"
+    },
+    {
+      "id": "balloon",
+      "title": "Воздушный шарик",
+      "price": 10,
+      "category": "optional",
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 5
+        }
+      ],
+      "art": "accessories",
+      "cell": 8,
+      "note": "Настроение +5",
+      "slot": "paw"
+    }
+  ],
+  "goals": [
+    {
+      "title": "Самокат",
+      "price": 180,
+      "id": "scooter"
+    },
+    {
+      "id": "book",
+      "title": "Книга приключений",
+      "price": 90
+    },
+    {
+      "id": "telescope",
+      "title": "Телескоп",
+      "price": 240
+    }
+  ],
+  "names": [
+    "Мони",
+    "Финни",
+    "Лаки",
+    "Пикс",
+    "Тяпа",
+    "Бумба",
+    "Кнопа",
+    "Бусик",
+    "Плюша",
+    "Тоша",
+    "Искорка",
+    "Пончик"
+  ]
+}
