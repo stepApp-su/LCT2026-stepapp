@@ -1,6 +1,956 @@
-[
-  { "id": "shop_hat", "title": "Шляпа для Финни", "cost": 20, "icon": "hat" },
-  { "id": "shop_scarf", "title": "Шарф для Финни", "cost": 25, "icon": "scarf" },
-  { "id": "shop_glasses", "title": "Очки для Финни", "cost": 30, "icon": "glasses" },
-  { "id": "shop_house", "title": "Домик для Финни", "cost": 60, "icon": "house" }
-]
+{
+  "schemaVersion": 1,
+  "categories": {
+    "mandatory": {
+      "label": "Обязательное",
+      "hint": "То, без чего никак",
+      "iconId": "icon_cat_mandatory"
+    },
+    "optional": {
+      "label": "Желаемое",
+      "hint": "Приятно, но можно и без этого",
+      "iconId": "icon_cat_optional"
+    }
+  },
+  "kinds": {
+    "consumable": {
+      "label": "Тратится сразу",
+      "unique": false
+    },
+    "toy": {
+      "label": "Остаётся в комнате",
+      "unique": true
+    },
+    "accessory": {
+      "label": "Можно надевать и снимать",
+      "unique": true
+    },
+    "furniture": {
+      "label": "Остаётся в комнате",
+      "unique": true
+    },
+    "wallpaper": {
+      "label": "Можно поклеить в любой комнате",
+      "unique": true,
+      "singleActive": true
+    }
+  },
+  "stageUnlockMessages": {
+    "baby": "В магазине появились наряды!",
+    "teen": "Теперь можно купить мебель для комнаты!",
+    "adult": "Магазин тоже подрос: появились новые вещи!"
+  },
+  "newItemByDayMessage": "В магазине новинка! Загляни посмотреть.",
+  "texts": {
+    "effect": "{stat} +{delta}",
+    "dailyEffect": "Каждый день: {stat} +{delta}",
+    "confirmQuestion": "Купим {titleAccusative}?",
+    "alreadyOwned": "Уже есть у тебя",
+    "dailyLimitReached": "На сегодня хватит. Завтра можно снова!",
+    "wallpaperApplied": "Обои поменяли! Старые никуда не делись.",
+    "unknownItem": "Такого товара нет",
+    "notInShop": "Этого нет в магазине",
+    "notUnlocked": "Этот товар пока не появился в магазине",
+    "notForSale": "Это не продаётся — оно уже твоё",
+    "needsConfirmation": "Сначала спросим: купим?"
+  },
+  "priceComparison": {
+    "applyToCategories": [
+      "optional"
+    ],
+    "anchors": [
+      {
+        "id": "allMandatory",
+        "itemIds": [
+          "food",
+          "water_light",
+          "cleaning"
+        ],
+        "phrase": "все обязательные покупки на {n} {day}",
+        "maxMultiplier": 4
+      },
+      {
+        "id": "food",
+        "itemIds": [
+          "food"
+        ],
+        "phrase": "еда на {n} {day}",
+        "maxMultiplier": 4
+      },
+      {
+        "id": "waterLight",
+        "itemIds": [
+          "water_light"
+        ],
+        "phrase": "вода и свет на {n} {day}",
+        "maxMultiplier": 2
+      }
+    ],
+    "rules": [
+      {
+        "type": "exactMultiple",
+        "anchors": [
+          "allMandatory",
+          "food",
+          "waterLight"
+        ],
+        "template": "{title} — {price} {coin}. Это столько же, сколько {anchorPhrase}."
+      },
+      {
+        "type": "withRemainder",
+        "anchor": "food",
+        "template": "{title} — {price} {coin}. Это еда на {n} {day} и ещё {rest} {restCoin}."
+      },
+      {
+        "type": "lessThan",
+        "anchor": "food",
+        "template": "{title} — {price} {coin}. Это дешевле, чем еда на один день."
+      }
+    ]
+  },
+  "items": [
+    {
+      "id": "wp_plain",
+      "title": "Светлые обои",
+      "titleAccusative": "светлые обои",
+      "category": "optional",
+      "kind": "wallpaper",
+      "group": "wallpaper",
+      "price": 0,
+      "effects": [],
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_wp_plain",
+      "assetId": "wp_plain",
+      "description": "Простые и светлые.",
+      "diaryText": "Светлые обои были с самого начала.",
+      "showInShop": false,
+      "ownedAtStart": true
+    },
+    {
+      "id": "food",
+      "title": "Еда на день",
+      "titleAccusative": "еду на день",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "food",
+      "price": 15,
+      "effects": [
+        {
+          "stat": "satiety",
+          "delta": 40
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_food",
+      "animation": "eat",
+      "description": "Вкусный обед. Нужен каждый день.",
+      "diaryText": "Купили еду на день."
+    },
+    {
+      "id": "water_light",
+      "title": "Вода и свет",
+      "titleAccusative": "воду и свет",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "water_light",
+      "price": 5,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 20
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_water_light",
+      "animation": "happy",
+      "description": "Чтобы пить, умываться и не сидеть в темноте.",
+      "diaryText": "Заплатили за воду и свет."
+    },
+    {
+      "id": "cleaning",
+      "title": "Мытьё и уборка",
+      "titleAccusative": "мытьё и уборку",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "cleaning",
+      "price": 5,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 20
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_cleaning",
+      "animation": "happy",
+      "description": "Всё чистое и блестит!",
+      "diaryText": "Устроили мытьё и уборку."
+    },
+    {
+      "id": "treat",
+      "title": "Лакомство",
+      "titleAccusative": "лакомство",
+      "category": "optional",
+      "kind": "consumable",
+      "group": "snack",
+      "price": 5,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 8
+        }
+      ],
+      "maxPerDay": 2,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_treat",
+      "animation": "eat",
+      "description": "Маленькая вкусная радость.",
+      "diaryText": "Купили лакомство."
+    },
+    {
+      "id": "apple",
+      "title": "Яблоко",
+      "titleAccusative": "яблоко",
+      "category": "optional",
+      "kind": "consumable",
+      "group": "snack",
+      "price": 8,
+      "effects": [
+        {
+          "stat": "satiety",
+          "delta": 10
+        },
+        {
+          "stat": "mood",
+          "delta": 4
+        }
+      ],
+      "maxPerDay": 2,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_apple",
+      "animation": "eat",
+      "description": "Хрустит! Но обед на день не заменит.",
+      "diaryText": "Купили яблоко."
+    },
+    {
+      "id": "bouncy_ball",
+      "title": "Попрыгунчик",
+      "titleAccusative": "попрыгунчик",
+      "category": "optional",
+      "kind": "toy",
+      "group": "toy",
+      "roomId": "main",
+      "price": 15,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "dailyEffects": [
+        {
+          "stat": "mood",
+          "delta": 2
+        }
+      ],
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_bouncy_ball",
+      "assetId": "toy_bouncy_ball",
+      "animation": "happy",
+      "description": "Прыгает выше головы! Радует каждый день.",
+      "diaryText": "Купили попрыгунчик."
+    },
+    {
+      "id": "puzzle",
+      "title": "Головоломка",
+      "titleAccusative": "головоломку",
+      "category": "optional",
+      "kind": "toy",
+      "group": "toy",
+      "roomId": "main",
+      "price": 20,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "dailyEffects": [
+        {
+          "stat": "mood",
+          "delta": 2
+        }
+      ],
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_puzzle",
+      "assetId": "toy_puzzle",
+      "animation": "think",
+      "description": "Над ней можно думать каждый день.",
+      "diaryText": "Купили головоломку."
+    },
+    {
+      "id": "rug",
+      "title": "Коврик",
+      "titleAccusative": "коврик",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 25,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 5
+        }
+      ],
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_rug",
+      "assetId": "furn_rug",
+      "animation": "happy",
+      "description": "Мягко и тепло в комнате.",
+      "diaryText": "Постелили новый коврик."
+    },
+    {
+      "id": "flower_pot",
+      "title": "Цветок в горшке",
+      "titleAccusative": "цветок в горшке",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 20,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 4
+        }
+      ],
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_flower_pot",
+      "assetId": "furn_flower_pot",
+      "animation": "happy",
+      "description": "Зелёный друг на подоконнике.",
+      "diaryText": "Поставили цветок в горшке."
+    },
+    {
+      "id": "balloon",
+      "title": "Воздушный шарик",
+      "titleAccusative": "воздушный шарик",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "paw",
+      "price": 10,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_balloon",
+      "assetId": "acc_balloon",
+      "animation": "happy",
+      "description": "Держи крепче, а то улетит!",
+      "diaryText": "Купили воздушный шарик."
+    },
+    {
+      "id": "bow",
+      "title": "Бант",
+      "titleAccusative": "бант",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "head",
+      "price": 15,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_bow",
+      "assetId": "acc_bow",
+      "animation": "happy",
+      "description": "Нарядный бант на макушку.",
+      "diaryText": "Купили нарядный бант."
+    },
+    {
+      "id": "scarf",
+      "title": "Шарф",
+      "titleAccusative": "шарф",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "neck",
+      "price": 15,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_scarf",
+      "assetId": "acc_scarf",
+      "animation": "happy",
+      "description": "Тёплый и полосатый.",
+      "diaryText": "Купили полосатый шарф."
+    },
+    {
+      "id": "cap",
+      "title": "Кепка",
+      "titleAccusative": "кепку",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "head",
+      "price": 20,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_cap",
+      "assetId": "acc_cap",
+      "animation": "happy",
+      "description": "Защитит от солнца.",
+      "diaryText": "Купили кепку."
+    },
+    {
+      "id": "glasses",
+      "title": "Очки",
+      "titleAccusative": "очки",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "eyes",
+      "price": 25,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_glasses",
+      "assetId": "acc_glasses",
+      "animation": "happy",
+      "description": "Круглые, как у настоящего учёного.",
+      "diaryText": "Купили круглые очки."
+    },
+    {
+      "id": "raincoat",
+      "title": "Дождевик",
+      "titleAccusative": "дождевик",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "body",
+      "price": 30,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_raincoat",
+      "assetId": "acc_raincoat",
+      "animation": "happy",
+      "description": "Теперь можно гулять под дождём!",
+      "diaryText": "Купили дождевик."
+    },
+    {
+      "id": "backpack",
+      "title": "Рюкзак",
+      "titleAccusative": "рюкзак",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "back",
+      "price": 35,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_backpack",
+      "assetId": "acc_backpack",
+      "animation": "happy",
+      "description": "Для самых важных вещей.",
+      "diaryText": "Купили рюкзак."
+    },
+    {
+      "id": "cactus",
+      "title": "Кактус",
+      "titleAccusative": "кактус",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 20,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 4
+        }
+      ],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_cactus",
+      "assetId": "furn_cactus",
+      "animation": "happy",
+      "description": "Колючий, зато поливать редко.",
+      "diaryText": "Поставили кактус."
+    },
+    {
+      "id": "poster",
+      "title": "Постер",
+      "titleAccusative": "постер",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 25,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 5
+        }
+      ],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_poster",
+      "assetId": "furn_poster",
+      "animation": "happy",
+      "description": "Яркая картинка на стену.",
+      "diaryText": "Повесили яркий постер."
+    },
+    {
+      "id": "clock",
+      "title": "Часы",
+      "titleAccusative": "часы",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 30,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 6
+        }
+      ],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_clock",
+      "assetId": "furn_clock",
+      "animation": "happy",
+      "description": "Тик-так! Всё успеем вовремя.",
+      "diaryText": "Повесили часы."
+    },
+    {
+      "id": "shelf",
+      "title": "Полка",
+      "titleAccusative": "полку",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 35,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 7
+        }
+      ],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_shelf",
+      "assetId": "furn_shelf",
+      "animation": "happy",
+      "description": "Место для книжек и сокровищ.",
+      "diaryText": "Повесили полку."
+    },
+    {
+      "id": "pouf",
+      "title": "Пуфик",
+      "titleAccusative": "пуфик",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 40,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 8
+        }
+      ],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_pouf",
+      "assetId": "furn_pouf",
+      "animation": "happy",
+      "description": "Мягкий! На него можно плюхнуться.",
+      "diaryText": "Поставили мягкий пуфик."
+    },
+    {
+      "id": "wp_stripes",
+      "title": "Обои в полоску",
+      "titleAccusative": "обои в полоску",
+      "category": "optional",
+      "kind": "wallpaper",
+      "group": "wallpaper",
+      "price": 30,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 6
+        }
+      ],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_wp_stripes",
+      "assetId": "wp_stripes",
+      "animation": "happy",
+      "description": "Весёлые полоски на всю стену.",
+      "diaryText": "Поклеили обои в полоску."
+    },
+    {
+      "id": "wp_dots",
+      "title": "Обои в горошек",
+      "titleAccusative": "обои в горошек",
+      "category": "optional",
+      "kind": "wallpaper",
+      "group": "wallpaper",
+      "price": 30,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 6
+        }
+      ],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_wp_dots",
+      "assetId": "wp_dots",
+      "animation": "happy",
+      "description": "Горошек, как на любимой кружке.",
+      "diaryText": "Поклеили обои в горошек."
+    },
+    {
+      "id": "wp_clouds",
+      "title": "Обои с облаками",
+      "titleAccusative": "обои с облаками",
+      "category": "optional",
+      "kind": "wallpaper",
+      "group": "wallpaper",
+      "price": 40,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 8
+        }
+      ],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_wp_clouds",
+      "assetId": "wp_clouds",
+      "animation": "happy",
+      "description": "Будто спишь прямо на небе.",
+      "diaryText": "Поклеили обои с облаками."
+    },
+    {
+      "id": "bowtie",
+      "title": "Бабочка",
+      "titleAccusative": "бабочку",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "neck",
+      "price": 35,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "adult"
+      },
+      "iconId": "icon_shop_bowtie",
+      "assetId": "acc_bowtie",
+      "animation": "happy",
+      "description": "Для самых праздничных дней.",
+      "diaryText": "Купили праздничную бабочку."
+    },
+    {
+      "id": "tshirt",
+      "title": "Футболка",
+      "titleAccusative": "футболку",
+      "category": "optional",
+      "kind": "accessory",
+      "group": "accessory",
+      "slot": "body",
+      "price": 40,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "adult"
+      },
+      "iconId": "icon_shop_tshirt",
+      "assetId": "acc_tshirt",
+      "animation": "happy",
+      "description": "С весёлой картинкой.",
+      "diaryText": "Купили футболку с картинкой."
+    },
+    {
+      "id": "palm",
+      "title": "Пальма",
+      "titleAccusative": "пальму",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 50,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 10
+        }
+      ],
+      "unlock": {
+        "minStage": "adult"
+      },
+      "iconId": "icon_shop_palm",
+      "assetId": "furn_palm",
+      "animation": "happy",
+      "description": "Как на море, только дома.",
+      "diaryText": "Поставили пальму."
+    },
+    {
+      "id": "table",
+      "title": "Стол",
+      "titleAccusative": "стол",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 55,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 11
+        }
+      ],
+      "unlock": {
+        "minStage": "adult"
+      },
+      "iconId": "icon_shop_table",
+      "assetId": "furn_table",
+      "animation": "happy",
+      "description": "Рисовать, играть и пить чай.",
+      "diaryText": "Поставили стол."
+    },
+    {
+      "id": "bed",
+      "title": "Кроватка",
+      "titleAccusative": "кроватку",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 70,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 14
+        }
+      ],
+      "unlock": {
+        "minStage": "adult"
+      },
+      "iconId": "icon_shop_bed",
+      "assetId": "furn_bed",
+      "animation": "happy",
+      "description": "Сладкие сны обеспечены.",
+      "diaryText": "Поставили уютную кроватку."
+    },
+    {
+      "id": "wp_leaves",
+      "title": "Обои с листочками",
+      "titleAccusative": "обои с листочками",
+      "category": "optional",
+      "kind": "wallpaper",
+      "group": "wallpaper",
+      "price": 40,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 8
+        }
+      ],
+      "unlock": {
+        "minStage": "adult"
+      },
+      "iconId": "icon_shop_wp_leaves",
+      "assetId": "wp_leaves",
+      "animation": "happy",
+      "description": "Зелёные, как летний лес.",
+      "diaryText": "Поклеили обои с листочками."
+    },
+    {
+      "id": "wp_stars",
+      "title": "Обои со звёздами",
+      "titleAccusative": "обои со звёздами",
+      "category": "optional",
+      "kind": "wallpaper",
+      "group": "wallpaper",
+      "price": 45,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 9
+        }
+      ],
+      "unlock": {
+        "minStage": "adult"
+      },
+      "iconId": "icon_shop_wp_stars",
+      "assetId": "wp_stars",
+      "animation": "happy",
+      "description": "Звёзды светятся даже днём.",
+      "diaryText": "Поклеили обои со звёздами."
+    },
+    {
+      "id": "night_light",
+      "title": "Ночник-звёздочка",
+      "titleAccusative": "ночник-звёздочку",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 45,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 9
+        }
+      ],
+      "unlock": {
+        "minStage": "adult",
+        "minDay": 8
+      },
+      "iconId": "icon_shop_night_light",
+      "assetId": "furn_night_light",
+      "animation": "happy",
+      "description": "Мягко светит всю ночь.",
+      "diaryText": "Поставили ночник-звёздочку."
+    },
+    {
+      "id": "wp_space",
+      "title": "Космические обои",
+      "titleAccusative": "космические обои",
+      "category": "optional",
+      "kind": "wallpaper",
+      "group": "wallpaper",
+      "price": 60,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 12
+        }
+      ],
+      "unlock": {
+        "minStage": "adult",
+        "minDay": 10
+      },
+      "iconId": "icon_shop_wp_space",
+      "assetId": "wp_space",
+      "animation": "happy",
+      "description": "Планеты, ракеты и кометы!",
+      "diaryText": "Поклеили космические обои."
+    },
+    {
+      "id": "aquarium",
+      "title": "Аквариум с рыбками",
+      "titleAccusative": "аквариум с рыбками",
+      "category": "optional",
+      "kind": "furniture",
+      "group": "furniture",
+      "roomId": "main",
+      "price": 80,
+      "effects": [
+        {
+          "stat": "cozy",
+          "delta": 16
+        }
+      ],
+      "unlock": {
+        "minStage": "adult",
+        "minDay": 12
+      },
+      "iconId": "icon_shop_aquarium",
+      "assetId": "furn_aquarium",
+      "animation": "happy",
+      "description": "Рыбки плавают и пускают пузыри.",
+      "diaryText": "Поставили аквариум с рыбками."
+    }
+  ]
+}

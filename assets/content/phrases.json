@@ -1,0 +1,1609 @@
+{
+  "schemaVersion": 1,
+  "characters": {
+    "fox": {
+      "pet": "Лисёнок Мони",
+      "voice": "Находчивый выдумщик. Любит планы и хитрости, говорит «Есть идея!»"
+    },
+    "robot": {
+      "pet": "Котёнок-робот Пикс",
+      "voice": "Точный, но очень тёплый. Любит числа и друзей. О чувствах говорит через свои «датчики» и «шестерёнки», иногда говорит «Бип!»."
+    },
+    "puppy": {
+      "pet": "Щенок Тяпа",
+      "voice": "Восторженный и ласковый. Простые слова, много радости, «Ура!» и «Гав!»"
+    },
+    "dragon": {
+      "pet": "Дракончик Бумба",
+      "voice": "Мечтатель. Говорит о мечтах, полётах и приключениях. Копилка для него — сокровищница мечты."
+    }
+  },
+  "rules": {
+    "maxWords": 10,
+    "samePlaceholdersInAllCharacters": true,
+    "ttsOnlyWithoutPlaceholders": true,
+    "noGenderedPastTense": "Ни питомец о себе, ни обращение к ребёнку не зависят от рода"
+  },
+  "categories": {
+    "greeting": "Приветствие",
+    "purchase": "Покупки",
+    "task_hint": "Задания",
+    "event": "События",
+    "praise": "Похвала",
+    "planner": "Планировщик",
+    "return": "Возвращение",
+    "idle": "Простой",
+    "bedtime": "Сон"
+  },
+  "pluralTokens": {
+    "{coin}": "склоняется по предыдущему числу (economy.plurals.coin)",
+    "{day}": "склоняется по предыдущему числу (economy.plurals.day)"
+  },
+  "triggers": {
+    "app_open": {
+      "description": "Открытие приложения / главного экрана",
+      "placeholders": [
+        "goalGenitive"
+      ]
+    },
+    "day_started": {
+      "description": "Начался новый игровой день, пришёл доход",
+      "placeholders": [
+        "income"
+      ]
+    },
+    "purchase_done": {
+      "description": "Покупка совершена",
+      "placeholders": []
+    },
+    "purchase_not_enough": {
+      "description": "Попытка покупки при нехватке монет",
+      "placeholders": [
+        "gap"
+      ]
+    },
+    "purchase_postponed": {
+      "description": "Товар отложен на завтра (в список желаний)",
+      "placeholders": []
+    },
+    "shop_open": {
+      "description": "Открыт магазин",
+      "placeholders": []
+    },
+    "task_start": {
+      "description": "Открыто задание",
+      "placeholders": []
+    },
+    "task_wrong": {
+      "description": "Ответ в задании не прошёл проверку",
+      "placeholders": []
+    },
+    "task_hint": {
+      "description": "Нажата кнопка «Подсказка»",
+      "placeholders": []
+    },
+    "task_done": {
+      "description": "Задание завершено, начислена награда",
+      "placeholders": [
+        "reward"
+      ]
+    },
+    "tasks_screen_open": {
+      "description": "Открыт экран заданий",
+      "placeholders": []
+    },
+    "task_correct": {
+      "description": "Ответ верный, перед показом объяснения",
+      "placeholders": []
+    },
+    "event_start": {
+      "description": "Выдано событие дня",
+      "placeholders": [
+        "amount"
+      ]
+    },
+    "event_resolved": {
+      "description": "Событие решено тратой",
+      "placeholders": []
+    },
+    "event_skipped": {
+      "description": "Событие решено без траты",
+      "placeholders": []
+    },
+    "day_summary": {
+      "description": "Экран итогов дня",
+      "placeholders": [
+        "days"
+      ]
+    },
+    "savings_deposit": {
+      "description": "Пополнение копилки",
+      "placeholders": [
+        "amount"
+      ]
+    },
+    "goal_milestone": {
+      "description": "Пройдена веха цели 25/50/75%",
+      "placeholders": []
+    },
+    "goal_reached": {
+      "description": "Цель достигнута",
+      "placeholders": []
+    },
+    "stage_up": {
+      "description": "Новая стадия роста",
+      "placeholders": []
+    },
+    "title_earned": {
+      "description": "Получено звание",
+      "placeholders": [
+        "title"
+      ]
+    },
+    "cozy_level_up": {
+      "description": "Новый уровень уюта",
+      "placeholders": [
+        "title"
+      ]
+    },
+    "planner_open": {
+      "description": "Открыт планировщик",
+      "placeholders": []
+    },
+    "plan_changed": {
+      "description": "Изменена сумма в плане",
+      "placeholders": [
+        "days",
+        "gap",
+        "goalGenitive",
+        "remainder"
+      ]
+    },
+    "plan_confirmed": {
+      "description": "План подтверждён",
+      "placeholders": []
+    },
+    "app_open_after_pause": {
+      "description": "Вход после перерыва в реальном времени",
+      "placeholders": []
+    },
+    "daily_login": {
+      "description": "Первый вход за календарные сутки (бонус входа)",
+      "placeholders": []
+    },
+    "app_resume": {
+      "description": "Возврат в приложение в тот же день",
+      "placeholders": []
+    },
+    "idle_30s": {
+      "description": "30 секунд без действий на главном экране",
+      "placeholders": []
+    },
+    "can_close_day": {
+      "description": "В дне больше нечего делать",
+      "placeholders": []
+    },
+    "close_day_requested": {
+      "description": "Нажато «Спокойной ночи»",
+      "placeholders": []
+    },
+    "night_end": {
+      "description": "Закончилась заставка ночи",
+      "placeholders": []
+    }
+  },
+  "phrases": [
+    {
+      "id": "greeting_default",
+      "category": "greeting",
+      "trigger": "app_open",
+      "priority": 3,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Привет! У меня есть план на сегодня!",
+        "robot": "Бип-бип! Привет! Мой датчик радости мигает!",
+        "puppy": "Ура, ты здесь! Гав!",
+        "dragon": "Привет! Сегодня летим ещё ближе к мечте!"
+      },
+      "tts": true
+    },
+    {
+      "id": "greeting_morning",
+      "category": "greeting",
+      "trigger": "app_open",
+      "condition": {
+        "timeOfDay": "morning"
+      },
+      "priority": 4,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Доброе утро! Есть идея, чем заняться.",
+        "robot": "Доброе утро! Шестерёнки проснулись и улыбаются.",
+        "puppy": "Доброе утро! Утро — самое весёлое время!",
+        "dragon": "Доброе утро! Солнце встало — пора в полёт!"
+      },
+      "tts": true
+    },
+    {
+      "id": "greeting_evening",
+      "category": "greeting",
+      "trigger": "app_open",
+      "condition": {
+        "timeOfDay": "evening"
+      },
+      "priority": 4,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Добрый вечер! Успеем ещё кое-что придумать.",
+        "robot": "Добрый вечер! Вместе — мой любимый режим.",
+        "puppy": "Добрый вечер! Поиграем перед сном?",
+        "dragon": "Добрый вечер! Вечером мечтается лучше всего."
+      },
+      "tts": true
+    },
+    {
+      "id": "greeting_new_day",
+      "category": "greeting",
+      "trigger": "day_started",
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Новый день — и {income} {coin}! Есть идея!",
+        "robot": "Бип! Пришло {income} {coin}. Датчик радости мигает!",
+        "puppy": "Ура! У нас {income} {coin}! Гав-гав!",
+        "dragon": "Новый день и {income} {coin}. Куда полетим?"
+      },
+      "tts": false
+    },
+    {
+      "id": "greeting_goal_close",
+      "category": "greeting",
+      "trigger": "app_open",
+      "condition": {
+        "goalProgressAtLeastPercent": 75
+      },
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "До {goalGenitive} совсем чуть-чуть! Хитро копим!",
+        "robot": "До {goalGenitive} совсем немного. Шестерёнки танцуют!",
+        "puppy": "До {goalGenitive} чуть-чуть! Ура-ура!",
+        "dragon": "Мечта близко: до {goalGenitive} совсем немного!"
+      },
+      "tts": false
+    },
+    {
+      "id": "greeting_low_satiety",
+      "category": "greeting",
+      "trigger": "app_open",
+      "condition": {
+        "statLow": "satiety"
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "calm",
+      "templates": {
+        "fox": "Может, начнём день с обеда?",
+        "robot": "Заряд сытости низкий. Пообедаем вместе?",
+        "puppy": "А давай сначала покушаем?",
+        "dragon": "Даже драконам нужен обед. Перекусим?"
+      },
+      "tts": true
+    },
+    {
+      "id": "greeting_low_care",
+      "category": "greeting",
+      "trigger": "app_open",
+      "condition": {
+        "statLow": "care"
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "calm",
+      "templates": {
+        "fox": "Хочется умыться и прибраться. Поможешь?",
+        "robot": "Бип… Хочется помыться до блеска. Поможешь?",
+        "puppy": "Хочу купаться! Устроим мытьё?",
+        "dragon": "Хочется умыться и навести порядок. Поможешь?"
+      },
+      "tts": true
+    },
+    {
+      "id": "greeting_cozy_room",
+      "category": "greeting",
+      "trigger": "app_open",
+      "condition": {
+        "cozyLevelAtLeast": 2
+      },
+      "priority": 2,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Посмотри, какая у нас уютная комната!",
+        "robot": "Комната уютная. Мой датчик тепла доволен!",
+        "puppy": "Какой у нас дом! Самый лучший!",
+        "dragon": "Наш дом — как замок из сказки!"
+      },
+      "tts": true
+    },
+    {
+      "id": "purchase_food",
+      "category": "purchase",
+      "trigger": "purchase_done",
+      "condition": {
+        "itemId": "food"
+      },
+      "priority": 5,
+      "cooldownSec": 60,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Ням! Еда на день — это первым делом.",
+        "robot": "Ням-бип! Заряд сытости полный. Спасибо!",
+        "puppy": "Ням-ням! Самый вкусный обед!",
+        "dragon": "Ммм! Драконы тоже любят обедать вовремя."
+      },
+      "tts": true
+    },
+    {
+      "id": "purchase_care",
+      "category": "purchase",
+      "trigger": "purchase_done",
+      "condition": {
+        "itemGroup": [
+          "water_light",
+          "cleaning"
+        ]
+      },
+      "priority": 5,
+      "cooldownSec": 60,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Чисто и светло! Так гораздо лучше.",
+        "robot": "Бип! Всё блестит. Датчик чистоты сияет!",
+        "puppy": "Чистота! Ура! Теперь можно обниматься!",
+        "dragon": "Всё сверкает, как драконья чешуя!"
+      },
+      "tts": true
+    },
+    {
+      "id": "purchase_snack",
+      "category": "purchase",
+      "trigger": "purchase_done",
+      "condition": {
+        "itemGroup": "snack"
+      },
+      "priority": 4,
+      "cooldownSec": 60,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Вкуснятина! Маленькая радость — это приятно.",
+        "robot": "Ням! Датчик вкуса мигает всеми огоньками!",
+        "puppy": "Ням! Вкусно-вкусно! Спасибо!",
+        "dragon": "Ммм, лакомство! Вкусно, как в сказке."
+      },
+      "tts": true
+    },
+    {
+      "id": "purchase_accessory",
+      "category": "purchase",
+      "trigger": "purchase_done",
+      "condition": {
+        "itemKind": "accessory"
+      },
+      "priority": 4,
+      "cooldownSec": 60,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Как мне идёт? По-моему, очень!",
+        "robot": "Бип! Стиль обновлён. Мне очень нравится!",
+        "puppy": "Ух ты, обновка! Красота-красота!",
+        "dragon": "Нарядно! Можно лететь на праздник!"
+      },
+      "tts": true
+    },
+    {
+      "id": "purchase_furniture",
+      "category": "purchase",
+      "trigger": "purchase_done",
+      "condition": {
+        "itemKind": "furniture"
+      },
+      "priority": 4,
+      "cooldownSec": 60,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Куда поставим? У меня есть идея!",
+        "robot": "Новая вещь на месте. Датчик уюта теплеет!",
+        "puppy": "Ура! В комнате стало ещё лучше!",
+        "dragon": "Наш дом становится всё уютнее!"
+      },
+      "tts": true
+    },
+    {
+      "id": "purchase_wallpaper",
+      "category": "purchase",
+      "trigger": "purchase_done",
+      "condition": {
+        "itemKind": "wallpaper"
+      },
+      "priority": 4,
+      "cooldownSec": 60,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Новые обои! Комната прямо другая.",
+        "robot": "Бип! Стены обновлены. Красиво!",
+        "puppy": "Ух ты, какие стены! Гав!",
+        "dragon": "Стены как в волшебном замке!"
+      },
+      "tts": true
+    },
+    {
+      "id": "purchase_toy",
+      "category": "purchase",
+      "trigger": "purchase_done",
+      "condition": {
+        "itemKind": "toy"
+      },
+      "priority": 4,
+      "cooldownSec": 60,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Новая игрушка! Будем играть каждый день.",
+        "robot": "Игрушка! Шестерёнки прыгают от радости!",
+        "puppy": "Игрушка! Поиграем прямо сейчас?",
+        "dragon": "Игрушка-сокровище! Будет радовать каждый день."
+      },
+      "tts": true
+    },
+    {
+      "id": "not_enough_money",
+      "category": "purchase",
+      "trigger": "purchase_not_enough",
+      "priority": 8,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Ой! Не хватает {gap} {coin}. Есть идея — придумаем?",
+        "robot": "Не хватает {gap} {coin}. Вместе найдём выход!",
+        "puppy": "Не хватает {gap} {coin}. Ничего, подождём вместе!",
+        "dragon": "Ещё {gap} {coin} — и получится! Придумаем как?"
+      },
+      "action": {
+        "label": "Что сделаем?",
+        "route": "not_enough_options"
+      },
+      "tts": false
+    },
+    {
+      "id": "purchase_postponed",
+      "category": "purchase",
+      "trigger": "purchase_postponed",
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "calm",
+      "templates": {
+        "fox": "Отложили на завтра. Никуда не денется!",
+        "robot": "Бип! Записано в список желаний. Подождём вместе.",
+        "puppy": "Подождём до завтра! Я умею ждать.",
+        "dragon": "Мечта подождёт. Она никуда не улетит!"
+      },
+      "tts": true
+    },
+    {
+      "id": "purchase_last_coins",
+      "category": "purchase",
+      "trigger": "purchase_done",
+      "condition": {
+        "balanceAfter": 0
+      },
+      "priority": 3,
+      "cooldownSec": 0,
+      "emotion": "calm",
+      "templates": {
+        "fox": "Все монеты в деле. Завтра придут новые!",
+        "robot": "Кошелёк пуст. Завтра пополнение. Всё по плану!",
+        "puppy": "Монетки закончились. Завтра будут новые!",
+        "dragon": "Все монеты потрачены. Завтра новые прилетят!"
+      },
+      "tts": true
+    },
+    {
+      "id": "shop_open_hint",
+      "category": "purchase",
+      "trigger": "shop_open",
+      "priority": 2,
+      "cooldownSec": 300,
+      "emotion": "think",
+      "templates": {
+        "fox": "Сначала обязательное, а потом посмотрим остальное?",
+        "robot": "Мой совет: сначала обязательное. Так надёжнее!",
+        "puppy": "Сначала еда и чистота, а потом игрушки!",
+        "dragon": "Сначала важное, потом мечты. Договорились?"
+      },
+      "tts": true
+    },
+    {
+      "id": "task_start",
+      "category": "task_hint",
+      "trigger": "task_start",
+      "priority": 3,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Новое задание! Тут наверняка есть хитрость.",
+        "robot": "Бип! Задачка! Мои шестерёнки уже крутятся.",
+        "puppy": "Задание! Ура! Давай вместе!",
+        "dragon": "Новое приключение! Полетели разбираться."
+      },
+      "tts": true
+    },
+    {
+      "id": "task_try_again",
+      "category": "task_hint",
+      "trigger": "task_wrong",
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "sympathy",
+      "templates": {
+        "fox": "Хм, тут есть хитрость. Давай посмотрим вместе!",
+        "robot": "Бывает! Проверим вместе, шаг за шагом.",
+        "puppy": "Ничего страшного! Давай попробуем ещё разок?",
+        "dragon": "Даже драконы не сразу учатся летать. Ещё раз?"
+      },
+      "tts": true
+    },
+    {
+      "id": "task_wrong_again",
+      "category": "task_hint",
+      "trigger": "task_wrong",
+      "condition": {
+        "attemptAtLeast": 2
+      },
+      "priority": 8,
+      "cooldownSec": 0,
+      "emotion": "sympathy",
+      "templates": {
+        "fox": "Давай вместе. Я подскажу первый шаг!",
+        "robot": "Я рядом. Разберём по шагам, вместе.",
+        "puppy": "Я помогу! Вместе точно получится!",
+        "dragon": "Полетим вместе. Первый шаг подскажу!"
+      },
+      "action": {
+        "label": "Подсказка",
+        "route": "task_hint"
+      },
+      "tts": true
+    },
+    {
+      "id": "task_almost",
+      "category": "task_hint",
+      "trigger": "task_wrong",
+      "condition": {
+        "almostCorrect": true
+      },
+      "priority": 9,
+      "cooldownSec": 0,
+      "emotion": "sympathy",
+      "templates": {
+        "fox": "Почти всё! Осталось совсем чуть-чуть.",
+        "robot": "Почти идеально! Осталась одна деталь.",
+        "puppy": "Почти-почти! Ещё капельку!",
+        "dragon": "Почти долетели! Остался последний взмах."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_sort",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "SORT"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Хитрость: можно ли без этого прожить день?",
+        "robot": "Вопрос-помощник: без этого можно обойтись?",
+        "puppy": "Спроси себя: без этого можно прожить?",
+        "dragon": "Подумай: без этого можно прожить день?"
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_basket",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "BASKET"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Сначала всё из списка, потом желания.",
+        "robot": "Порядок такой: список, потом остаток. Надёжно!",
+        "puppy": "Сначала список! А потом посмотрим остаток.",
+        "dragon": "Сначала важное из списка, потом мечты."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_distribute",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "DISTRIBUTE"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Начни с обязательного, потом — копилка.",
+        "robot": "Бип-совет: сначала обязательное, потом копилка.",
+        "puppy": "Сначала обязательное! Потом копилка!",
+        "dragon": "Сначала обязательное, потом — в сокровищницу."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_choice",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "CHOICE"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Хитрость простая: сложи цены и сравни.",
+        "robot": "Сложим цены и сравним с остатком. Легко!",
+        "puppy": "Давай сложим цены вместе!",
+        "dragon": "Сложи цены — и всё станет ясно."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_coins",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "COINS"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Начни с самой большой подходящей монетки.",
+        "robot": "Сначала крупная монетка, потом мелкие. Проверено!",
+        "puppy": "Возьми сначала самую большую монетку!",
+        "dragon": "Большая монетка первой, мелкие — следом."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_order",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "ORDER"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Сравни две соседние карточки. Что главнее?",
+        "robot": "Сравним соседей по двое. Так проще!",
+        "puppy": "Посмотри на две карточки рядом!",
+        "dragon": "Сравни две соседние — и всё выстроится."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_week",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "WEEK"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Посмотри, в какой день будет трата.",
+        "robot": "Найдём день с тратой. Проверим кошелёк там.",
+        "puppy": "А какой день с подарком? Посмотрим!",
+        "dragon": "Сначала найди день траты на ленте."
+      },
+      "tts": true
+    },
+    {
+      "id": "task_reward_first_try",
+      "category": "task_hint",
+      "trigger": "task_done",
+      "condition": {
+        "firstTry": true
+      },
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "С первого раза! Держи {reward} {coin}.",
+        "robot": "С первой попытки! Держи {reward} {coin}. Бип-бип!",
+        "puppy": "С первого раза! Ура! Держи {reward} {coin}!",
+        "dragon": "С первого взмаха! Держи {reward} {coin}."
+      },
+      "tts": false
+    },
+    {
+      "id": "task_reward_after_tries",
+      "category": "task_hint",
+      "trigger": "task_done",
+      "condition": {
+        "firstTry": false
+      },
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "Разобрались! Держи {reward} {coin}.",
+        "robot": "Получилось! Держи {reward} {coin}. Датчик гордости мигает!",
+        "puppy": "Получилось! Держи {reward} {coin}! Гав!",
+        "dragon": "Долетели! Держи {reward} {coin}."
+      },
+      "tts": false
+    },
+    {
+      "id": "task_none_left",
+      "category": "task_hint",
+      "trigger": "tasks_screen_open",
+      "condition": {
+        "tasksLeftToday": 0
+      },
+      "priority": 2,
+      "cooldownSec": 0,
+      "emotion": "calm",
+      "templates": {
+        "fox": "На сегодня задания закончились. Завтра будет новое!",
+        "robot": "Задания на сегодня выполнены. Завтра новое!",
+        "puppy": "Всё сделали! Завтра будет новое задание!",
+        "dragon": "На сегодня всё. Завтра новое приключение!"
+      },
+      "tts": true
+    },
+    {
+      "id": "task_correct_explain",
+      "category": "task_hint",
+      "trigger": "task_correct",
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Верно! А теперь самое хитрое — почему так.",
+        "robot": "Верно! Послушай, почему так получилось.",
+        "puppy": "Верно! Ура! Послушай, почему так!",
+        "dragon": "Верно! А почему так — сейчас расскажу."
+      },
+      "tts": true
+    },
+    {
+      "id": "event_new",
+      "category": "event",
+      "trigger": "event_start",
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "surprised",
+      "templates": {
+        "fox": "Ого, новость! Сейчас что-нибудь придумаем.",
+        "robot": "Бип! Новое событие! Разберёмся вместе.",
+        "puppy": "Ой, что там? Пойдём посмотрим!",
+        "dragon": "Приключение! Посмотрим, что нас ждёт."
+      },
+      "tts": true
+    },
+    {
+      "id": "event_doctor",
+      "category": "event",
+      "trigger": "event_start",
+      "condition": {
+        "eventId": "doctor"
+      },
+      "priority": 9,
+      "cooldownSec": 0,
+      "emotion": "calm",
+      "templates": {
+        "fox": "Доктор посмотрел лапку. Уже всё хорошо!",
+        "robot": "Доктор проверил лапку. Всё в порядке!",
+        "puppy": "Доктор помог! Лапка как новая!",
+        "dragon": "Доктор посмотрел лапку. Можно снова летать!"
+      },
+      "tts": true
+    },
+    {
+      "id": "event_friend_birthday",
+      "category": "event",
+      "trigger": "event_start",
+      "condition": {
+        "eventId": "friend_birthday"
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "У друга праздник! Выберем подарок?",
+        "robot": "У друга день рождения! Выберем подарок вместе?",
+        "puppy": "У друга праздник! Подарим что-нибудь?",
+        "dragon": "У друга день рождения! Придумаем подарок?"
+      },
+      "tts": true
+    },
+    {
+      "id": "event_rain",
+      "category": "event",
+      "trigger": "event_start",
+      "condition": {
+        "eventId": "rain"
+      },
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "surprised",
+      "templates": {
+        "fox": "Ого, дождь! Хорошо, что есть крыша.",
+        "robot": "Капли на сенсорах! Дождь. Посидим дома?",
+        "puppy": "Дождик! Кап-кап! Поиграем дома?",
+        "dragon": "Дождь! Даже драконы любят посидеть дома."
+      },
+      "tts": true
+    },
+    {
+      "id": "event_found_coins",
+      "category": "event",
+      "trigger": "event_start",
+      "condition": {
+        "eventId": "found_coins"
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "surprised",
+      "templates": {
+        "fox": "Ого, в кармане {amount} {coin}! Куда их?",
+        "robot": "Бип! Найдено {amount} {coin}. Приятный сюрприз!",
+        "puppy": "Ура! Нашли {amount} {coin}! Гав!",
+        "dragon": "Нашлось {amount} {coin}! Маленькое сокровище!"
+      },
+      "tts": false
+    },
+    {
+      "id": "event_broken",
+      "category": "event",
+      "trigger": "event_start",
+      "condition": {
+        "eventId": "broken_bulb"
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Ой, лампочка перегорела. Нужна новая.",
+        "robot": "Бип! Лампочка погасла. Нужна замена.",
+        "puppy": "Ой, лампочка погасла! Купим новую?",
+        "dragon": "Лампочка погасла. Без света не помечтать!"
+      },
+      "tts": true
+    },
+    {
+      "id": "event_ad",
+      "category": "event",
+      "trigger": "event_start",
+      "condition": {
+        "eventId": "ad"
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Яркая реклама! Но сначала подумаем: нам нужно?",
+        "robot": "Реклама громкая. Проверим: это нам нужно?",
+        "puppy": "Ой, как ярко! А нам это правда нужно?",
+        "dragon": "Реклама сверкает. Но это наша мечта?"
+      },
+      "tts": true
+    },
+    {
+      "id": "event_holiday",
+      "category": "event",
+      "trigger": "event_start",
+      "condition": {
+        "eventId": "holiday"
+      },
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Сегодня праздник! Устроим маленькое веселье?",
+        "robot": "Праздник! Включаю весёлый режим!",
+        "puppy": "Праздник! Ура-ура! Будем веселиться!",
+        "dragon": "Праздник! Летим веселиться!"
+      },
+      "tts": true
+    },
+    {
+      "id": "event_resolved",
+      "category": "event",
+      "trigger": "event_resolved",
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Разобрались! Хорошо, что подумали вместе.",
+        "robot": "Готово! Вместе у нас всё получается.",
+        "puppy": "Всё получилось! Вместе — здорово!",
+        "dragon": "Разобрались! Вместе мы — сила."
+      },
+      "tts": true
+    },
+    {
+      "id": "event_skipped",
+      "category": "event",
+      "trigger": "event_skipped",
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "calm",
+      "templates": {
+        "fox": "Решили не тратить — это тоже вариант!",
+        "robot": "Решили не тратить. Так тоже можно.",
+        "puppy": "Не тратим — и ладно! Так тоже можно!",
+        "dragon": "Решили сберечь монеты. Так тоже можно!"
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_plan_kept",
+      "category": "praise",
+      "trigger": "day_summary",
+      "condition": {
+        "planFollowed": true
+      },
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "Всё как задумали! План сработал.",
+        "robot": "План и факт совпали! Датчик радости сияет!",
+        "puppy": "Ура-ура! Всё получилось, как хотели!",
+        "dragon": "Точно по плану! Сокровищница мечты растёт."
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_mandatory_paid",
+      "category": "praise",
+      "trigger": "day_summary",
+      "condition": {
+        "mandatoryPaid": true
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Всё обязательное есть. Можно спать спокойно!",
+        "robot": "Обязательное оплачено. Датчик спокойствия светится!",
+        "puppy": "Всё нужное есть! Спасибо!",
+        "dragon": "Всё важное сделано. Можно мечтать дальше!"
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_saved",
+      "category": "praise",
+      "trigger": "savings_deposit",
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "В копилке плюс {amount} {coin}! Отличная идея.",
+        "robot": "Плюс {amount} {coin} в копилку. Красота!",
+        "puppy": "Плюс {amount} {coin} в копилку! Ура!",
+        "dragon": "Плюс {amount} {coin} в сокровищницу мечты!"
+      },
+      "tts": false
+    },
+    {
+      "id": "praise_goal_25",
+      "category": "praise",
+      "trigger": "goal_milestone",
+      "condition": {
+        "milestone": 25
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Четверть пути позади! Хитро копим.",
+        "robot": "Четверть пути! Шестерёнки танцуют!",
+        "puppy": "Четверть пути! Ура-ура-ура!",
+        "dragon": "Четверть пути до мечты позади!"
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_goal_50",
+      "category": "praise",
+      "trigger": "goal_milestone",
+      "condition": {
+        "milestone": 50
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Половина есть! Вторая пойдёт быстрее.",
+        "robot": "Половина! Шестерёнки крутятся от счастья!",
+        "puppy": "Уже половина! Гав-гав!",
+        "dragon": "Половина пути! Мечта уже машет крылом."
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_goal_75",
+      "category": "praise",
+      "trigger": "goal_milestone",
+      "condition": {
+        "milestone": 75
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Совсем чуть-чуть осталось! Почти у цели.",
+        "robot": "Ещё капельку — и готово! Бип!",
+        "puppy": "Совсем-совсем чуть-чуть осталось!",
+        "dragon": "Мечта уже видна на горизонте!"
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_goal_reached",
+      "category": "praise",
+      "trigger": "goal_reached",
+      "priority": 10,
+      "cooldownSec": 0,
+      "emotion": "celebrate",
+      "templates": {
+        "fox": "Мы накопили! Вот это план!",
+        "robot": "Цель достигнута! Сердечный модуль сияет!",
+        "puppy": "Ура! Мечта сбылась! Гав-гав-гав!",
+        "dragon": "Мечта сбылась! Она теперь наша навсегда!"
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_stage_up",
+      "category": "praise",
+      "trigger": "stage_up",
+      "priority": 10,
+      "cooldownSec": 0,
+      "emotion": "celebrate",
+      "templates": {
+        "fox": "Ого, я теперь больше! Смотри!",
+        "robot": "Бип! Обновление роста! Смотри, какой размер!",
+        "puppy": "Смотри-смотри, я теперь больше! Ура!",
+        "dragon": "Крылья стали больше! Смотри!"
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_title",
+      "category": "praise",
+      "trigger": "title_earned",
+      "priority": 9,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "Новое звание: «{title}»! Заслуженно.",
+        "robot": "Новое звание: «{title}»! Датчик гордости сияет!",
+        "puppy": "Новое звание: «{title}»! Ура!",
+        "dragon": "Новое звание: «{title}»! Вот это полёт!"
+      },
+      "tts": false
+    },
+    {
+      "id": "praise_saving_streak",
+      "category": "praise",
+      "trigger": "day_summary",
+      "condition": {
+        "savingStreakAtLeast": 3
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "{days} {day} подряд копим! Отличная привычка.",
+        "robot": "{days} {day} подряд в копилку! Отличный ритм!",
+        "puppy": "{days} {day} подряд копим! Ура!",
+        "dragon": "{days} {day} подряд копим на мечту!"
+      },
+      "tts": false
+    },
+    {
+      "id": "praise_task_first_try",
+      "category": "praise",
+      "trigger": "task_done",
+      "condition": {
+        "firstTry": true
+      },
+      "priority": 4,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "С первого раза! Хитро придумано.",
+        "robot": "С первого раза! Мои датчики аплодируют!",
+        "puppy": "С первого раза! Ты молодец!",
+        "dragon": "С первого раза, как настоящий дракон!"
+      },
+      "tts": true
+    },
+    {
+      "id": "praise_cozy_level",
+      "category": "praise",
+      "trigger": "cozy_level_up",
+      "priority": 8,
+      "cooldownSec": 0,
+      "emotion": "celebrate",
+      "templates": {
+        "fox": "Дом стал уютнее: «{title}»!",
+        "robot": "Уют растёт! Теперь у нас «{title}». Тепло!",
+        "puppy": "Ура! Теперь у нас «{title}»!",
+        "dragon": "Наш дом теперь — «{title}»!"
+      },
+      "tts": false
+    },
+    {
+      "id": "planner_open",
+      "category": "planner",
+      "trigger": "planner_open",
+      "priority": 3,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Распределим монеты? У меня есть идея!",
+        "robot": "Время планировать! Мои любимые числа.",
+        "puppy": "Разложим монетки? Давай вместе!",
+        "dragon": "Распределим монеты: на нужное, желаемое и мечту."
+      },
+      "tts": true
+    },
+    {
+      "id": "planner_forecast",
+      "category": "planner",
+      "trigger": "plan_changed",
+      "condition": {
+        "hasGoal": true,
+        "savingsPlanned": true
+      },
+      "priority": 4,
+      "cooldownSec": 3,
+      "emotion": "think",
+      "templates": {
+        "fox": "Если так, до {goalGenitive} — {days} {day}. Хитро!",
+        "robot": "Считаю: до {goalGenitive} {days} {day}. Интересно!",
+        "puppy": "Так до {goalGenitive} — {days} {day}. Считаем вместе!",
+        "dragon": "До {goalGenitive} — {days} {day} полёта!"
+      },
+      "tts": false
+    },
+    {
+      "id": "planner_mandatory_short",
+      "category": "planner",
+      "trigger": "plan_changed",
+      "condition": {
+        "mandatoryShort": true
+      },
+      "priority": 6,
+      "cooldownSec": 5,
+      "emotion": "think",
+      "templates": {
+        "fox": "На обязательное не хватит {gap} {coin}. Подумаем?",
+        "robot": "На обязательное не хватает {gap} {coin}. Проверим?",
+        "puppy": "На обязательное не хватает {gap} {coin}. Посмотрим?",
+        "dragon": "На обязательное не хватит {gap} {coin}. Подумаем?"
+      },
+      "tts": false
+    },
+    {
+      "id": "planner_nothing_saved",
+      "category": "planner",
+      "trigger": "plan_changed",
+      "condition": {
+        "hasGoal": true,
+        "savingsPlanned": false
+      },
+      "priority": 5,
+      "cooldownSec": 5,
+      "emotion": "calm",
+      "templates": {
+        "fox": "Копилка сегодня отдыхает. Цель подождёт денёк.",
+        "robot": "В копилку ноль. Цель сдвинется на день.",
+        "puppy": "Копилка сегодня пустая. Цель чуть подождёт!",
+        "dragon": "Сегодня без сокровищ. Мечта подождёт денёк."
+      },
+      "tts": true
+    },
+    {
+      "id": "planner_remainder",
+      "category": "planner",
+      "trigger": "plan_changed",
+      "condition": {
+        "remainderPositive": true
+      },
+      "priority": 3,
+      "cooldownSec": 5,
+      "emotion": "think",
+      "templates": {
+        "fox": "Осталось {remainder} {coin}. Куда их отправим?",
+        "robot": "Ещё {remainder} {coin} без дела. Найдём им место?",
+        "puppy": "Ещё {remainder} {coin} ждут! Куда их?",
+        "dragon": "Ещё {remainder} {coin}. Куда полетят?"
+      },
+      "tts": false
+    },
+    {
+      "id": "planner_all_distributed",
+      "category": "planner",
+      "trigger": "plan_changed",
+      "condition": {
+        "remainderPositive": false
+      },
+      "priority": 3,
+      "cooldownSec": 5,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Все монеты при деле!",
+        "robot": "Все монеты распределены. Порядок!",
+        "puppy": "Все монетки на своих местах! Ура!",
+        "dragon": "Каждая монета знает, куда лететь!"
+      },
+      "tts": true
+    },
+    {
+      "id": "planner_confirmed",
+      "category": "planner",
+      "trigger": "plan_confirmed",
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "proud",
+      "templates": {
+        "fox": "План готов! Посмотрим, как получится.",
+        "robot": "План сохранён! Интересно, как пойдёт.",
+        "puppy": "План готов! Ура! Поехали!",
+        "dragon": "План готов! Взлетаем!"
+      },
+      "tts": true
+    },
+    {
+      "id": "planner_no_goal",
+      "category": "planner",
+      "trigger": "planner_open",
+      "condition": {
+        "hasGoal": false
+      },
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Выберем цель? С мечтой копить интереснее!",
+        "robot": "Копить интереснее с целью. Выберем?",
+        "puppy": "Давай выберем мечту! Так веселее копить!",
+        "dragon": "Без мечты не взлетишь. Выберем цель?"
+      },
+      "action": {
+        "label": "Выбрать цель",
+        "route": "goals"
+      },
+      "tts": true
+    },
+    {
+      "id": "return_after_pause",
+      "category": "return",
+      "trigger": "app_open_after_pause",
+      "priority": 7,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Снова вместе! Всё на месте, как было.",
+        "robot": "Снова вместе! Всё сохранено. Как хорошо!",
+        "puppy": "Ура-ура, снова вместе! Всё на месте!",
+        "dragon": "Снова вместе! Все сокровища на месте."
+      },
+      "tts": true
+    },
+    {
+      "id": "return_long",
+      "category": "return",
+      "trigger": "app_open_after_pause",
+      "condition": {
+        "daysAwayAtLeast": 3
+      },
+      "priority": 8,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Как здорово, что ты снова здесь! Всё цело.",
+        "robot": "Сердечный модуль потеплел! Всё на месте.",
+        "puppy": "Ура! Снова вместе! Обнимашки!",
+        "dragon": "Снова вместе! Мечта терпеливо ждала."
+      },
+      "tts": true
+    },
+    {
+      "id": "return_login_bonus",
+      "category": "return",
+      "trigger": "daily_login",
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Новый день вместе! Настроение уже лучше.",
+        "robot": "Новые сутки! Датчик настроения плюс пять!",
+        "puppy": "Новый день! Ура-ура, как здорово!",
+        "dragon": "Новый день вместе — уже праздник!"
+      },
+      "tts": true
+    },
+    {
+      "id": "return_same_day",
+      "category": "return",
+      "trigger": "app_resume",
+      "priority": 2,
+      "cooldownSec": 600,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Продолжим с того же места?",
+        "robot": "Бип! Продолжаем с того же места.",
+        "puppy": "Ура, продолжаем!",
+        "dragon": "Продолжим полёт!"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_piggy",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "priority": 1,
+      "cooldownSec": 120,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Может, заглянем в копилку? Там интересно!",
+        "robot": "Заглянем в копилку? Люблю считать монетки.",
+        "puppy": "Пойдём посмотрим копилку?",
+        "dragon": "Заглянем в сокровищницу мечты?"
+      },
+      "action": {
+        "label": "Копилка",
+        "route": "savings"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_pet_me",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "priority": 1,
+      "cooldownSec": 120,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Можно погладить меня по голове!",
+        "robot": "Погладишь? Датчик нежности уже мигает!",
+        "puppy": "Хочешь, поиграем? Можно погладить меня!",
+        "dragon": "Можно погладить. Драконы тоже любят!"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_task",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "condition": {
+        "tasksLeftToday": {
+          "min": 1
+        }
+      },
+      "priority": 2,
+      "cooldownSec": 180,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Есть задание! Разгадаем хитрость?",
+        "robot": "Задачка ждёт! Мои шестерёнки уже крутятся.",
+        "puppy": "Есть задание! Поиграем?",
+        "dragon": "Задание ждёт! Полетели?"
+      },
+      "action": {
+        "label": "Задания",
+        "route": "tasks"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_room",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "priority": 1,
+      "cooldownSec": 180,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Заглянем в комнату? Там уютно.",
+        "robot": "Заглянем в комнату? Датчик уюта зовёт.",
+        "puppy": "Пойдём в комнату! Там здорово!",
+        "dragon": "Заглянем в наш замок?"
+      },
+      "action": {
+        "label": "Комната",
+        "route": "room"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_glossary",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "priority": 1,
+      "cooldownSec": 300,
+      "emotion": "think",
+      "templates": {
+        "fox": "Хочешь узнать новое хитрое слово?",
+        "robot": "В словаре есть интересные слова. Посмотрим?",
+        "puppy": "Хочешь новое слово? Интересное!",
+        "dragon": "Хочешь узнать слово из мира монет?"
+      },
+      "action": {
+        "label": "Словарик",
+        "route": "glossary"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_dream",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "priority": 1,
+      "cooldownSec": 300,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Интересно, что будет в комнате потом?",
+        "robot": "А я иногда мечтаю о телескопе.",
+        "puppy": "А я мечтаю про большой мячик!",
+        "dragon": "Хочешь, расскажу про свою мечту?"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_joke",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "priority": 1,
+      "cooldownSec": 600,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Почему монетка круглая? Чтобы катиться в копилку!",
+        "robot": "Шутка: монетка круглая, чтобы катиться в копилку!",
+        "puppy": "Почему монетка круглая? Катиться в копилку!",
+        "dragon": "Монетка круглая, чтобы катиться в сокровищницу!"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_wardrobe",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "condition": {
+        "ownsAccessory": true
+      },
+      "priority": 1,
+      "cooldownSec": 300,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Примерим что-нибудь? У меня есть идея.",
+        "robot": "Примерим обновки? Включаю модный режим!",
+        "puppy": "Давай наряжаться! Ура!",
+        "dragon": "Примерим наряд для полёта?"
+      },
+      "action": {
+        "label": "Гардероб",
+        "route": "wardrobe"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_plan",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "priority": 2,
+      "cooldownSec": 300,
+      "emotion": "think",
+      "templates": {
+        "fox": "Заглянем в план на сегодня?",
+        "robot": "Проверим план? Я люблю порядок.",
+        "puppy": "Посмотрим план вместе?",
+        "dragon": "Сверимся с картой полёта — планом дня?"
+      },
+      "action": {
+        "label": "План",
+        "route": "plan"
+      },
+      "tts": true
+    },
+    {
+      "id": "idle_stretch",
+      "category": "idle",
+      "trigger": "idle_30s",
+      "priority": 1,
+      "cooldownSec": 300,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Потянусь-потянусь… Ой, как хорошо!",
+        "robot": "Потягушки! Все шарниры довольны.",
+        "puppy": "Потя-я-ягушки! Гав!",
+        "dragon": "Расправлю крылышки… Ох, как хорошо!"
+      },
+      "tts": true
+    },
+    {
+      "id": "bedtime",
+      "category": "bedtime",
+      "trigger": "can_close_day",
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "sleepy",
+      "templates": {
+        "fox": "Глазки закрываются… Пойдём спать?",
+        "robot": "Батарейка садится. Пора в спящий режим?",
+        "puppy": "Зеваю-зеваю… Пойдём спать?",
+        "dragon": "Пора в страну снов. Полетели спать?"
+      },
+      "action": {
+        "label": "Спокойной ночи",
+        "route": "close_day"
+      },
+      "tts": true
+    },
+    {
+      "id": "bedtime_unpaid",
+      "category": "bedtime",
+      "trigger": "close_day_requested",
+      "condition": {
+        "mandatoryUnpaid": "food"
+      },
+      "priority": 9,
+      "cooldownSec": 0,
+      "emotion": "calm",
+      "templates": {
+        "fox": "Сегодня без еды. Уложим так или сходим?",
+        "robot": "Еду сегодня не купили. Спать или сходим?",
+        "puppy": "Еды сегодня не было. Спать или покушаем?",
+        "dragon": "Сегодня без обеда. Спать или сходим за едой?"
+      },
+      "tts": true
+    },
+    {
+      "id": "good_morning_after_sleep",
+      "category": "bedtime",
+      "trigger": "night_end",
+      "priority": 6,
+      "cooldownSec": 0,
+      "emotion": "happy",
+      "templates": {
+        "fox": "Доброе утро! Выспались — и новые идеи!",
+        "robot": "Перезагрузка завершена! Доброе утро!",
+        "puppy": "Доброе утро! Как сладко спалось!",
+        "dragon": "Доброе утро! Снились полёты и мечты."
+      },
+      "tts": true
+    }
+  ]
+}
