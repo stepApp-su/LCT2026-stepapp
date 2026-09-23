@@ -167,8 +167,10 @@ void main() {
     });
 
     test('условие «не меньше» сравнивает, а не проверяет равенство', () {
-      final line = service().say('app_open', facts: {'goalProgress': 80});
+      final line = service().say('app_open',
+          facts: {'goalProgress': 80}, values: {'goalGenitive': 'самоката'});
       expect(line!.id, 'greeting_goal_close');
+      expect(line.textRu, contains('самоката'));
       expect(service().say('app_open', facts: {'goalProgress': 40})!.id,
           'greeting_default');
     });
