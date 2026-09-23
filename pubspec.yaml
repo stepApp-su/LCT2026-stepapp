@@ -23,3 +23,8 @@ flutter:
   assets:
     - assets/content/
     - assets/images/
+    - assets/pets/moni/
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito.ttf
