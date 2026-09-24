@@ -15,4 +15,5 @@ export 'profile.dart';
 export 'shop_catalog.dart';
 export 'stat_change.dart';
 export 'task_catalog.dart';
+export 'title_catalog.dart';
 export 'transaction.dart';

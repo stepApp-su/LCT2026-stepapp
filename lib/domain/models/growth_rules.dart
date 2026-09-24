@@ -100,16 +100,14 @@ final class GrowthTexts {
 final class GrowthRules {
   const GrowthRules._({
     required this.points,
-    required this.tolerancePercent,
-    required this.toleranceAtLeast,
+    required this.planTolerance,
     required this.thresholds,
     required this.texts,
   });
 
   factory GrowthRules.create({
     required Map<GrowthFactor, int> points,
-    required int tolerancePercent,
-    required int toleranceAtLeast,
+    required PlanTolerance planTolerance,
     required Map<PetStage, int> thresholds,
     required GrowthTexts texts,
   }) {
@@ -118,14 +116,6 @@ final class GrowthRules {
       if (value == null || value < 1) {
         throw ArgumentError.value(value, 'points.${factor.name}', '≥ 1');
       }
-    }
-    if (tolerancePercent < 0 || tolerancePercent > 100) {
-      throw ArgumentError.value(
-          tolerancePercent, 'planTolerance.percent', '0..100');
-    }
-    if (toleranceAtLeast < 0) {
-      throw ArgumentError.value(
-          toleranceAtLeast, 'planTolerance.atLeast', '≥ 0');
     }
     if (thresholds.containsKey(PetStage.egg)) {
       throw ArgumentError.value(
@@ -142,43 +132,35 @@ final class GrowthRules {
     }
     return GrowthRules._(
       points: Map.unmodifiable(points),
-      tolerancePercent: tolerancePercent,
-      toleranceAtLeast: toleranceAtLeast,
+      planTolerance: planTolerance,
       thresholds: Map.unmodifiable({PetStage.egg: 0, ...thresholds}),
       texts: texts,
     );
   }
 
-  factory GrowthRules.fromJson(Map<String, Object?> json) {
-    final tolerance = (json['planTolerance'] as Map).cast<String, Object?>();
-    return GrowthRules.create(
-      points: {
-        for (final e in (json['points'] as Map).entries)
-          GrowthFactor.values.byName(e.key as String): e.value as int
-      },
-      tolerancePercent: tolerance['percent'] as int,
-      toleranceAtLeast: tolerance['atLeast'] as int,
-      thresholds: {
-        for (final e in (json['stages'] as Map).entries)
-          PetStage.values.byName(e.key as String): e.value as int
-      },
-      texts:
-          GrowthTexts.fromJson((json['texts'] as Map).cast<String, Object?>()),
-    );
-  }
+  factory GrowthRules.fromJson(Map<String, Object?> json) => GrowthRules.create(
+        points: {
+          for (final e in (json['points'] as Map).entries)
+            GrowthFactor.values.byName(e.key as String): e.value as int
+        },
+        planTolerance: PlanTolerance.fromJson(
+            (json['planTolerance'] as Map).cast<String, Object?>()),
+        thresholds: {
+          for (final e in (json['stages'] as Map).entries)
+            PetStage.values.byName(e.key as String): e.value as int
+        },
+        texts: GrowthTexts.fromJson(
+            (json['texts'] as Map).cast<String, Object?>()),
+      );
 
   final Map<GrowthFactor, int> points;
-  final int tolerancePercent;
-  final int toleranceAtLeast;
+  final PlanTolerance planTolerance;
   final Map<PetStage, int> thresholds;
   final GrowthTexts texts;
 
   int get maxDailyPoints => points.values.fold(0, (sum, p) => sum + p);
 
-  int toleranceFor(int planned) {
-    final byPercent = (planned * tolerancePercent + 99) ~/ 100;
-    return byPercent > toleranceAtLeast ? byPercent : toleranceAtLeast;
-  }
+  int toleranceFor(int planned) => planTolerance.allowedFor(planned);
 
   PetStage stageFor(int growthPoints) {
     var stage = PetStage.egg;
