@@ -69,19 +69,12 @@ final class GrowthService {
 
   final GrowthRules rules;
 
-  Set<GrowthFactor> factorsOf(DayFacts facts) {
-    final plan = facts.plan;
-    return {
-      if (facts.mandatoryPaid) GrowthFactor.mandatoryPaid,
-      if (facts.planConfirmed && _followedPlan(facts))
-        GrowthFactor.followedPlan,
-      if (facts.planConfirmed &&
-          plan.savings > 0 &&
-          facts.deposited >= plan.savings)
-        GrowthFactor.savedAsPlanned,
-      if (facts.tasksDone > 0) GrowthFactor.taskDone,
-    };
-  }
+  Set<GrowthFactor> factorsOf(DayFacts facts) => {
+        if (facts.mandatoryPaid) GrowthFactor.mandatoryPaid,
+        if (facts.followsPlan(rules.planTolerance)) GrowthFactor.followedPlan,
+        if (facts.savedAsPlanned) GrowthFactor.savedAsPlanned,
+        if (facts.tasksDone > 0) GrowthFactor.taskDone,
+      };
 
   int pointsFor(Set<GrowthFactor> factors) =>
       factors.fold(0, (sum, factor) => sum + rules.points[factor]!);
@@ -149,20 +142,6 @@ final class GrowthService {
   String stageUpTitle(StageUp stageUp, {required String petName}) =>
       fillTemplate(
           rules.texts.stageUp, {'name': petName, 'stage': stageUp.stageLabel});
-
-  bool _followedPlan(DayFacts facts) {
-    final plan = facts.plan;
-    final acted = facts.spentMandatory + facts.spentOptional + facts.deposited;
-    return plan.distributed > 0 &&
-        acted > 0 &&
-        _within(plan.mandatory, facts.spentMandatory) &&
-        _within(plan.optional, facts.spentOptional) &&
-        (facts.deposited >= plan.savings ||
-            _within(plan.savings, facts.deposited));
-  }
-
-  bool _within(int planned, int actual) =>
-      (actual - planned).abs() <= rules.toleranceFor(planned);
 
   GrowthLine _line(GrowthFactor factor, bool met) {
     final points = rules.points[factor]!;

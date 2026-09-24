@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../domain/models.dart';
@@ -17,6 +18,7 @@ class ContentLoader {
   static const String competencesPath = 'assets/content/competences.json';
   static const String phrasesPath = 'assets/content/phrases.json';
   static const String economyPath = 'assets/content/economy.json';
+  static const String titlesPath = 'assets/content/titles.json';
   static const String testProfilePath = 'assets/content/test_profile.json';
 
   /// Старые триггеры экранов-заглушек -> триггеры банка реплик.
@@ -39,6 +41,16 @@ class ContentLoader {
     final raw = await rootBundle.loadString(economyPath);
     return domain.EconomyConfig.fromJson(
         (jsonDecode(raw) as Map).cast<String, Object?>());
+  }
+
+  Future<domain.TitleCatalog> loadTitleCatalog() async {
+    final raw = await rootBundle.loadString(titlesPath);
+    final catalog = domain.TitleCatalog.fromJson(
+        (jsonDecode(raw) as Map).cast<String, Object?>());
+    for (final problem in catalog.problems) {
+      debugPrint('$titlesPath: $problem');
+    }
+    return catalog;
   }
 
   Future<domain.Profile> loadTestProfile() async {

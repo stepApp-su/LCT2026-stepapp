@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "texts": {
+    "earned": "Новое звание: «{title}»!"
+  },
+  "titles": [
+    {
+      "id": "novice",
+      "title": "Новичок",
+      "description": "Начали учиться обращаться с деньгами.",
+      "iconId": "icon_title_novice",
+      "competenceId": "budget_idea",
+      "condition": { "type": "start" }
+    },
+    {
+      "id": "planner",
+      "title": "Планировщик",
+      "description": "{count} {day} составляли план на день.",
+      "iconId": "icon_title_planner",
+      "competenceId": "budget_make",
+      "attributeId": "attr_notebook",
+      "condition": { "type": "days", "count": 3, "marks": ["planMade"] }
+    },
+    {
+      "id": "saver",
+      "title": "Бережливый",
+      "description": "{count} {day} подряд откладывали в копилку.",
+      "iconId": "icon_title_saver",
+      "competenceId": "savings_regular",
+      "condition": { "type": "streak", "count": 5, "marks": ["saved"] }
+    },
+    {
+      "id": "shopping_expert",
+      "title": "Знаток покупок",
+      "description": "Прошли все задания темы «{theme}».",
+      "iconId": "icon_title_shopping_expert",
+      "competenceId": "plan_purchases",
+      "condition": { "type": "theme", "themeId": "payments" }
+    },
+    {
+      "id": "reserve_keeper",
+      "title": "Хранитель запаса",
+      "description": "Отложили запас на {count} {day} вперёд.",
+      "iconId": "icon_title_reserve_keeper",
+      "competenceId": "savings_over_impulse",
+      "attributeId": "attr_badge",
+      "condition": { "type": "reserve", "count": 2 }
+    },
+    {
+      "id": "dreamer",
+      "title": "Мечтатель",
+      "description": "Накопили и получили то, о чём мечтали.",
+      "iconId": "icon_title_dreamer",
+      "competenceId": "goal_short_term",
+      "attributeId": "attr_crown",
+      "condition": { "type": "goals", "count": 1 }
+    },
+    {
+      "id": "budget_master",
+      "title": "Мастер бюджета",
+      "description": "{count} {day} покупали нужное и держались своего плана.",
+      "iconId": "icon_title_budget_master",
+      "competenceId": "budget_calc_split",
+      "attributeId": "attr_medal",
+      "condition": {
+        "type": "days",
+        "count": 10,
+        "marks": ["mandatoryPaid", "onPlan"],
+        "planTolerance": { "percent": 10, "atLeast": 0, "roundUp": false }
+      }
+    },
+    {
+      "id": "mentor",
+      "title": "Наставник",
+      "description": "{count} {day} вместе учились обращаться с деньгами.",
+      "iconId": "icon_title_mentor",
+      "competenceId": "expenses_not_exceed",
+      "condition": { "type": "days", "count": 30, "marks": ["active"] }
+    }
+  ]
+}

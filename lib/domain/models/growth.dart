@@ -5,6 +5,64 @@ import 'transaction.dart';
 
 enum GrowthFactor { mandatoryPaid, followedPlan, savedAsPlanned, taskDone }
 
+final class PlanTolerance {
+  const PlanTolerance._({
+    required this.percent,
+    required this.atLeast,
+    required this.roundUp,
+  });
+
+  factory PlanTolerance.create({
+    required int percent,
+    required int atLeast,
+    bool roundUp = true,
+  }) {
+    if (percent < 0 || percent > 100) {
+      throw ArgumentError.value(percent, 'planTolerance.percent', '0..100');
+    }
+    if (atLeast < 0) {
+      throw ArgumentError.value(atLeast, 'planTolerance.atLeast', '≥ 0');
+    }
+    return PlanTolerance._(
+        percent: percent, atLeast: atLeast, roundUp: roundUp);
+  }
+
+  factory PlanTolerance.fromJson(Map<String, Object?> json) =>
+      PlanTolerance.create(
+        percent: json['percent'] as int,
+        atLeast: json['atLeast'] as int,
+        roundUp: (json['roundUp'] ?? true) as bool,
+      );
+
+  final int percent;
+  final int atLeast;
+  final bool roundUp;
+
+  int allowedFor(int planned) {
+    final byPercent = (planned * percent + (roundUp ? 99 : 0)) ~/ 100;
+    return byPercent > atLeast ? byPercent : atLeast;
+  }
+
+  bool within(int planned, int actual) =>
+      (actual - planned).abs() <= allowedFor(planned);
+
+  Map<String, Object?> toJson() => {
+        'percent': percent,
+        'atLeast': atLeast,
+        if (!roundUp) 'roundUp': false,
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is PlanTolerance &&
+      other.percent == percent &&
+      other.atLeast == atLeast &&
+      other.roundUp == roundUp;
+
+  @override
+  int get hashCode => Object.hash(percent, atLeast, roundUp);
+}
+
 final class DayFacts {
   const DayFacts._({
     required this.dayNumber,
@@ -105,6 +163,22 @@ final class DayFacts {
   final int deposited;
   final bool mandatoryPaid;
   final int tasksDone;
+
+  bool get planMade => planConfirmed && plan.distributed > 0;
+
+  bool get active => planMade || _moneyMoved || tasksDone > 0;
+
+  bool get savedAsPlanned =>
+      planConfirmed && plan.savings > 0 && deposited >= plan.savings;
+
+  bool followsPlan(PlanTolerance tolerance) =>
+      planMade &&
+      _moneyMoved &&
+      tolerance.within(plan.mandatory, spentMandatory) &&
+      tolerance.within(plan.optional, spentOptional) &&
+      (deposited >= plan.savings || tolerance.within(plan.savings, deposited));
+
+  bool get _moneyMoved => spentMandatory + spentOptional + deposited > 0;
 
   Map<String, Object?> toJson() => {
         'dayNumber': dayNumber,

@@ -10,8 +10,8 @@
     "progress": {
       "growthPoints": 0,
       "stage": "egg",
-      "earnedTitles": [],
-      "currentTitleId": ""
+      "earnedTitles": ["novice"],
+      "currentTitleId": "novice"
     },
     "goalId": "ball_rope",
     "goals": [],
