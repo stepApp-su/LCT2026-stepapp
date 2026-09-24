@@ -8,6 +8,7 @@ import 'package:finni/data/game_repository.dart';
 import 'package:finni/domain/services/plan_service.dart';
 import 'package:finni/ui/app.dart';
 import 'package:finni/ui/game_controller.dart';
+import 'package:finni/ui/widgets/game_icon.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -138,7 +139,43 @@ void main() {
       await tester.pumpWidget(FinniApp(controller: state));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+      for (final kind in [
+        GameIconKind.navHome,
+        GameIconKind.navPlan,
+        GameIconKind.navShop,
+        GameIconKind.navGames,
+        GameIconKind.navMore,
+      ]) {
+        expect(
+            find.byWidgetPredicate(
+              (widget) => widget is GameIcon && widget.kind == kind,
+            ),
+            findsOneWidget);
+      }
       if (scale == 1) {
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        for (final label in ['Сытость', 'Уход', 'Радость', 'Уют']) {
+          expect(find.text(label), findsOneWidget);
+        }
+        final food = tester.getRect(find.text('Сытость'));
+        final care = tester.getRect(find.text('Уход'));
+        final joy = tester.getRect(find.text('Радость'));
+        expect(food.top, closeTo(care.top, 1));
+        expect(joy.top, greaterThan(food.bottom));
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+        expect(find.text('0 из 180'), findsOneWidget);
+        expect(find.text('0 из 180 монет'), findsNothing);
+        final goalIcon = find.byWidgetPredicate(
+            (widget) => widget.runtimeType.toString() == '_GoalIcon');
+        expect(
+            tester.getBottomLeft(goalIcon).dy,
+            closeTo(
+                tester.getBottomLeft(find.byType(LinearProgressIndicator)).dy,
+                1));
+        expect(
+            tester.getCenter(find.text('0 из 180')).dy,
+            closeTo(
+                tester.getCenter(find.byType(LinearProgressIndicator)).dy, 1));
         final chip = find
             .byWidgetPredicate(
                 (widget) => widget.runtimeType.toString() == '_ResourceChip')

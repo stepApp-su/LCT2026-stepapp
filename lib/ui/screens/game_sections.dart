@@ -152,8 +152,14 @@ extension _GameSections on _GameShellState {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                        Text(goal['title'] as String,
-                            style: Theme.of(context).textTheme.titleLarge),
+                        Row(children: [
+                          _GoalIcon(goal['id'] as String),
+                          const SizedBox(width: 12),
+                          Expanded(
+                              child: Text(goal['title'] as String,
+                                  style:
+                                      Theme.of(context).textTheme.titleLarge)),
+                        ]),
                         const SizedBox(height: 8),
                         _Coins(goal['price'] as int),
                         const SizedBox(height: 12),

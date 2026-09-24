@@ -6,6 +6,7 @@ import '../../domain/services/wallet_service.dart';
 import '../theme/finni_theme.dart';
 import '../widgets/moni_scene.dart';
 import '../widgets/coin_icon.dart';
+import '../widgets/game_icon.dart';
 import '../game_controller.dart';
 
 part 'game_sections.dart';
@@ -270,7 +271,7 @@ class _GameShellState extends State<GameShell> {
         final enlarged = MediaQuery.textScalerOf(context).scale(16) > 20;
         final petHeight = enlarged
             ? 300.0
-            : (constraints.maxHeight - 318).clamp(240.0, 440.0);
+            : (constraints.maxHeight - 356).clamp(240.0, 440.0);
         return SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -288,36 +289,30 @@ class _GameShellState extends State<GameShell> {
                       onTap: savings,
                       child: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Row(children: [
-                          _IconTile(
-                              icon: switch (s.goalId) {
-                                'book' => Icons.menu_book_outlined,
-                                'telescope' => Icons.travel_explore_rounded,
-                                _ => Icons.electric_scooter_rounded,
-                              },
-                              color: FinniColors.paper),
-                          const SizedBox(width: 12),
-                          Expanded(
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                Text('Мечта: ${s.goal}',
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w800)),
-                                const SizedBox(height: 5),
-                                _Progress(
-                                    value: s.wallet.wallet.savings / s.target,
-                                    color: FinniColors.purple),
-                                const SizedBox(height: 4),
-                                Text(
-                                    '${s.wallet.wallet.savings} из ${s.target} монет',
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        color: FinniColors.purple)),
-                              ])),
-                          const Icon(Icons.chevron_right_rounded),
-                        ]),
+                        child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              _GoalIcon(s.goalId),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                    Text('Мечта: ${s.goal}',
+                                        style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800)),
+                                    const SizedBox(height: 5),
+                                    _GoalProgress(
+                                        saved: s.wallet.wallet.savings,
+                                        target: s.target),
+                                  ])),
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 12),
+                                child: Icon(Icons.chevron_right_rounded),
+                              ),
+                            ]),
                       )),
                 ),
               ),
@@ -404,28 +399,39 @@ class _GameShellState extends State<GameShell> {
                     ],
                   )),
               const SizedBox(height: 8),
-              Row(children: [
-                _Stat(
-                    label: 'Сытость',
-                    value: s.stats.satiety,
-                    icon: Icons.restaurant_outlined,
-                    color: FinniColors.gold),
-                _Stat(
-                    label: 'Уход',
-                    value: s.stats.care,
-                    icon: Icons.water_drop_outlined,
-                    color: FinniColors.blue),
-                _Stat(
-                    label: 'Радость',
-                    value: s.stats.mood,
-                    icon: Icons.favorite_border_rounded,
-                    color: FinniColors.purple),
-                _Stat(
-                    label: 'Уют',
-                    value: s.stats.cozy,
-                    icon: Icons.home_outlined,
-                    color: FinniColors.primary),
-              ]),
+              LayoutBuilder(builder: (context, constraints) {
+                final columns =
+                    MediaQuery.textScalerOf(context).scale(13) > 19 ? 1 : 2;
+                final width =
+                    (constraints.maxWidth - (columns - 1) * 8) / columns;
+                return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _Stat(
+                          label: 'Сытость',
+                          value: s.stats.satiety,
+                          icon: GameIconKind.food,
+                          color: FinniColors.gold),
+                      _Stat(
+                          label: 'Уход',
+                          value: s.stats.care,
+                          icon: GameIconKind.care,
+                          color: FinniColors.blue),
+                      _Stat(
+                          label: 'Радость',
+                          value: s.stats.mood,
+                          icon: GameIconKind.joy,
+                          color: FinniColors.purple),
+                      _Stat(
+                          label: 'Уют',
+                          value: s.stats.cozy,
+                          icon: GameIconKind.cozy,
+                          color: FinniColors.primary),
+                    ]
+                        .map((stat) => SizedBox(width: width, child: stat))
+                        .toList());
+              }),
               const SizedBox(height: 12),
               Material(
                 color: FinniColors.sky,
