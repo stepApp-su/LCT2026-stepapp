@@ -1,5 +1,54 @@
 {
   "schemaVersion": 1,
+  "day": {
+    "income": 60,
+    "incomeReason": "Монеты на новый день.",
+    "tasksPerDay": 1
+  },
+  "plan": {
+    "step": 5,
+    "directions": {
+      "mandatory": { "label": "Обязательное", "hint": "То, без чего никак", "iconId": "icon_plan_mandatory" },
+      "optional": { "label": "Желаемое", "hint": "Приятно, но можно и без этого", "iconId": "icon_plan_optional" },
+      "savings": { "label": "Копилка", "hint": "Коплю на свою цель", "iconId": "icon_plan_savings" }
+    },
+    "texts": {
+      "available": "Доступно: {income} {coin}",
+      "remainder": "Не распределено: {remainder} {coin}",
+      "allDistributed": "Все монеты распределены!",
+      "mandatoryHint": "Обязательное стоит {need}, а в плане {planned}. Не хватит {gap}.",
+      "confirm": "Подтвердить план"
+    }
+  },
+  "tasks": {
+    "repeatReward": 3,
+    "reasonTemplate": "Задание «{taskTitle}» выполнено."
+  },
+  "events": {
+    "firstDay": 3,
+    "intervalPattern": [2, 3]
+  },
+  "cooldownsMinutes": {
+    "petChore": 150
+  },
+  "cozyLevels": {
+    "levels": [
+      { "level": 1, "title": "Новоселье", "minCozy": 0 },
+      { "level": 2, "title": "Уютный уголок", "minCozy": 30 },
+      { "level": 3, "title": "Тёплый дом", "minCozy": 70 },
+      { "level": 4, "title": "Любимый дом", "minCozy": 130 },
+      { "level": 5, "title": "Дом мечты", "minCozy": 210 }
+    ],
+    "afterLast": {
+      "stepCozy": 100,
+      "titleTemplate": "Дом мечты ★{stars}"
+    },
+    "texts": {
+      "badge": "Ур. {level}",
+      "toNext": "До следующего уровня: {left}",
+      "levelUp": "Дом стал уютнее! Теперь это «{title}»."
+    }
+  },
   "pet": {
     "initial": { "satiety": 80, "care": 80, "mood": 80, "cozy": 10 },
     "needs": [

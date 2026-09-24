@@ -7,10 +7,16 @@ import '../domain/models.dart';
 import '../domain/models/models.dart' as domain;
 import '../domain/profile_codec.dart';
 import '../domain/profile_repository.dart';
+import 'content_repository.dart';
 
 /// Загрузка статического JSON-контента из assets/content.
 class ContentLoader {
   const ContentLoader();
+
+  Future<ContentBundle> loadAll() => ContentRepository(
+        (file) => rootBundle.loadString('assets/content/$file'),
+        onIssue: (issue) => debugPrint('Контент: $issue'),
+      ).load();
 
   static const String shopPath = 'assets/content/shop.json';
   static const String goalsPath = 'assets/content/goals.json';

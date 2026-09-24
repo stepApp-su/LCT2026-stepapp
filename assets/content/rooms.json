@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 1,
+  "canvas": {
+    "aspectRatio": 0.9,
+    "coordinates": "x и y от 0 до 1, от левого верхнего угла; точка привязки — середина нижнего края предмета",
+    "defaultScale": 1
+  },
+  "texts": {
+    "roomUnlocked": "Открылась новая комната: {title}!",
+    "roomLocked": "Откроется на уровне уюта {level}",
+    "chooseForSpot": "Что поставим сюда?",
+    "emptySpot": "Здесь пока пусто",
+    "goalLocked": "Это твоя цель. Она останется здесь навсегда."
+  },
+  "rooms": [
+    {
+      "id": "main",
+      "title": "Детская",
+      "enabled": true,
+      "unlock": {
+        "cozyLevel": 1
+      },
+      "iconId": "icon_room_main",
+      "backgroundsByStage": {
+        "egg": "room_main_bg_egg",
+        "baby": "room_main_bg_baby",
+        "teen": "room_main_bg_teen",
+        "adult": "room_main_bg_adult"
+      },
+      "defaultWallpaperId": "wp_plain",
+      "spots": [
+        {
+          "id": "wallpaper",
+          "type": "wallpaper",
+          "acceptsKind": "wallpaper"
+        },
+        {
+          "id": "window_out_left",
+          "type": "goal",
+          "layer": "windowView",
+          "x": 0.68,
+          "y": 0.34,
+          "scale": 0.5,
+          "z": 1,
+          "accepts": [
+            "treehouse"
+          ]
+        },
+        {
+          "id": "window_out_right",
+          "type": "goal",
+          "layer": "windowView",
+          "x": 0.82,
+          "y": 0.34,
+          "scale": 0.5,
+          "z": 1,
+          "accepts": [
+            "trampoline"
+          ]
+        },
+        {
+          "id": "wall_poster",
+          "type": "item",
+          "x": 0.2,
+          "y": 0.36,
+          "scale": 1,
+          "z": 10,
+          "accepts": [
+            "poster"
+          ]
+        },
+        {
+          "id": "wall_clock",
+          "type": "item",
+          "x": 0.46,
+          "y": 0.2,
+          "scale": 1,
+          "z": 10,
+          "accepts": [
+            "clock"
+          ]
+        },
+        {
+          "id": "wall_shelf",
+          "type": "item",
+          "x": 0.46,
+          "y": 0.44,
+          "scale": 1,
+          "z": 10,
+          "accepts": [
+            "shelf"
+          ]
+        },
+        {
+          "id": "sill_left",
+          "type": "item",
+          "x": 0.68,
+          "y": 0.5,
+          "scale": 1,
+          "z": 12,
+          "accepts": [
+            "flower_pot"
+          ]
+        },
+        {
+          "id": "sill_right",
+          "type": "item",
+          "x": 0.84,
+          "y": 0.5,
+          "scale": 1,
+          "z": 12,
+          "accepts": [
+            "night_light"
+          ]
+        },
+        {
+          "id": "goal_wall_left",
+          "type": "goal",
+          "x": 0.07,
+          "y": 0.8,
+          "scale": 1,
+          "z": 13,
+          "accepts": [
+            "scooter"
+          ]
+        },
+        {
+          "id": "goal_wall_mid",
+          "type": "goal",
+          "x": 0.38,
+          "y": 0.72,
+          "scale": 1,
+          "z": 13,
+          "accepts": [
+            "bicycle"
+          ]
+        },
+        {
+          "id": "goal_window",
+          "type": "goal",
+          "x": 0.58,
+          "y": 0.66,
+          "scale": 1,
+          "z": 14,
+          "accepts": [
+            "telescope"
+          ]
+        },
+        {
+          "id": "back_left",
+          "type": "item",
+          "x": 0.18,
+          "y": 0.7,
+          "scale": 1,
+          "z": 15,
+          "accepts": [
+            "bed"
+          ]
+        },
+        {
+          "id": "back_right",
+          "type": "item",
+          "x": 0.8,
+          "y": 0.74,
+          "scale": 1,
+          "z": 16,
+          "accepts": [
+            "aquarium"
+          ]
+        },
+        {
+          "id": "corner_right",
+          "type": "item",
+          "x": 0.94,
+          "y": 0.72,
+          "scale": 1,
+          "z": 14,
+          "accepts": [
+            "cactus"
+          ]
+        },
+        {
+          "id": "middle_right",
+          "type": "item",
+          "x": 0.62,
+          "y": 0.82,
+          "scale": 1,
+          "z": 20,
+          "accepts": [
+            "table"
+          ]
+        },
+        {
+          "id": "floor_rug",
+          "type": "item",
+          "x": 0.5,
+          "y": 0.97,
+          "scale": 1,
+          "z": 2,
+          "accepts": [
+            "rug"
+          ]
+        },
+        {
+          "id": "front_left",
+          "type": "item",
+          "x": 0.28,
+          "y": 0.92,
+          "scale": 1,
+          "z": 25,
+          "accepts": [
+            "pouf"
+          ]
+        },
+        {
+          "id": "front_right",
+          "type": "item",
+          "x": 0.91,
+          "y": 0.97,
+          "scale": 1,
+          "z": 28,
+          "accepts": [
+            "palm"
+          ]
+        },
+        {
+          "id": "toy_1",
+          "type": "item",
+          "x": 0.4,
+          "y": 0.94,
+          "scale": 1,
+          "z": 30,
+          "accepts": [
+            "bouncy_ball"
+          ]
+        },
+        {
+          "id": "toy_2",
+          "type": "item",
+          "x": 0.56,
+          "y": 0.96,
+          "scale": 1,
+          "z": 30,
+          "accepts": [
+            "puzzle"
+          ]
+        },
+        {
+          "id": "goal_floor",
+          "type": "goal",
+          "x": 0.08,
+          "y": 0.97,
+          "scale": 1,
+          "z": 29,
+          "accepts": [
+            "ball_rope"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bedroom",
+      "title": "Спальня",
+      "enabled": false,
+      "unlock": {
+        "cozyLevel": 3
+      },
+      "iconId": "icon_room_bedroom",
+      "backgroundsByStage": {
+        "egg": "room_bedroom_bg",
+        "baby": "room_bedroom_bg",
+        "teen": "room_bedroom_bg",
+        "adult": "room_bedroom_bg"
+      },
+      "defaultWallpaperId": "wp_plain",
+      "spots": [
+        {
+          "id": "wallpaper",
+          "type": "wallpaper",
+          "acceptsKind": "wallpaper"
+        },
+        {
+          "id": "bed",
+          "type": "item",
+          "x": 0.3,
+          "y": 0.8,
+          "scale": 1,
+          "z": 15,
+          "accepts": []
+        },
+        {
+          "id": "nightstand",
+          "type": "item",
+          "x": 0.6,
+          "y": 0.78,
+          "scale": 1,
+          "z": 16,
+          "accepts": []
+        },
+        {
+          "id": "wall",
+          "type": "item",
+          "x": 0.5,
+          "y": 0.35,
+          "scale": 1,
+          "z": 10,
+          "accepts": []
+        },
+        {
+          "id": "floor",
+          "type": "item",
+          "x": 0.5,
+          "y": 0.97,
+          "scale": 1,
+          "z": 2,
+          "accepts": []
+        }
+      ]
+    }
+  ]
+}
