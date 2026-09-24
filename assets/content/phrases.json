@@ -724,6 +724,78 @@
       "tts": true
     },
     {
+      "id": "hint_board",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "BOARD"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Хитрость: оставь монетки на обед впереди.",
+        "robot": "Проверим дорогу вперёд: где обязательные траты?",
+        "puppy": "Не забудь про обед! Оставь монетки.",
+        "dragon": "Смотри вперёд на дорогу — там бывают траты."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_stall",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "STALL"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Хитрость: смотри на погоду перед закупкой.",
+        "robot": "Датчик погоды подсказывает, сколько будет покупателей.",
+        "puppy": "Солнце — много гостей, дождик — мало!",
+        "dragon": "Погода решает, сколько мороженого купят."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_cashier",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "CASHIER"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Считай от покупки вверх до денег покупателя.",
+        "robot": "Сдача: деньги покупателя минус сумма покупки.",
+        "puppy": "Сначала сложи цены, потом считай сдачу!",
+        "dragon": "Сложи цены, а потом отсчитай сдачу."
+      },
+      "tts": true
+    },
+    {
+      "id": "hint_pricetag",
+      "category": "task_hint",
+      "trigger": "task_hint",
+      "condition": {
+        "taskType": "PRICETAG"
+      },
+      "priority": 5,
+      "cooldownSec": 0,
+      "emotion": "think",
+      "templates": {
+        "fox": "Хитрость: считай, сколько заплатишь всего.",
+        "robot": "Сравниваю итог, а не яркие надписи. Советую!",
+        "puppy": "Яркий ценник — не всегда выгодно!",
+        "dragon": "Не верь блеску ценника — посчитай итог."
+      },
+      "tts": true
+    },
+    {
       "id": "task_reward_first_try",
       "category": "task_hint",
       "trigger": "task_done",

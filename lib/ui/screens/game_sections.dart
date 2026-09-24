@@ -29,47 +29,67 @@ extension _GameSections on _GameShellState {
     ));
   }
 
-  String priceComparison(ShopItem item) {
-    final food = s.catalog.firstWhere((e) => e.id == 'food');
-    if (item.id == 'food') return 'Это одна порция еды для питомца.';
-    if (item.price == food.price) {
-      return 'Это столько же, сколько одна порция еды.';
-    }
-    if (item.price > food.price) {
-      return 'Порция еды стоит ${food.price} монет. Эта покупка дороже на ${item.price - food.price}.';
-    }
-    return 'Порция еды стоит ${food.price} монет. Эта покупка дешевле на ${food.price - item.price}.';
-  }
-
-  void savings() => section(
-      'Мечта и копилка',
-      (context) => ListView(padding: const EdgeInsets.all(16), children: [
+  void savings() => section('Мечта и копилка', (context) {
+        final view = s.goalView;
+        final reached = s.reachedGoals;
+        return ListView(padding: const EdgeInsets.all(16), children: [
+          if (view == null)
             _Panel(
                 color: FinniColors.lavender,
                 child: Column(children: [
-                  const Icon(Icons.savings_outlined,
-                      size: 48, color: FinniColors.purple),
-                  const SizedBox(height: 12),
-                  Text(s.goal,
+                  const Text('✨', style: TextStyle(fontSize: 56)),
+                  const SizedBox(height: 8),
+                  Text('Выбери мечту',
                       style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 8),
-                  Text('${s.wallet.wallet.savings} из ${s.target} монет',
-                      style: Theme.of(context).textTheme.titleLarge),
+                  Text(s.goals.starterHint, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  _Progress(
-                      value: s.wallet.wallet.savings / s.target,
-                      color: FinniColors.purple),
+                  FilledButton.icon(
+                      onPressed: chooseGoal,
+                      icon: const Icon(Icons.flag_outlined),
+                      label: const Text('Выбрать мечту')),
+                ]))
+          else ...[
+            _Panel(
+                color: FinniColors.lavender,
+                child: Column(children: [
+                  PopIn(
+                      motion: s.motion,
+                      child: ItemArt(view.goal.id, size: 120)),
                   const SizedBox(height: 12),
-                  Text('Осталось ${s.left} монет'),
+                  Text(view.goal.title,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium),
+                  if (view.goal.description.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(view.goal.description,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: FinniColors.muted)),
+                  ],
+                  const SizedBox(height: 12),
+                  Text(view.progressText,
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 12),
+                  _MilestoneBar(
+                      percent: view.percent,
+                      milestones: s.content.goals.milestones,
+                      motion: s.motion),
+                  const SizedBox(height: 12),
+                  Text(view.leftText,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
                 ])),
             const SizedBox(height: 16),
             _Notice(
-                icon: Icons.lightbulb_outline_rounded,
-                text: s.daysToGoal == null
-                    ? 'Выбери в плане сумму для копилки, чтобы посчитать срок.'
-                    : 'По плану ты откладываешь ${s.plan.plan.savings} монет в день. Осталось ${s.left}. Это ещё ${s.daysToGoal} дн.'),
+                icon: Icons.lightbulb_outline_rounded, text: view.eta.textRu),
             const SizedBox(height: 20),
-            FilledButton.icon(
+            if (view.isReached) ...[
+              FilledButton.icon(
+                  onPressed: claimGoal,
+                  icon: const Icon(Icons.celebration_outlined),
+                  label: Text(view.reachedButton)),
+              const SizedBox(height: 8),
+            ],
+            FilledButton.tonalIcon(
                 onPressed:
                     s.wallet.wallet.balance > 0 ? () => transfer(false) : null,
                 icon: const Icon(Icons.add_rounded),
@@ -85,179 +105,250 @@ extension _GameSections on _GameShellState {
                 onPressed: chooseGoal,
                 icon: const Icon(Icons.flag_outlined),
                 label: const Text('Выбрать другую мечту')),
+          ],
+          if (reached.isNotEmpty) ...[
             const SizedBox(height: 20),
-            const _PendingFeature(
-                owner: 'Матвей, Юля',
-                text:
-                    'Выдача достигнутой цели в комнату и промежуточные награды. Накопления уже сохраняются.'),
+            Text('Сбывшиеся мечты',
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            Wrap(spacing: 12, runSpacing: 12, children: [
+              for (final goal in reached)
+                Column(mainAxisSize: MainAxisSize.min, children: [
+                  ItemArt(goal.id, size: 76),
+                  const SizedBox(height: 4),
+                  Text(goal.title,
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                ]),
+            ]),
+          ],
+        ]);
+      });
+
+  void claimGoal() {
+    final outcome = s.claimGoal();
+    if (outcome is GoalClaimed) {
+      Celebration.show(context,
+          motion: s.motion, emoji: '🏆', text: outcome.goal.title);
+      sheet(
+          'Мечта сбылась!',
+          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Center(child: ItemArt(outcome.goal.id, size: 140)),
+            const SizedBox(height: 16),
+            Text(outcome.reachedText,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge),
+            if (outcome.unlockedText != null) ...[
+              const SizedBox(height: 12),
+              _Notice(
+                  icon: Icons.auto_awesome_outlined,
+                  text: outcome.unlockedText!),
+            ],
+            const SizedBox(height: 16),
+            FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  chooseGoal();
+                },
+                icon: const Icon(Icons.flag_outlined),
+                label: const Text('Выбрать новую мечту')),
           ]));
+    } else if (outcome is GoalRefused) {
+      toast(outcome.textRu);
+    }
+  }
 
   void transfer(bool withdrawal) {
-    int amount = 5;
+    final step = s.content.economy.params.plan.step;
     final max = withdrawal ? s.wallet.wallet.savings : s.wallet.wallet.balance;
-    if (max < amount) amount = max;
+    int amount = max < step ? max : step;
     sheet(withdrawal ? 'Взять из копилки' : 'Пополнить копилку',
         StatefulBuilder(builder: (context, update) {
-      final before = s.wallet.wallet.savings,
-          after = before + (withdrawal ? -amount : amount);
-      String days(int value) => s.daysFor(value) == null
-          ? 'пока без срока'
-          : '${s.daysFor(value)} дн.';
+      final before = s.wallet.wallet.savings;
+      final preview = withdrawal && amount > 0 ? s.previewWithdraw(amount) : null;
+      final after = before + (withdrawal ? -amount : amount);
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Center(
+            child: Text(withdrawal ? '🐷➡️🪙' : '🪙➡️🐷',
+                style: const TextStyle(fontSize: 44))),
+        const SizedBox(height: 12),
         Row(children: [
           IconButton.filledTonal(
               tooltip: 'Уменьшить сумму',
-              onPressed: amount > 5 ? () => update(() => amount -= 5) : null,
+              onPressed:
+                  amount > step ? () => update(() => amount -= step) : null,
               icon: const Icon(Icons.remove_rounded)),
           Expanded(child: Center(child: _Coins(amount))),
           IconButton.filledTonal(
               tooltip: 'Увеличить сумму',
-              onPressed:
-                  amount + 5 <= max ? () => update(() => amount += 5) : null,
+              onPressed: amount + step <= max
+                  ? () => update(() => amount += step)
+                  : null,
               icon: const Icon(Icons.add_rounded))
         ]),
         const SizedBox(height: 16),
-        Text('В копилке: $before → $after монет'),
-        const SizedBox(height: 8),
-        Text('До мечты: ${days(before)} → ${days(after)}'),
-        const SizedBox(height: 20),
-        FilledButton.icon(
-            onPressed: amount > 0
-                ? () {
-                    final ok =
-                        withdrawal ? s.withdraw(amount) : s.saveCoins(amount);
-                    if (ok) Navigator.pop(context);
-                  }
-                : null,
-            icon: Icon(withdrawal
-                ? Icons.arrow_upward_rounded
-                : Icons.savings_outlined),
-            label: Text(withdrawal ? 'Да, взять $amount' : 'Отложить $amount')),
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена')),
+        if (preview is WithdrawPreview) ...[
+          Text(preview.question,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(preview.savedChangeText, textAlign: TextAlign.center),
+          const SizedBox(height: 4),
+          Text(preview.etaChangeText, textAlign: TextAlign.center),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+              onPressed: () {
+                if (s.confirmWithdraw(preview) is WithdrawDone) {
+                  Navigator.pop(context);
+                }
+              },
+              icon: const Icon(Icons.arrow_upward_rounded),
+              label: Text(preview.confirmLabel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(preview.cancelLabel)),
+        ] else if (preview is GoalRefused) ...[
+          _Notice(icon: Icons.info_outline_rounded, text: preview.textRu),
+        ] else if (!withdrawal) ...[
+          Text('В копилке: $before → $after монет',
+              textAlign: TextAlign.center),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+              onPressed: amount > 0
+                  ? () {
+                      final result = s.deposit(amount);
+                      if (result is GoalDepositDone) {
+                        Navigator.pop(context);
+                        if (result.justReached) {
+                          Celebration.show(this.context,
+                              motion: s.motion, emoji: '🏆');
+                          toast('Хватает! Можно забирать мечту.');
+                        } else if (result.milestoneText != null) {
+                          Celebration.show(this.context,
+                              motion: s.motion,
+                              emoji: '⭐',
+                              text: result.milestoneText);
+                        } else {
+                          toast('Отложили $amount монет. Мечта ближе!');
+                        }
+                      }
+                    }
+                  : null,
+              icon: const Icon(Icons.savings_outlined),
+              label: Text('Отложить $amount')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Отмена')),
+        ],
       ]);
     }));
   }
 
-  void chooseGoal() => section(
-      'Выбери мечту',
-      (context) => ListView(padding: const EdgeInsets.all(16), children: [
-            const Text('Всё накопленное останется в копилке.'),
-            const SizedBox(height: 16),
-            for (final goal in s.goals)
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _Panel(
+  void chooseGoal() => section('Выбери мечту', (context) {
+        final available = s.goals.available();
+        final locked = [
+          for (final goal in s.content.goals.goals)
+            if (!s.goals.isUnlocked(goal) &&
+                !s.goals.reachedGoalIds.contains(goal.id))
+              goal
+        ];
+        return ListView(padding: const EdgeInsets.all(16), children: [
+          _Notice(
+              icon: Icons.savings_outlined,
+              text:
+                  'Всё накопленное останется в копилке. ${s.goals.starterHint}'),
+          const SizedBox(height: 16),
+          for (final goal in available)
+            Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _Panel(
+                    child: Row(children: [
+                  ItemArt(goal.id, size: 72),
+                  const SizedBox(width: 12),
+                  Expanded(
                       child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Row(children: [
-                          _GoalIcon(goal['id'] as String),
-                          const SizedBox(width: 12),
-                          Expanded(
-                              child: Text(goal['title'] as String,
-                                  style:
-                                      Theme.of(context).textTheme.titleLarge)),
-                        ]),
+                        Text(goal.title,
+                            style: Theme.of(context).textTheme.titleLarge),
+                        if (goal.description.isNotEmpty)
+                          Text(goal.description,
+                              style:
+                                  const TextStyle(color: FinniColors.muted)),
+                        const SizedBox(height: 6),
+                        _Coins(goal.price),
                         const SizedBox(height: 8),
-                        _Coins(goal['price'] as int),
-                        const SizedBox(height: 12),
                         OutlinedButton.icon(
-                            onPressed: goal['id'] == s.goalId
+                            onPressed: goal.id == s.goalId
                                 ? null
-                                : () => sheet(
-                                    'Сменить мечту?',
-                                    Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          Text(
-                                              'Будем копить на «${goal['title']}». Все ${s.wallet.wallet.savings} монет сохранятся.'),
-                                          const SizedBox(height: 16),
-                                          FilledButton.icon(
-                                              onPressed: () {
-                                                s.changeGoal(
-                                                    goal['id'] as String);
-                                                Navigator.of(context).pop();
-                                              },
-                                              icon: const Icon(
-                                                  Icons.check_rounded),
-                                              label: const Text('Да, сменить'))
-                                        ])),
-                            icon: Icon(goal['id'] == s.goalId
+                                : () => askGoal(goal.id),
+                            icon: Icon(goal.id == s.goalId
                                 ? Icons.check_rounded
                                 : Icons.flag_outlined),
-                            label: Text(goal['id'] == s.goalId
+                            label: Text(goal.id == s.goalId
                                 ? 'Текущая мечта'
                                 : 'Выбрать')),
-                      ]))),
-          ]));
-  void tasks() => go(3);
-  Widget tasksBody(BuildContext context) =>
-      ListView(padding: const EdgeInsets.all(16), children: [
-        Text('Учимся на маленьких решениях',
-            style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 16),
-        _Panel(
-            color: FinniColors.sky,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.extension_outlined, size: 36),
-                  const SizedBox(height: 12),
-                  Text(s.question['title'] as String,
-                      style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 8),
-                  Text(s.completed
-                      ? 'Пройдено · награда уже в кошельке'
-                      : 'Нужное и желаемое · ${s.question['reward']} монет'),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                      onPressed: questionExercise,
-                      icon: Icon(s.completed
-                          ? Icons.replay_rounded
-                          : Icons.play_arrow_rounded),
-                      label: Text(
-                          s.completed ? 'Посмотреть объяснение' : 'Начать')),
-                ])),
-        const SizedBox(height: 20),
-        for (final entry in [
-          (
-            Icons.swap_horiz_rounded,
-            'Разложи по корзинам',
-            'Перетаскивание в «Нужное» и «Желаемое».'
-          ),
-          (
-            Icons.shopping_basket_outlined,
-            'Собери покупки',
-            'Выбор товаров в пределах бюджета.'
-          ),
-          (
-            Icons.pie_chart_outline_rounded,
-            'Распредели монеты',
-            'Счётчики по направлениям с остатком.'
-          )
-        ])
-          Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _Panel(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    Icon(entry.$1, size: 28),
-                    const SizedBox(height: 8),
-                    Text(entry.$2,
-                        style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 8),
-                    Text(entry.$3),
-                    const SizedBox(height: 12),
-                    const _PendingFeature(
-                        owner: 'Макс, Юля',
-                        text:
-                            'Нужны схема контента, проверка ответа и правила награды.'),
-                  ]))),
-      ]);
+                      ])),
+                ]))),
+          for (final goal in locked)
+            Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Opacity(
+                    opacity: .6,
+                    child: _Panel(
+                        child: Row(children: [
+                      ItemArt(goal.id, size: 72),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text(goal.title,
+                                style: Theme.of(context).textTheme.titleLarge),
+                            const SizedBox(height: 6),
+                            Row(children: [
+                              const Icon(Icons.lock_outline_rounded, size: 18),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                  child: Text(
+                                      'Откроется после ${goal.minGoalsReached} ${ruPlural(goal.minGoalsReached, 'достигнутой цели', 'достигнутых целей', 'достигнутых целей')}')),
+                            ]),
+                          ])),
+                    ])))),
+        ]);
+      });
+
+  void askGoal(String id) {
+    final ask = s.askGoal(id);
+    if (ask is GoalRefused) {
+      toast(ask.textRu);
+      return;
+    }
+    if (ask is! GoalSelectConfirm) return;
+    sheet(
+        ask.question,
+        Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Center(child: ItemArt(ask.goal.id, size: 120)),
+          const SizedBox(height: 12),
+          Text(ask.keepSavingsText, textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+              onPressed: () {
+                final result = s.confirmGoal(ask);
+                Navigator.of(context).pop();
+                if (result is GoalSelected) {
+                  Navigator.of(context).maybePop();
+                  toast(result.selectPhrase);
+                }
+              },
+              icon: const Icon(Icons.check_rounded),
+              label: Text(ask.confirmLabel)),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(ask.cancelLabel)),
+        ]));
+  }
+
+  Widget tasksBody(BuildContext context) => GamesHub(state: s);
 
   Widget moreBody() => ListView(padding: const EdgeInsets.all(16), children: [
         _routeTile('Комната и гардероб', 'Вещи и наряды',
@@ -363,35 +454,54 @@ extension _GameSections on _GameShellState {
                         Text(slot.$2,
                             style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 12),
-                        if (!s.catalog.any((item) =>
-                            s.details(item.id)['slot'] == slot.$1 &&
-                            s.owned.contains(item.id)))
+                        if (!s.ownedItems.any((item) => item.slot == slot.$1))
                           const Text('Пока нет вещей в этом слоте',
                               style: TextStyle(color: FinniColors.muted)),
-                        for (final item in s.catalog.where((item) =>
-                            s.details(item.id)['slot'] == slot.$1 &&
-                            s.owned.contains(item.id)))
-                          OutlinedButton.icon(
-                              onPressed: () => s.equip(item.id),
-                              icon: Icon(s.outfit[slot.$1] == item.id
-                                  ? Icons.check_rounded
-                                  : Icons.add_rounded),
-                              label: Text(
-                                  '${item.title} · ${s.outfit[slot.$1] == item.id ? 'снять' : 'надеть'}')),
+                        for (final item in s.ownedItems
+                            .where((item) => item.slot == slot.$1))
+                          Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: OutlinedButton.icon(
+                                  onPressed: () => s.equip(item.id),
+                                  icon: ItemArt(item.id,
+                                      size: 36, background: false),
+                                  label: Text(
+                                      '${item.title} · ${s.outfit[slot.$1] == item.id ? 'снять' : 'надеть'}'))),
                       ]))),
+            Text('В комнате', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            if (s.ownedItems.every((i) => i.slot.isNotEmpty) &&
+                s.reachedGoals.isEmpty)
+              const Text('Здесь появятся игрушки, мебель и сбывшиеся мечты.',
+                  style: TextStyle(color: FinniColors.muted)),
+            Wrap(spacing: 10, runSpacing: 10, children: [
+              for (final goal in s.reachedGoals)
+                Column(mainAxisSize: MainAxisSize.min, children: [
+                  ItemArt(goal.id, size: 72),
+                  Text(goal.title,
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                ]),
+              for (final item in s.ownedItems.where((i) => i.slot.isEmpty))
+                Column(mainAxisSize: MainAxisSize.min, children: [
+                  ItemArt(item.id, size: 64),
+                  Text(item.title, style: const TextStyle(fontSize: 14)),
+                ]),
+            ]),
+            const SizedBox(height: 16),
             const _PendingFeature(
-                owner: 'Игорь; Матвей, Юля',
+                owner: 'Игорь',
                 text:
-                    'Иллюстрации мебели и постоянные предметы достигнутых целей. Удаление достижений не предусмотрено.'),
+                    'Расстановка мебели по местам комнаты и иллюстрации для всех вещей.'),
             const SizedBox(height: 16),
             Text('Отложенные желания',
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
             if (s.wishlist.isEmpty)
               const Text('Если вещь пока не по карману, сохрани её здесь.'),
-            for (final item
-                in s.catalog.where((i) => s.wishlist.contains(i.id)))
+            for (final item in s.content.shop.items
+                .where((i) => s.wishlist.contains(i.id)))
               ListTile(
+                  leading: ItemArt(item.id, size: 44),
                   title: Text(item.title),
                   subtitle: Text('${item.price} монет'),
                   trailing: const Icon(Icons.chevron_right_rounded),
@@ -410,7 +520,7 @@ extension _GameSections on _GameShellState {
             _Notice(
                 icon: Icons.check_circle_outline,
                 text:
-                    'Задание: ${s.completed ? 'пройдено' : 'можно начать'}. В копилке ${s.wallet.wallet.savings} монет.'),
+                    'Пройдено игр: ${s.tasks.completedTaskIds.length} из ${s.content.tasks.tasks.length}. В копилке ${s.wallet.wallet.savings} монет.'),
             const SizedBox(height: 20),
             const _PendingFeature(
                 owner: 'Макс, Юля',
@@ -576,7 +686,7 @@ extension _GameSections on _GameShellState {
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Попроще'),
                 subtitle:
-                    const Text('Подбор по сложности подключают Макс и Юля'),
+                    const Text('Игры станут проще: меньше карточек и чисел'),
                 value: s.simpleMode,
                 onChanged: s.setSimple),
             const ListTile(
@@ -593,11 +703,14 @@ extension _GameSections on _GameShellState {
             const SizedBox(height: 20),
             _routeTile(
                 'Учебный прогресс',
-                s.completed
-                    ? 'Нужное и желаемое: пройдено'
-                    : 'Нужное и желаемое: в процессе',
+                'Пройдено игр: ${s.tasks.completedTaskIds.length} из ${s.content.tasks.tasks.length}',
                 Icons.school_outlined,
                 titles),
+            for (final theme in s.content.tasks.themes)
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                      '${theme.title}: ${s.content.tasks.byTheme(theme.id).every((t) => s.tasks.isCompleted(t.id)) ? 'тема пройдена' : 'тема в процессе'}')),
             Text('Питомец: ${s.petName}'),
             const SizedBox(height: 12),
             OutlinedButton.icon(

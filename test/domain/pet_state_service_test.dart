@@ -5,6 +5,7 @@ import 'package:finni/domain/models/models.dart';
 import 'package:finni/domain/services/pet_state_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/economy.dart';
 import '../support/growth.dart';
 
 Map<String, Object?> _rulesJson() => {
@@ -805,7 +806,11 @@ void main() {
     });
 
     test('версия файла экономики с единицы', () {
-      final json = {'pet': _rulesJson(), 'growth': growthRulesJson()};
+      final json = {
+        'pet': _rulesJson(),
+        'growth': growthRulesJson(),
+        ...economyParamsJson(),
+      };
       expect(EconomyConfig.fromJson(json).schemaVersion, 1);
       expect(() => EconomyConfig.fromJson({...json, 'schemaVersion': 0}),
           throwsArgumentError);

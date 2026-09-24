@@ -2,7 +2,7 @@ part of '../screens/game_shell.dart';
 
 class _GoalIcon extends StatelessWidget {
   const _GoalIcon(this.id);
-  final String id;
+  final String? id;
   @override
   Widget build(BuildContext context) => Container(
         width: 48,
@@ -12,13 +12,9 @@ class _GoalIcon extends StatelessWidget {
           color: FinniColors.paper.withValues(alpha: .45),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: GameIcon(
-            switch (id) {
-              'book' => GameIconKind.book,
-              'telescope' => GameIconKind.telescope,
-              _ => GameIconKind.scooter,
-            },
-            size: 40),
+        child: id == null
+            ? const Center(child: Text('✨', style: TextStyle(fontSize: 26)))
+            : ItemArt(id!, size: 40, background: false),
       );
 }
 
@@ -177,22 +173,6 @@ class _Pill extends StatelessWidget {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             )),
           ],
-        ),
-      );
-}
-
-class _Progress extends StatelessWidget {
-  const _Progress({required this.value, required this.color});
-  final double value;
-  final Color color;
-  @override
-  Widget build(BuildContext context) => ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: LinearProgressIndicator(
-          value: value.clamp(0, 1),
-          minHeight: 7,
-          color: color,
-          backgroundColor: FinniColors.paper,
         ),
       );
 }
@@ -387,6 +367,66 @@ class _Navigation extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      );
+}
+
+class _MilestoneBar extends StatelessWidget {
+  const _MilestoneBar(
+      {required this.percent, required this.milestones, required this.motion});
+  final int percent;
+  final List<int> milestones;
+  final bool motion;
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: 'Накоплено $percent процентов',
+        excludeSemantics: true,
+        child: SizedBox(
+          height: 44,
+          child: LayoutBuilder(builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            return Stack(clipBehavior: Clip.none, children: [
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 12,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(end: (percent / 100).clamp(0.0, 1.0)),
+                    duration: motionAllowed(context, motion)
+                        ? const Duration(milliseconds: 600)
+                        : Duration.zero,
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: 20,
+                      color: const Color(0xFFB79BE3),
+                      backgroundColor: FinniColors.paper,
+                    ),
+                  ),
+                ),
+              ),
+              for (final milestone in milestones)
+                Positioned(
+                  left: width * milestone / 100 - 16,
+                  top: 0,
+                  child: AnimatedScale(
+                    scale: percent >= milestone ? 1.15 : .9,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      percent >= milestone
+                          ? Icons.star_rounded
+                          : Icons.star_outline_rounded,
+                      size: 32,
+                      color: percent >= milestone
+                          ? const Color(0xFFE8A817)
+                          : FinniColors.muted,
+                    ),
+                  ),
+                ),
+            ]);
+          }),
         ),
       );
 }

@@ -4,32 +4,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:finni/content/content_repository.dart';
 import 'package:finni/data/game_repository.dart';
 import 'package:finni/domain/services/plan_service.dart';
+import 'package:finni/domain/services/shop_service.dart';
+import 'package:finni/domain/services/task_engine.dart';
 import 'package:finni/ui/app.dart';
 import 'package:finni/ui/game_controller.dart';
 import 'package:finni/ui/widgets/game_icon.dart';
 
+import 'support/content.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Map<String, dynamic> config;
+  late ContentBundle content;
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     config = jsonDecode(File('assets/content/game.json').readAsStringSync())
         as Map<String, dynamic>;
   });
   setUpAll(() async {
+    content = await loadTestContent();
     final font = FontLoader('Nunito')
       ..addFont(rootBundle.load('assets/fonts/Nunito.ttf'));
     await font.load();
   });
   test('savings and full journal survive restart; ids remain unique', () async {
     final repository = LocalGameRepository();
-    final state = GameController(config, repository: repository);
+    final state = GameController(config, content: content, repository: repository);
     state.saveCoins(20);
     state.withdraw(5);
     await state.flush();
     final restored = GameController(config,
+        content: content,
         saved: await repository.load(), repository: repository);
     expect(restored.wallet.wallet.balance, 45);
     expect(restored.wallet.wallet.savings, 15);
@@ -49,6 +57,7 @@ void main() {
         {LocalGameRepository.legacyKey: old});
     final repository = LocalGameRepository();
     final state = GameController(config,
+        content: content,
         saved: await repository.load(), repository: repository);
     expect(state.wallet.wallet.balance, 37);
     expect(state.owned, containsAll(['cap', 'shop_house']));
@@ -68,43 +77,54 @@ void main() {
             .getString(LocalGameRepository.key),
         'broken');
   });
-  test('task reward is issued once, including after restart', () async {
-    final state = GameController(config);
-    final correct = state.question['correct'] as int;
+  test('game pays coins once in full, repeats pay less, then play is free',
+      () async {
+    final state = GameController(config, content: content);
+    const id = 'planning_choice_enough';
+    final task = content.tasks.byId(id)!;
     final before = state.wallet.wallet.balance;
-    expect(state.answer(correct + 1), false);
+    final session = state.startGame(id);
+    expect(session.submit(const ChoiceAnswer('no')).isCorrect, false);
     expect(state.wallet.wallet.balance, before);
-    expect(state.answer(correct), true);
-    expect(state.answer(correct), true);
+    expect(session.submit(const ChoiceAnswer('yes')).isCorrect, true);
+    final first = state.finishGame(session);
+    expect(first.coins, task.reward.wrong);
+    expect(state.wallet.wallet.balance, before + first.coins);
     await state.flush();
-    final restored =
-        GameController(config, saved: await state.repository.load());
-    expect(restored.answer(correct), true);
+    final restored = GameController(config,
+        content: content, saved: await state.repository.load());
+    expect(restored.tasks.isCompleted(id), true);
+    final again = restored.startGame(id);
+    again.submit(const ChoiceAnswer('yes'));
+    final repeat = restored.finishGame(again);
+    expect(repeat.coins, content.economy.params.tasks.repeatReward);
+    final third = restored.startGame(id);
+    third.submit(const ChoiceAnswer('yes'));
+    expect(restored.finishGame(third).coins, 0);
     expect(restored.wallet.wallet.balance,
-        before + (state.question['reward'] as int));
+        before + first.coins + repeat.coins);
   });
   test('owned accessory cannot be charged twice', () async {
-    final state = GameController(config);
-    final bow = state.catalog.firstWhere((item) => item.id == 'bow');
-    state.buy(bow);
+    final state = GameController(config, content: content);
+    expect(state.buyNow('bow'), isA<PurchaseDone>());
     final balance = state.wallet.wallet.balance;
     final transactions = state.wallet.journal.length;
-    expect(() => state.buy(bow), throwsStateError);
+    expect(state.buyNow('bow'), isA<PurchaseRefused>());
     expect(state.wallet.wallet.balance, balance);
     expect(state.wallet.journal.length, transactions);
     await state.flush();
   });
   test('goal change preserves savings; wish and outfit persist', () async {
-    final state = GameController(config);
-    state.buy(state.catalog.firstWhere((i) => i.id == 'bow'));
+    final state = GameController(config, content: content);
+    state.buyNow('bow');
     state.equip('bow');
     state.postpone('glasses');
     state.saveCoins(10);
-    state.changeGoal('book');
+    state.changeGoal('ball_rope');
     state.changePlan(PlanDirection.savings, 5);
     await state.flush();
     final restored =
-        GameController(config, saved: await state.repository.load());
+        GameController(config, content: content, saved: await state.repository.load());
     expect(restored.wallet.wallet.savings, 10);
     expect(restored.target, 90);
     expect(restored.outfit['head'], 'bow');
@@ -118,7 +138,7 @@ void main() {
       () async {
     SharedPreferences.setMockInitialValues(
         {LocalGameRepository.legacyKey: '{}', 'other': 'keep'});
-    final state = GameController(config);
+    final state = GameController(config, content: content);
     state.createPet('Мони', true);
     await state.flush();
     await state.deleteProfile();
@@ -135,7 +155,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       final state =
-          GameController(config, saved: {'onboarded': true, 'motion': false});
+          GameController(config, content: content, saved: {'onboarded': true, 'motion': false});
       await tester.pumpWidget(FinniApp(controller: state));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -163,8 +183,8 @@ void main() {
         expect(food.top, closeTo(care.top, 1));
         expect(joy.top, greaterThan(food.bottom));
         expect(find.byType(LinearProgressIndicator), findsOneWidget);
-        expect(find.text('0 из 180'), findsOneWidget);
-        expect(find.text('0 из 180 монет'), findsNothing);
+        expect(find.text('0 из 120'), findsOneWidget);
+        expect(find.text('0 из 120 монет'), findsNothing);
         final goalIcon = find.byWidgetPredicate(
             (widget) => widget.runtimeType.toString() == '_GoalIcon');
         expect(
@@ -173,7 +193,7 @@ void main() {
                 tester.getBottomLeft(find.byType(LinearProgressIndicator)).dy,
                 1));
         expect(
-            tester.getCenter(find.text('0 из 180')).dy,
+            tester.getCenter(find.text('0 из 120')).dy,
             closeTo(
                 tester.getCenter(find.byType(LinearProgressIndicator)).dy, 1));
         final chip = find
@@ -225,7 +245,7 @@ void main() {
   }
   testWidgets('first launch creates guest pet without personal fields',
       (tester) async {
-    final state = GameController(config)..motion = false;
+    final state = GameController(config, content: content)..motion = false;
     await tester.pumpWidget(FinniApp(controller: state));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Пропустить знакомство'));
@@ -238,5 +258,6 @@ void main() {
     expect(find.text('Мони'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
+    state.dispose();
   });
 }

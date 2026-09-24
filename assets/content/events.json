@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+
+  "settings": {
+    "payFrom": "balance",
+    "neverTouchSavings": true,
+    "cooldownDays": 6,
+    "sequence": ["doctor", "friend_birthday", "ad", "found_coins", "rain", "broken_bulb", "help_neighbor", "holiday", "price_up"]
+  },
+
+  "texts": {
+    "header": "Событие дня",
+    "chooseHint": "Выбирай сам: тут подходит любой вариант",
+    "notEnough": "Не хватает {gap} {coin}",
+    "postpone": "Пока подумаю",
+    "done": "Готово"
+  },
+
+  "events": [
+    {
+      "id": "doctor",
+      "title": "Лапка побаливает",
+      "category": "free",
+      "iconId": "icon_event_doctor",
+      "unlock": { "minStage": "baby" },
+      "competenceIds": ["budget_idea"],
+      "situation": "Питомец прихрамывает. Доктор осмотрел лапку и помог — это бесплатно.",
+      "options": [
+        {
+          "id": "ok",
+          "label": "Хорошо!",
+          "cost": 0,
+          "effects": [{ "stat": "mood", "delta": 5 }],
+          "resultText": "Лапка как новая! За помощь доктора платить не нужно.",
+          "journalText": "Доктор посмотрел лапку. Всё хорошо!"
+        }
+      ],
+      "forAdult": "Событие показывает: не всякая забота стоит денег, и болезнь — не наказание за траты."
+    },
+    {
+      "id": "friend_birthday",
+      "title": "День рождения друга",
+      "category": "choice",
+      "iconId": "icon_event_gift",
+      "unlock": { "minStage": "baby" },
+      "competenceIds": ["need_over_want", "plan_purchases"],
+      "situation": "У друга праздник! Можно купить подарок, а можно сделать своими руками.",
+      "options": [
+        {
+          "id": "buy_gift",
+          "label": "Купить подарок",
+          "cost": 20,
+          "effects": [{ "stat": "mood", "delta": 10 }],
+          "resultText": "Друг очень обрадовался подарку! Потратили 20 {coin}.",
+          "journalText": "Купили подарок другу."
+        },
+        {
+          "id": "handmade",
+          "label": "Сделать открытку",
+          "cost": 0,
+          "effects": [{ "stat": "mood", "delta": 8 }],
+          "resultText": "Открытка своими руками! Друг сказал, что это самый тёплый подарок.",
+          "journalText": "Сделали открытку своими руками."
+        }
+      ],
+      "forAdult": "У ребёнка всегда есть достойный бесплатный вариант: внимание дороже цены."
+    },
+    {
+      "id": "ad",
+      "title": "Яркая реклама",
+      "category": "temptation",
+      "iconId": "icon_event_ad",
+      "unlock": { "minStage": "teen" },
+      "competenceIds": ["need_over_want", "expenses_distinguish"],
+      "situation": "Реклама зовёт: «Купи прямо сейчас, только сегодня!» Вещь красивая, но не из списка нужного.",
+      "options": [
+        {
+          "id": "buy",
+          "label": "Купить",
+          "cost": 15,
+          "effects": [{ "stat": "mood", "delta": 6 }],
+          "resultText": "Купили! Радость есть, и 15 {coin} потрачены. Так тоже можно.",
+          "journalText": "Купили вещь из рекламы."
+        },
+        {
+          "id": "skip",
+          "label": "Пройти мимо",
+          "cost": 0,
+          "effects": [{ "stat": "mood", "delta": 3 }],
+          "resultText": "Прошли мимо! Реклама кричала, а решение принял ты. Монеты остались.",
+          "journalText": "Прошли мимо рекламы."
+        }
+      ],
+      "forAdult": "Учимся замечать давление рекламы и спрашивать себя: это моё желание или чужой призыв?"
+    },
+    {
+      "id": "found_coins",
+      "title": "Находка в кармане",
+      "category": "bonus",
+      "iconId": "icon_event_coins",
+      "unlock": { "minStage": "egg" },
+      "competenceIds": ["budget_idea", "money_for_goal"],
+      "situation": "В кармане нашлись монетки, о которых все забыли!",
+      "options": [
+        {
+          "id": "take",
+          "label": "Ура, забираем!",
+          "coins": 10,
+          "effects": [{ "stat": "mood", "delta": 5 }],
+          "resultText": "Плюс 10 {coin}! Их можно отложить в копилку или потратить.",
+          "journalText": "Нашли 10 монет в кармане."
+        }
+      ],
+      "forAdult": "Нерегулярный доход: монеты пришли сверх плана, и их тоже нужно распределить."
+    },
+    {
+      "id": "help_neighbor",
+      "title": "Помощь соседке",
+      "category": "bonus",
+      "iconId": "icon_event_help",
+      "unlock": { "minStage": "teen" },
+      "competenceIds": ["budget_idea"],
+      "situation": "Соседка просит помочь донести сумку. За помощь она хочет дать монетки.",
+      "options": [
+        {
+          "id": "coins",
+          "label": "Помочь",
+          "coins": 10,
+          "effects": [{ "stat": "mood", "delta": 5 }],
+          "resultText": "Помогли и заработали 10 {coin}! Монеты приходят за труд.",
+          "journalText": "Помогли соседке и заработали 10 монет."
+        },
+        {
+          "id": "just_help",
+          "label": "Помочь просто так",
+          "cost": 0,
+          "effects": [{ "stat": "mood", "delta": 8 }],
+          "resultText": "Помогли просто так. Соседка улыбалась весь день!",
+          "journalText": "Помогли соседке просто так."
+        }
+      ],
+      "forAdult": "Первое знакомство с мыслью, что доход — результат труда. И что помогать можно бесплатно."
+    },
+    {
+      "id": "rain",
+      "title": "Дождь за окном",
+      "category": "free",
+      "iconId": "icon_event_rain",
+      "unlock": { "minStage": "baby" },
+      "competenceIds": ["plan_purchases"],
+      "situation": "На улице ливень. Дома тепло и сухо, можно посидеть вместе.",
+      "options": [
+        {
+          "id": "stay",
+          "label": "Посидим дома",
+          "cost": 0,
+          "effects": [{ "stat": "mood", "delta": 4 }],
+          "resultText": "Уютный дождливый день! А с дождевиком можно было бы и погулять.",
+          "journalText": "Весь день шёл дождь."
+        }
+      ],
+      "forAdult": "Спокойное событие без траты: не каждый день требует решений о деньгах."
+    },
+    {
+      "id": "broken_bulb",
+      "title": "Лампочка погасла",
+      "category": "choice",
+      "iconId": "icon_event_bulb",
+      "unlock": { "minStage": "teen" },
+      "competenceIds": ["expenses_not_exceed", "plan_purchases"],
+      "situation": "Лампочка перегорела. Новая стоит 10. Можно купить сегодня, а можно подождать.",
+      "options": [
+        {
+          "id": "buy_bulb",
+          "label": "Купить лампочку",
+          "cost": 10,
+          "effects": [{ "stat": "care", "delta": 10 }],
+          "resultText": "Новая лампочка светит! Потратили 10 {coin}.",
+          "journalText": "Купили новую лампочку."
+        },
+        {
+          "id": "wait",
+          "label": "Подождать до завтра",
+          "cost": 0,
+          "effects": [],
+          "resultText": "Вечер при свете ночника! Лампочку купим, когда будет удобно.",
+          "journalText": "Лампочку решили купить позже."
+        }
+      ],
+      "forAdult": "Неожиданный расход. Хороший повод поговорить, зачем нужен запас монет."
+    },
+    {
+      "id": "holiday",
+      "title": "Сегодня праздник",
+      "category": "choice",
+      "iconId": "icon_event_holiday",
+      "unlock": { "minStage": "baby" },
+      "competenceIds": ["expenses_distinguish"],
+      "situation": "В городе праздник! Можно купить праздничное лакомство или устроить веселье дома.",
+      "options": [
+        {
+          "id": "treat",
+          "label": "Праздничное лакомство",
+          "cost": 15,
+          "effects": [{ "stat": "mood", "delta": 12 }],
+          "resultText": "Вот это праздник! Потратили 15 {coin}.",
+          "journalText": "Купили праздничное лакомство."
+        },
+        {
+          "id": "home_party",
+          "label": "Веселье дома",
+          "cost": 0,
+          "effects": [{ "stat": "mood", "delta": 8 }],
+          "resultText": "Танцы дома — тоже праздник! И бесплатно.",
+          "journalText": "Устроили праздник дома."
+        }
+      ],
+      "forAdult": "Праздник можно устроить и без траты. Оба варианта радуют питомца."
+    },
+    {
+      "id": "price_up",
+      "title": "Сегодня еда дороже",
+      "category": "price",
+      "iconId": "icon_event_price",
+      "unlock": { "minStage": "adult" },
+      "competenceIds": ["prices_everyday", "expenses_not_exceed"],
+      "situation": "В магазин привезли мало продуктов, и еда на день сегодня стоит на 5 дороже.",
+      "priceDeltas": [{ "itemId": "food", "delta": 5, "days": 1 }],
+      "options": [
+        {
+          "id": "ok",
+          "label": "Понятно",
+          "cost": 0,
+          "effects": [],
+          "resultText": "Сегодня еда стоит 20 вместо 15. Завтра цена вернётся.",
+          "journalText": "Сегодня еда стоила дороже."
+        }
+      ],
+      "forAdult": "Цены иногда меняются, и это не чья-то ошибка. Запас монет помогает пережить такой день."
+    }
+  ]
+}
