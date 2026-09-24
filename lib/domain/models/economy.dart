@@ -496,6 +496,7 @@ final class GameDay {
     required this.transactions,
     required this.event,
     required this.isClosed,
+    required this.planConfirmed,
   });
 
   factory GameDay.create({
@@ -505,6 +506,7 @@ final class GameDay {
     List<Transaction> transactions = const [],
     DayEvent? event,
     bool isClosed = false,
+    bool planConfirmed = false,
   }) {
     if (number < 1) {
       throw ArgumentError.value(number, 'number', 'Дни нумеруются с 1');
@@ -519,6 +521,7 @@ final class GameDay {
       transactions: List.unmodifiable(transactions),
       event: event,
       isClosed: isClosed,
+      planConfirmed: planConfirmed,
     );
   }
 
@@ -528,12 +531,14 @@ final class GameDay {
   final List<Transaction> transactions;
   final DayEvent? event;
   final bool isClosed;
+  final bool planConfirmed;
 
   GameDay copyWith({
     BudgetPlan? plan,
     List<Transaction>? transactions,
     DayEvent? event,
     bool? isClosed,
+    bool? planConfirmed,
   }) =>
       GameDay.create(
         number: number,
@@ -542,6 +547,7 @@ final class GameDay {
         transactions: transactions ?? this.transactions,
         event: event ?? this.event,
         isClosed: isClosed ?? this.isClosed,
+        planConfirmed: planConfirmed ?? this.planConfirmed,
       );
 
   Map<String, Object?> toJson() => {
@@ -551,6 +557,7 @@ final class GameDay {
         'transactions': [for (final t in transactions) t.toJson()],
         'event': event?.toJson(),
         'isClosed': isClosed,
+        'planConfirmed': planConfirmed,
       };
 
   factory GameDay.fromJson(Map<String, Object?> json) => GameDay.create(
@@ -566,6 +573,7 @@ final class GameDay {
             ? null
             : DayEvent.fromJson((json['event'] as Map).cast<String, Object?>()),
         isClosed: json['isClosed'] as bool,
+        planConfirmed: (json['planConfirmed'] ?? false) as bool,
       );
 
   @override
@@ -576,9 +584,10 @@ final class GameDay {
       other.plan == plan &&
       other.event == event &&
       other.isClosed == isClosed &&
+      other.planConfirmed == planConfirmed &&
       other.transactions.length == transactions.length;
 
   @override
-  int get hashCode =>
-      Object.hash(number, income, plan, event, isClosed, transactions.length);
+  int get hashCode => Object.hash(
+      number, income, plan, event, isClosed, planConfirmed, transactions.length);
 }

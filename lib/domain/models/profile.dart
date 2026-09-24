@@ -4,6 +4,8 @@ library;
 
 import 'economy.dart';
 import 'pet.dart';
+import 'stat_change.dart';
+import 'transaction.dart';
 
 /// Итог дня: план против факта + очки роста.
 final class DaySummary {
@@ -95,6 +97,33 @@ final class DaySummary {
       plannedSavings, actualMandatory, actualOptional, actualSavings, growthPoints);
 }
 
+final class ProfileSettings {
+  const ProfileSettings({this.sound = true, this.motion = true});
+
+  final bool sound;
+  final bool motion;
+
+  ProfileSettings copyWith({bool? sound, bool? motion}) => ProfileSettings(
+      sound: sound ?? this.sound, motion: motion ?? this.motion);
+
+  Map<String, Object?> toJson() => {'sound': sound, 'motion': motion};
+
+  factory ProfileSettings.fromJson(Map<String, Object?> json) =>
+      ProfileSettings(
+        sound: (json['sound'] ?? true) as bool,
+        motion: (json['motion'] ?? true) as bool,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is ProfileSettings && other.sound == sound && other.motion == motion;
+
+  @override
+  int get hashCode => Object.hash(sound, motion);
+}
+
+const Object _keep = Object();
+
 /// Всё, что сохраняется на устройстве.
 final class Profile {
   const Profile._({
@@ -112,6 +141,13 @@ final class Profile {
     required this.equipped,
     required this.completedTasks,
     required this.history,
+    required this.journal,
+    required this.wishlist,
+    required this.reachedGoalIds,
+    required this.activeWallpaperId,
+    required this.settings,
+    required this.petActionsToday,
+    required this.petChangesToday,
   });
 
   factory Profile.create({
@@ -129,9 +165,21 @@ final class Profile {
     Map<String, String?> equipped = const {},
     List<String> completedTasks = const [],
     List<DaySummary> history = const [],
+    List<Transaction> journal = const [],
+    List<String> wishlist = const [],
+    List<String> reachedGoalIds = const [],
+    String? activeWallpaperId,
+    ProfileSettings settings = const ProfileSettings(),
+    Map<String, int> petActionsToday = const {},
+    List<StatChange> petChangesToday = const [],
   }) {
     if (palette < 0) {
       throw ArgumentError.value(palette, 'palette', 'Индекс палитры ≥ 0');
+    }
+    for (final MapEntry(key: id, value: count) in petActionsToday.entries) {
+      if (count < 0) {
+        throw ArgumentError.value(count, 'petActionsToday «$id»', '≥ 0');
+      }
     }
     return Profile._(
       petName: petName,
@@ -148,6 +196,13 @@ final class Profile {
       equipped: Map.unmodifiable(equipped),
       completedTasks: List.unmodifiable(completedTasks),
       history: List.unmodifiable(history),
+      journal: List.unmodifiable(journal),
+      wishlist: List.unmodifiable(wishlist),
+      reachedGoalIds: List.unmodifiable(reachedGoalIds),
+      activeWallpaperId: activeWallpaperId,
+      settings: settings,
+      petActionsToday: Map.unmodifiable(petActionsToday),
+      petChangesToday: List.unmodifiable(petChangesToday),
     );
   }
 
@@ -172,6 +227,18 @@ final class Profile {
   final List<String> completedTasks;
   final List<DaySummary> history;
 
+  final List<Transaction> journal;
+  final List<String> wishlist;
+  final List<String> reachedGoalIds;
+  final String? activeWallpaperId;
+  final ProfileSettings settings;
+
+  final Map<String, int> petActionsToday;
+  final List<StatChange> petChangesToday;
+
+  List<Transaction> get allTransactions =>
+      List.unmodifiable([...journal, ...currentDay.transactions]);
+
   Profile copyWith({
     String? petName,
     int? palette,
@@ -179,13 +246,20 @@ final class Profile {
     Wallet? wallet,
     PetState? state,
     PetProgress? progress,
-    String? goalId,
+    Object? goalId = _keep,
     List<Goal>? goals,
     GameDay? currentDay,
     List<String>? ownedItems,
     Map<String, String?>? equipped,
     List<String>? completedTasks,
     List<DaySummary>? history,
+    List<Transaction>? journal,
+    List<String>? wishlist,
+    List<String>? reachedGoalIds,
+    Object? activeWallpaperId = _keep,
+    ProfileSettings? settings,
+    Map<String, int>? petActionsToday,
+    List<StatChange>? petChangesToday,
   }) =>
       Profile.create(
         petName: petName ?? this.petName,
@@ -195,13 +269,22 @@ final class Profile {
         wallet: wallet ?? this.wallet,
         state: state ?? this.state,
         progress: progress ?? this.progress,
-        goalId: goalId ?? this.goalId,
+        goalId: identical(goalId, _keep) ? this.goalId : goalId as String?,
         goals: goals ?? this.goals,
         currentDay: currentDay ?? this.currentDay,
         ownedItems: ownedItems ?? this.ownedItems,
         equipped: equipped ?? this.equipped,
         completedTasks: completedTasks ?? this.completedTasks,
         history: history ?? this.history,
+        journal: journal ?? this.journal,
+        wishlist: wishlist ?? this.wishlist,
+        reachedGoalIds: reachedGoalIds ?? this.reachedGoalIds,
+        activeWallpaperId: identical(activeWallpaperId, _keep)
+            ? this.activeWallpaperId
+            : activeWallpaperId as String?,
+        settings: settings ?? this.settings,
+        petActionsToday: petActionsToday ?? this.petActionsToday,
+        petChangesToday: petChangesToday ?? this.petChangesToday,
       );
 
   Map<String, Object?> toJson() => {
@@ -219,6 +302,13 @@ final class Profile {
         'equipped': equipped,
         'completedTasks': completedTasks,
         'history': [for (final h in history) h.toJson()],
+        'journal': [for (final t in journal) t.toJson()],
+        'wishlist': wishlist,
+        'reachedGoalIds': reachedGoalIds,
+        'activeWallpaperId': activeWallpaperId,
+        'settings': settings.toJson(),
+        'petActionsToday': petActionsToday,
+        'petChangesToday': [for (final c in petChangesToday) c.toJson()],
       };
 
   factory Profile.fromJson(Map<String, Object?> json) => Profile.create(
@@ -243,6 +333,24 @@ final class Profile {
         history: [
           for (final h in (json['history'] as List))
             DaySummary.fromJson((h as Map).cast<String, Object?>())
+        ],
+        journal: [
+          for (final t in (json['journal'] as List? ?? const []))
+            Transaction.fromJson((t as Map).cast<String, Object?>())
+        ],
+        wishlist: (json['wishlist'] as List? ?? const []).cast<String>(),
+        reachedGoalIds:
+            (json['reachedGoalIds'] as List? ?? const []).cast<String>(),
+        activeWallpaperId: json['activeWallpaperId'] as String?,
+        settings: json['settings'] == null
+            ? const ProfileSettings()
+            : ProfileSettings.fromJson(
+                (json['settings'] as Map).cast<String, Object?>()),
+        petActionsToday:
+            (json['petActionsToday'] as Map? ?? const {}).cast<String, int>(),
+        petChangesToday: [
+          for (final c in (json['petChangesToday'] as List? ?? const []))
+            StatChange.fromJson((c as Map).cast<String, Object?>())
         ],
       );
 }
