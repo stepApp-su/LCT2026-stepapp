@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 2,
+  "profile": {
+    "petName": "Мони",
+    "species": "fox",
+    "palette": 0,
+    "simpleMode": true,
+    "wallet": { "balance": 60, "savings": 0 },
+    "state": { "satiety": 80, "care": 80, "mood": 80, "cozy": 10 },
+    "progress": {
+      "growthPoints": 0,
+      "stage": "egg",
+      "earnedTitles": [],
+      "currentTitleId": ""
+    },
+    "goalId": "ball_rope",
+    "goals": [],
+    "currentDay": {
+      "number": 1,
+      "income": 60,
+      "plan": { "mandatory": 0, "optional": 0, "savings": 0, "income": 60 },
+      "transactions": [
+        {
+          "id": "d1-1",
+          "type": "income",
+          "amount": 60,
+          "sourceId": "day_income",
+          "category": null,
+          "reasonText": "Монеты на день",
+          "at": "2026-09-01T09:00:00.000",
+          "dayNumber": 1
+        }
+      ],
+      "event": null,
+      "isClosed": false,
+      "planConfirmed": false
+    },
+    "ownedItems": [],
+    "equipped": {},
+    "completedTasks": [],
+    "history": [],
+    "journal": [],
+    "wishlist": [],
+    "reachedGoalIds": [],
+    "activeWallpaperId": "wp_plain",
+    "settings": { "sound": true, "motion": true },
+    "petActionsToday": {},
+    "petChangesToday": []
+  }
+}

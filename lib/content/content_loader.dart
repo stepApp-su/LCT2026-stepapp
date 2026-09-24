@@ -4,6 +4,8 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../domain/models.dart';
 import '../domain/models/models.dart' as domain;
+import '../domain/profile_codec.dart';
+import '../domain/profile_repository.dart';
 
 /// Загрузка статического JSON-контента из assets/content.
 class ContentLoader {
@@ -15,6 +17,7 @@ class ContentLoader {
   static const String competencesPath = 'assets/content/competences.json';
   static const String phrasesPath = 'assets/content/phrases.json';
   static const String economyPath = 'assets/content/economy.json';
+  static const String testProfilePath = 'assets/content/test_profile.json';
 
   /// Старые триггеры экранов-заглушек -> триггеры банка реплик.
   static const Map<String, String> _legacyTriggers = {
@@ -36,6 +39,17 @@ class ContentLoader {
     final raw = await rootBundle.loadString(economyPath);
     return domain.EconomyConfig.fromJson(
         (jsonDecode(raw) as Map).cast<String, Object?>());
+  }
+
+  Future<domain.Profile> loadTestProfile() async {
+    final result =
+        ProfileCodec.decode(await rootBundle.loadString(testProfilePath));
+    return switch (result) {
+      ProfileLoaded(:final profile) => profile,
+      ProfileUnreadable(:final reason) =>
+        throw FormatException('Тестовый профиль не читается: $reason'),
+      ProfileMissing() => throw const FormatException('Тестового профиля нет'),
+    };
   }
 
   Future<domain.CompetenceCatalog> loadCompetences() async {
