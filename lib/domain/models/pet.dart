@@ -1,6 +1,8 @@
 /// Питомец: шкалы и взросление. У шкал есть пол — ниже не сохранить.
 library;
 
+import 'growth.dart';
+
 enum PetStat { satiety, care, mood, cozy }
 
 enum PetStage { egg, baby, teen, adult }
@@ -82,6 +84,7 @@ final class PetProgress {
     required this.stage,
     required this.earnedTitles,
     required this.currentTitleId,
+    required this.growthDays,
   });
 
   factory PetProgress.create({
@@ -89,15 +92,23 @@ final class PetProgress {
     required PetStage stage,
     List<String> earnedTitles = const [],
     String currentTitleId = '',
+    List<GrowthDay> growthDays = const [],
   }) {
     if (growthPoints < 0) {
       throw ArgumentError.value(growthPoints, 'growthPoints', '>= 0');
+    }
+    for (var i = 1; i < growthDays.length; i++) {
+      if (growthDays[i].dayNumber <= growthDays[i - 1].dayNumber) {
+        throw ArgumentError.value(growthDays[i].dayNumber, 'growthDays',
+            'дни идут по возрастанию');
+      }
     }
     return PetProgress._(
       growthPoints: growthPoints,
       stage: stage,
       earnedTitles: List.unmodifiable(earnedTitles),
       currentTitleId: currentTitleId,
+      growthDays: List.unmodifiable(growthDays),
     );
   }
 
@@ -109,12 +120,29 @@ final class PetProgress {
 
   final List<String> earnedTitles;
   final String currentTitleId;
+  final List<GrowthDay> growthDays;
+
+  PetProgress copyWith({
+    int? growthPoints,
+    PetStage? stage,
+    List<String>? earnedTitles,
+    String? currentTitleId,
+    List<GrowthDay>? growthDays,
+  }) =>
+      PetProgress.create(
+        growthPoints: growthPoints ?? this.growthPoints,
+        stage: stage ?? this.stage,
+        earnedTitles: earnedTitles ?? this.earnedTitles,
+        currentTitleId: currentTitleId ?? this.currentTitleId,
+        growthDays: growthDays ?? this.growthDays,
+      );
 
   Map<String, Object?> toJson() => {
         'growthPoints': growthPoints,
         'stage': stage.name,
         'earnedTitles': earnedTitles,
         'currentTitleId': currentTitleId,
+        'growthDays': [for (final d in growthDays) d.toJson()],
       };
 
   factory PetProgress.fromJson(Map<String, Object?> json) => PetProgress.create(
@@ -123,6 +151,10 @@ final class PetProgress {
         earnedTitles:
             (json['earnedTitles'] as List).cast<String>(),
         currentTitleId: json['currentTitleId'] as String,
+        growthDays: [
+          for (final d in (json['growthDays'] as List? ?? const []))
+            GrowthDay.fromJson((d as Map).cast<String, Object?>())
+        ],
       );
 
   @override
@@ -131,14 +163,15 @@ final class PetProgress {
       other.growthPoints == growthPoints &&
       other.stage == stage &&
       other.currentTitleId == currentTitleId &&
-      _listEq(other.earnedTitles, earnedTitles);
+      _listEq(other.earnedTitles, earnedTitles) &&
+      _listEq(other.growthDays, growthDays);
 
   @override
-  int get hashCode =>
-      Object.hash(growthPoints, stage, currentTitleId, Object.hashAll(earnedTitles));
+  int get hashCode => Object.hash(growthPoints, stage, currentTitleId,
+      Object.hashAll(earnedTitles), Object.hashAll(growthDays));
 }
 
-bool _listEq(List<String> a, List<String> b) {
+bool _listEq<T>(List<T> a, List<T> b) {
   if (a.length != b.length) return false;
   for (var i = 0; i < a.length; i++) {
     if (a[i] != b[i]) return false;

@@ -179,6 +179,7 @@ final class WalletService {
     required DateTime at,
     required int dayNumber,
     String reasonText = 'Взял монетки из копилки',
+    String sourceId = 'savings',
   }) {
     if (amount > _wallet.savings) {
       return WalletNotEnough(
@@ -193,7 +194,7 @@ final class WalletService {
       id: _nextId(dayNumber),
       type: TransactionType.fromSavings,
       amount: amount,
-      sourceId: 'savings',
+      sourceId: sourceId,
       reasonText: reasonText,
       at: at,
       dayNumber: dayNumber,

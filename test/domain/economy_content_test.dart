@@ -5,10 +5,13 @@ import 'dart:math';
 import 'package:finni/content/content_loader.dart';
 import 'package:finni/domain/models/models.dart';
 import 'package:finni/domain/services/goal_service.dart';
+import 'package:finni/domain/services/growth_service.dart';
 import 'package:finni/domain/services/pet_state_service.dart';
 import 'package:finni/domain/services/shop_service.dart';
+import 'package:finni/domain/ru_words.dart';
 import 'package:finni/domain/services/wallet_service.dart';
 import 'package:finni/domain/stop_words.dart';
+import 'package:finni/domain/text_template.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Map<String, Object?> _raw(String file) =>
@@ -27,13 +30,11 @@ int _words(String text) => text
     .where((w) => RegExp(r'[\p{L}\d]', unicode: true).hasMatch(w))
     .length;
 
-/// Сколько покупка прибавляет к шкале.
 int _gain(ShopItem item, PetStat stat) => [
       for (final e in item.effects)
         if (e.stat == stat) e.delta
     ].fold(0, (a, b) => a + b);
 
-/// Что куплено за день — по журналу операций, как это сделает цикл дня.
 List<String> _boughtOn(WalletService wallet, int day) => [
       for (final tx in wallet.journalOfDay(day))
         if (tx.type == TransactionType.expense &&
@@ -83,14 +84,12 @@ void main() {
         expect(item!.category, ExpenseCategory.mandatory, reason: item.id);
         expect(item.showInShop, isTrue, reason: item.id);
         expect(item.price, greaterThan(0), reason: item.id);
-        // Иначе последствие пропуска было бы неизбежным — наказанием.
         expect(item.minStage, PetStage.egg, reason: item.id);
         expect(item.minDay, 1, reason: item.id);
       }
     });
 
     test('от каждой обязательной позиции магазина зависит состояние', () {
-      // ТЗ: обязательные расходы — те, от которых зависит состояние питомца.
       for (final item in shop.items) {
         if (item.category != ExpenseCategory.mandatory || !item.showInShop) {
           continue;
@@ -141,7 +140,7 @@ void main() {
   });
 
   group('тексты для ребёнка', () {
-    final texts = _strings(_raw('economy.json')['pet']);
+    final texts = _strings(_raw('economy.json'));
 
     test('ни одного слова из стоп-листа', () {
       for (final text in texts) {
@@ -291,5 +290,259 @@ void main() {
         }
       }
     }
+  });
+
+  group('рост питомца на настоящих правилах', () {
+    final growth = GrowthService(economy.growth);
+    final needs = [for (final need in rules.needs) need.itemId];
+
+    GameDay playDay(
+      WalletService wallet,
+      int day, {
+      required BudgetPlan plan,
+      bool confirmed = true,
+      List<String> buy = const [],
+      int deposit = 0,
+      bool task = false,
+    }) {
+      wallet.earn(
+          amount: plan.income,
+          sourceId: 'day_income',
+          reasonText: 'Монеты на день',
+          at: _at,
+          dayNumber: day);
+      for (final id in buy) {
+        final item = shop.byId(id)!;
+        expect(
+            wallet.spend(
+                amount: item.price,
+                itemId: id,
+                category: item.category,
+                reasonText: item.diaryText,
+                at: _at,
+                dayNumber: day),
+            isA<WalletOk>(),
+            reason: 'день $day: $id');
+      }
+      if (deposit > 0) {
+        expect(wallet.toSavings(amount: deposit, at: _at, dayNumber: day),
+            isA<WalletOk>());
+      }
+      if (task) {
+        wallet.earn(
+            amount: 12,
+            sourceId: 'task:payments_sort_needs',
+            reasonText: 'Задание: нужное и желаемое',
+            at: _at,
+            dayNumber: day);
+      }
+      return GameDay.create(
+        number: day,
+        income: plan.income,
+        plan: plan,
+        transactions: wallet.journalOfDay(day),
+        planConfirmed: confirmed,
+      );
+    }
+
+    ({PetProgress progress, List<StageUp> stageUps}) live(
+        int days, GameDay Function(WalletService wallet, int day) play) {
+      final wallet = WalletService();
+      var progress = PetProgress.initial();
+      final stageUps = <StageUp>[];
+      for (var day = 1; day <= days; day++) {
+        final facts =
+            DayFacts.fromDay(play(wallet, day), mandatoryItemIds: needs);
+        final outcome = growth.closeDay(progress, facts);
+        progress = outcome.progress;
+        if (outcome.stageUp != null) stageUps.add(outcome.stageUp!);
+      }
+      return (progress: progress, stageUps: stageUps);
+    }
+
+    test('малыш — за один идеальный день, две стадии — за пять дней', () {
+      final rules = economy.growth;
+      expect(rules.thresholds[PetStage.baby]!,
+          lessThanOrEqualTo(rules.maxDailyPoints));
+      expect(rules.thresholds[PetStage.teen]!,
+          lessThanOrEqualTo(5 * rules.maxDailyPoints));
+    });
+
+    test('три фактора ТЗ весят больше задания, одними заданиями не вырасти',
+        () {
+      final points = economy.growth.points;
+      for (final factor in [
+        GrowthFactor.mandatoryPaid,
+        GrowthFactor.followedPlan,
+        GrowthFactor.savedAsPlanned,
+      ]) {
+        expect(points[factor]!, greaterThan(points[GrowthFactor.taskDone]!));
+      }
+      expect(5 * points[GrowthFactor.taskDone]!,
+          lessThan(economy.growth.thresholds[PetStage.teen]!));
+    });
+
+    test('разумный игрок: за пять дней три новые стадии, у каждой объяснение',
+        () {
+      final result = live(
+          5,
+          (wallet, day) => playDay(wallet, day,
+              plan: BudgetPlan.create(
+                  mandatory: 25, optional: 10, savings: 25, income: 60),
+              buy: [...needs, 'treat'],
+              deposit: 25,
+              task: true));
+      expect(result.progress.stage, PetStage.adult);
+      expect([for (final up in result.stageUps) up.to],
+          [PetStage.baby, PetStage.teen, PetStage.adult]);
+      for (final up in result.stageUps) {
+        expect(up.reasonText, contains('откладывали в копилку'));
+        expect(_words(up.reasonText), lessThanOrEqualTo(10),
+            reason: up.reasonText);
+        expect(findStopWords(up.reasonText), isEmpty);
+        expect(growth.stageUpTitle(up, petName: 'Мони'),
+            'Мони подрастает: теперь «${up.stageLabel}»!');
+      }
+    });
+
+    test('транжира: всё на желаемое — к шестому дню «Подросток», не «Взрослый»',
+        () {
+      final result = live(
+          6,
+          (wallet, day) => playDay(wallet, day,
+              plan: BudgetPlan.create(
+                  mandatory: 25, optional: 35, savings: 0, income: 60),
+              buy: [...needs, 'bouncy_ball', 'puzzle'],
+              task: true));
+      expect(result.progress.stage, PetStage.teen);
+      expect(result.progress.growthPoints, 30);
+    });
+
+    test('без плана и покупок — яйцо, подсказки без упрёков и без пропусков',
+        () {
+      final result = live(
+          6,
+          (wallet, day) => playDay(wallet, day,
+              plan: BudgetPlan.empty(60), confirmed: false));
+      expect(result.progress.stage, PetStage.egg);
+      expect(result.progress.growthPoints, 0);
+      expect(result.progress.growthDays, hasLength(6));
+      for (final day in result.progress.growthDays) {
+        for (final line in growth.lines(day)) {
+          expect(line.met, isFalse);
+          expect(line.text, isNot(contains('{')));
+          expect(findStopWords(line.text), isEmpty);
+        }
+      }
+    });
+  });
+
+  group('рост и копилка на настоящих сервисах', () {
+    final growth = GrowthService(economy.growth);
+    final needs = [for (final need in rules.needs) need.itemId];
+
+    test('пустой подтверждённый план без покупок — яйцо, без очков', () {
+      final wallet = WalletService();
+      var progress = PetProgress.initial();
+      for (var day = 1; day <= 6; day++) {
+        wallet.earn(
+            amount: 60,
+            sourceId: 'day_income',
+            reasonText: 'Монеты на день',
+            at: _at,
+            dayNumber: day);
+        final facts = DayFacts.fromDay(
+            GameDay.create(
+              number: day,
+              income: 60,
+              plan: BudgetPlan.empty(60),
+              transactions: wallet.journalOfDay(day),
+              planConfirmed: true,
+            ),
+            mandatoryItemIds: needs);
+        progress = growth.closeDay(progress, facts).progress;
+      }
+      expect(progress.growthPoints, 0);
+      expect(progress.stage, PetStage.egg);
+    });
+
+    test('получение цели не отнимает очки за копилку, а снятие — отнимает', () {
+      final wallet = WalletService();
+      final targets = GoalService(catalog: goals, wallet: wallet);
+      final goal = goals.byId('ball_rope')!;
+      final plan = BudgetPlan.create(
+          mandatory: 0, optional: 0, savings: goal.price, income: 200);
+      DayFacts factsOf(int day) => DayFacts.fromDay(
+          GameDay.create(
+            number: day,
+            income: 200,
+            plan: plan,
+            transactions: wallet.journalOfDay(day),
+            planConfirmed: true,
+          ),
+          mandatoryItemIds: needs);
+
+      wallet.earn(
+          amount: 200,
+          sourceId: 'day_income',
+          reasonText: 'Монеты на день',
+          at: _at,
+          dayNumber: 1);
+      targets.confirmSelect(targets.askToSelect(goal.id) as GoalSelectConfirm);
+      targets.deposit(amount: goal.price, at: _at);
+      final claimed = targets.claim(at: _at) as GoalClaimed;
+      expect(claimed.transaction.sourceId, 'goal:${goal.id}');
+      final claimDay = factsOf(1);
+      expect(claimDay.deposited, goal.price);
+      expect(
+          growth.factorsOf(claimDay),
+          containsAll(
+              [GrowthFactor.followedPlan, GrowthFactor.savedAsPlanned]));
+
+      wallet.earn(
+          amount: 200,
+          sourceId: 'day_income',
+          reasonText: 'Монеты на день',
+          at: _at,
+          dayNumber: 2);
+      targets.startDay(2);
+      targets
+          .confirmSelect(targets.askToSelect('scooter') as GoalSelectConfirm);
+      targets.deposit(amount: goal.price, at: _at);
+      final preview = targets.previewWithdraw(goal.price) as WithdrawPreview;
+      expect(targets.withdraw(preview, at: _at), isA<WithdrawDone>());
+      final withdrawDay = factsOf(2);
+      expect(withdrawDay.deposited, 0);
+      expect(growth.factorsOf(withdrawDay),
+          isNot(contains(GrowthFactor.savedAsPlanned)));
+    });
+
+    test('объяснение роста не длиннее десяти слов при любом наборе дел', () {
+      final texts = economy.growth.texts;
+      final actions = [
+        for (final factor in GrowthFactor.values) texts.factors[factor]!.action
+      ];
+      final sets = [
+        for (final a in actions) a,
+        for (var i = 0; i < actions.length; i++)
+          for (var j = i + 1; j < actions.length; j++)
+            '${actions[i]} и ${actions[j]}',
+      ];
+      for (final joined in sets) {
+        final today = fillTemplate(texts.reasonOneDay, {'actions': joined});
+        expect(_words(today), lessThanOrEqualTo(10), reason: today);
+        for (final days in [2, 5, 11, 21, 100]) {
+          final text = fillPlurals(fillTemplate(
+              texts.reasonDays, {'days': '$days', 'actions': joined}));
+          expect(_words(text), lessThanOrEqualTo(10), reason: text);
+          expect(text, isNot(contains('{')), reason: text);
+        }
+      }
+      for (final stage in PetStage.values) {
+        final title = fillTemplate(texts.stageUp,
+            {'name': 'Мони', 'stage': texts.stageLabels[stage]!});
+        expect(_words(title), lessThanOrEqualTo(10), reason: title);
+      }
+    });
   });
 }
