@@ -6,6 +6,8 @@ export 'competence_catalog.dart';
 export 'economy.dart';
 export 'economy_config.dart';
 export 'goal_catalog.dart';
+export 'growth.dart';
+export 'growth_rules.dart';
 export 'pet.dart';
 export 'pet_rules.dart';
 export 'phrase_catalog.dart';

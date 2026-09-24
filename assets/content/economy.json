@@ -52,5 +52,49 @@
       "goalReached": "Цель достигнута: {title}",
       "dailyItem": "{title} радует каждый день"
     }
+  },
+  "growth": {
+    "points": {
+      "mandatoryPaid": 2,
+      "followedPlan": 2,
+      "savedAsPlanned": 2,
+      "taskDone": 1
+    },
+    "planTolerance": { "percent": 20, "atLeast": 5 },
+    "stages": { "baby": 4, "teen": 14, "adult": 32 },
+    "texts": {
+      "stageLabels": {
+        "egg": "Яйцо",
+        "baby": "Малыш",
+        "teen": "Подросток",
+        "adult": "Взрослый"
+      },
+      "factors": {
+        "mandatoryPaid": {
+          "met": "Всё нужное куплено: +{points} к росту",
+          "missed": "Купим всё нужное — будет +{points} к росту",
+          "action": "покупали всё нужное"
+        },
+        "followedPlan": {
+          "met": "Потратили по плану: +{points} к росту",
+          "missed": "Потратим по плану — будет +{points} к росту",
+          "action": "тратили по плану"
+        },
+        "savedAsPlanned": {
+          "met": "Отложили по плану: +{points} к росту",
+          "missed": "Отложим в копилку по плану — будет +{points} к росту",
+          "action": "откладывали в копилку"
+        },
+        "taskDone": {
+          "met": "Задание сделано: +{points} к росту",
+          "missed": "Задание добавит +{points} к росту",
+          "action": "решали задания"
+        }
+      },
+      "stageUp": "{name} подрастает: теперь «{stage}»!",
+      "reasonOneDay": "Сегодня мы {actions}.",
+      "reasonDays": "За {days} {day}: {actions}.",
+      "reasonFallback": "Мы многому научились вместе."
+    }
   }
 }

@@ -548,6 +548,7 @@ final class GoalService {
       amount: goal.price,
       at: at,
       dayNumber: _day,
+      sourceId: 'goal:${goal.id}',
       reasonText: fillTemplate(texts.journal.goalReached, {
         'title': goal.title,
         'titleAccusative': goal.titleAccusative,

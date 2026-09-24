@@ -5,9 +5,8 @@ import 'package:finni/domain/models/models.dart';
 import 'package:finni/domain/services/pet_state_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// Правила для проверки логики. Тесты не зависят от настоящего
-// economy.json: его балансируют, а логика от этого меняться не должна.
-// Настоящий файл проверяет economy_content_test.dart.
+import '../support/growth.dart';
+
 Map<String, Object?> _rulesJson() => {
       'initial': {'satiety': 80, 'care': 80, 'mood': 80, 'cozy': 10},
       'needs': [
@@ -76,7 +75,6 @@ Map<String, Object?> _rulesJson() => {
 
 final PetRules _rules = PetRules.fromJson(_rulesJson());
 
-/// Копия правил с правкой: так проверяем, что битый конфиг не пройдёт.
 PetRules _rulesWith(void Function(Map<String, Object?> json) edit) {
   final json =
       (jsonDecode(jsonEncode(_rulesJson())) as Map).cast<String, Object?>();
@@ -155,7 +153,6 @@ final ShopItem _ball = ShopItem.create(
   diaryText: 'Купили попрыгунчик.',
 );
 
-/// Товар без записи для дневника — причина берётся из шаблона.
 final ShopItem _cap = ShopItem.create(
   id: 'cap',
   title: 'Кепка',
@@ -166,8 +163,6 @@ final ShopItem _cap = ShopItem.create(
   effects: const [StateEffect(stat: PetStat.mood, delta: 10)],
 );
 
-/// Контент с ошибкой: такого в каталоге быть не должно, но сервис
-/// обязан пережить и его, не нарушив ни одной рамки.
 final ShopItem _broken = ShopItem.create(
   id: 'broken',
   title: 'Странная вещь',
@@ -200,8 +195,6 @@ void _expectWithinBounds(PetState s) {
   expect(s.cozy, greaterThanOrEqualTo(0));
 }
 
-/// Каждое изменение с причиной, и вместе они объясняют итог целиком:
-/// ни одна шкала не сдвинулась молча.
 void _expectExplained(
     PetState from, Iterable<StatChange> changes, PetState to) {
   final running = {for (final stat in PetStat.values) stat: from.of(stat)};
@@ -348,8 +341,6 @@ void main() {
             expect(update.after, pet.state, reason: context);
             _expectUpdateExplained(update);
           }
-          // Список дня полный: из утреннего состояния он ведёт ровно к
-          // нынешнему. На нём строятся итоги дня.
           _expectExplained(dayStart, pet.changesToday, pet.state);
         }
       }
@@ -814,7 +805,7 @@ void main() {
     });
 
     test('версия файла экономики с единицы', () {
-      final json = {'pet': _rulesJson()};
+      final json = {'pet': _rulesJson(), 'growth': growthRulesJson()};
       expect(EconomyConfig.fromJson(json).schemaVersion, 1);
       expect(() => EconomyConfig.fromJson({...json, 'schemaVersion': 0}),
           throwsArgumentError);
