@@ -7,15 +7,23 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/finni_theme.dart';
+import '../../domain/models/pet.dart';
+import 'moni_idle.dart';
 
 class MoniScene extends StatefulWidget {
   const MoniScene(
       {super.key,
       this.motion = true,
+      this.stage = PetStage.teen,
+      this.celebrationProgress,
+      this.onReady,
       this.equipped,
       this.onPet,
       this.outfit = const {}});
   final bool motion;
+  final PetStage stage;
+  final double? celebrationProgress;
+  final VoidCallback? onReady;
   final String? equipped;
   final VoidCallback? onPet;
   final Map<String, String> outfit;
@@ -27,11 +35,13 @@ class _MoniSceneState extends State<MoniScene>
     with SingleTickerProviderStateMixin {
   late final AnimationController ticker = AnimationController(
     vsync: this,
-    duration: const Duration(seconds: 12),
+    duration: const Duration(seconds: moniIdleSeconds),
   );
   ui.Image? rig, accessories;
   List<Rect> accessoryBounds = [];
   ui.Image? closedFace;
+  final Map<PetStage, ui.Image> stageRigs = {};
+  final Map<PetStage, ui.Image> stageFaces = {};
   Timer? reaction;
   bool happy = false;
   @override
@@ -42,7 +52,7 @@ class _MoniSceneState extends State<MoniScene>
 
   Future<void> _load() async {
     final images = await Future.wait(
-      ['rig', 'accessories'].map((name) async {
+      ['rig', 'accessories', 'rig-baby', 'rig-adult'].map((name) async {
         final bytes = await rootBundle.load('assets/pets/moni/$name.png');
         final codec = await ui.instantiateImageCodec(
           bytes.buffer.asUint8List(),
@@ -54,8 +64,12 @@ class _MoniSceneState extends State<MoniScene>
     );
     final bounds = await _trimCells(images[1]);
     final closed = await _makeClosedFace(images[0]);
+    final babyClosed = await _makeClosedFace(images[2]);
+    final adultClosed = await _makeClosedFace(images[3]);
     if (!mounted) {
       closed.dispose();
+      babyClosed.dispose();
+      adultClosed.dispose();
       for (final i in images) {
         i.dispose();
       }
@@ -66,7 +80,11 @@ class _MoniSceneState extends State<MoniScene>
       accessories = images[1];
       accessoryBounds = bounds;
       closedFace = closed;
+      stageRigs.addAll({PetStage.baby: images[2], PetStage.adult: images[3]});
+      stageFaces
+          .addAll({PetStage.baby: babyClosed, PetStage.adult: adultClosed});
     });
+    widget.onReady?.call();
   }
 
   // Keep the neutral outline; replace only the painted facial expression.
@@ -150,6 +168,9 @@ class _MoniSceneState extends State<MoniScene>
     closedFace?.dispose();
     rig?.dispose();
     accessories?.dispose();
+    for (final image in [...stageRigs.values, ...stageFaces.values]) {
+      image.dispose();
+    }
     super.dispose();
   }
 
@@ -173,13 +194,16 @@ class _MoniSceneState extends State<MoniScene>
                 rig,
                 accessories,
                 widget.motion && !MediaQuery.disableAnimationsOf(context)
-                    ? ticker.value * 12
+                    ? ticker.value * moniIdleSeconds
                     : 0,
                 happy,
                 widget.equipped,
                 Map.of(widget.outfit),
                 accessoryBounds,
-                closedFace,
+                stageFaces[widget.stage] ?? closedFace,
+                stageRigs[widget.stage] ?? rig,
+                widget.stage,
+                widget.celebrationProgress,
               ),
               size: Size.infinite,
             ),
@@ -189,8 +213,18 @@ class _MoniSceneState extends State<MoniScene>
 }
 
 class _MoniPainter extends CustomPainter {
-  _MoniPainter(this.rig, this.accessories, this.t, this.happy, this.equipped,
-      this.outfit, this.accessoryBounds, this.closedFace);
+  _MoniPainter(
+      this.rig,
+      this.accessories,
+      this.t,
+      this.happy,
+      this.equipped,
+      this.outfit,
+      this.accessoryBounds,
+      this.closedFace,
+      this.faceRig,
+      this.stage,
+      this.celebrationProgress);
   final ui.Image? rig, accessories;
   final double t;
   final bool happy;
@@ -198,6 +232,9 @@ class _MoniPainter extends CustomPainter {
   final Map<String, String> outfit;
   final List<Rect> accessoryBounds;
   final ui.Image? closedFace;
+  final ui.Image? faceRig;
+  final PetStage stage;
+  final double? celebrationProgress;
   @override
   void paint(Canvas c, Size size) {
     final s = math.min(size.width / 470, size.height / 550);
@@ -205,6 +242,14 @@ class _MoniPainter extends CustomPainter {
     c.translate((size.width - 470 * s) / 2, (size.height - 550 * s) / 2);
     c.scale(s);
     c.translate(-58, -60);
+    final ageScale = stage == PetStage.baby
+        ? .90
+        : stage == PetStage.adult
+            ? 1.02
+            : 1.0;
+    c.translate(320, 593);
+    c.scale(ageScale);
+    c.translate(-320, -593);
     final paint = Paint()..filterQuality = FilterQuality.medium;
     c.drawOval(
       const Rect.fromLTWH(184, 574, 246, 24),
@@ -214,7 +259,19 @@ class _MoniPainter extends CustomPainter {
       c.restore();
       return;
     }
-    void part(Rect from, Rect to, {double angle = 0, Offset? pivot}) {
+    final progress = celebrationProgress ?? 0;
+    double pulse(double start, double end) => math
+        .sin(((progress - start) / (end - start)).clamp(0.0, 1.0) * math.pi);
+    final jump = pulse(.30, .70);
+    final encore = pulse(.74, .92);
+    final anticipation = pulse(.12, .30);
+    final joy = pulse(.30, 1);
+    c.translate(0, anticipation * 9 - jump * 48 - encore * 19);
+    c.translate(320, 593);
+    c.rotate(math.sin(progress * math.pi * 6) * .035 * joy);
+    c.translate(-320, -593);
+    void part(Rect from, Rect to,
+        {double angle = 0, Offset? pivot, bool face = false}) {
       c.save();
       if (angle != 0) {
         final p = pivot ?? to.center;
@@ -222,15 +279,15 @@ class _MoniPainter extends CustomPainter {
         c.rotate(angle);
         c.translate(-p.dx, -p.dy);
       }
-      c.drawImageRect(rig!, from, to, paint);
+      c.drawImageRect(face ? faceRig! : rig!, from, to, paint);
       c.restore();
     }
 
-    final breath = math.sin(t * 2.1) * 1.5;
+    final breath = moniIdleWave(t, 4) * 1.5;
     part(
       const Rect.fromLTWH(42, 469, 397, 377),
       const Rect.fromLTWH(121, 382, 162, 154),
-      angle: math.sin(t * 2.3) * .06,
+      angle: moniIdleWave(t, 4) * .06 + math.sin(progress * 48) * .20 * joy,
       pivot: const Offset(254, 516),
     );
     part(
@@ -240,29 +297,32 @@ class _MoniPainter extends CustomPainter {
     c.save();
     c.translate(0, breath);
     c.translate(354, 412);
-    c.rotate(math.sin(t * 1.7) * .008);
+    c.rotate(moniIdleWave(t, 3) * .008);
     c.translate(-354, -412);
     part(
       const Rect.fromLTWH(944, 48, 390, 403),
       const Rect.fromLTWH(88, 151, 203, 210),
-      angle: -.12 + math.sin(t) * .015,
+      angle: -.12 + moniIdleWave(t, 2) * .015 - jump * .10 + encore * .08,
       pivot: const Offset(258, 334),
+      face: true,
     );
     part(
       const Rect.fromLTWH(1363, 43, 399, 411),
       const Rect.fromLTWH(335, 90, 179, 227),
-      angle: .04 - math.sin(t) * .015,
+      angle: .04 - moniIdleWave(t, 2) * .015 + jump * .12 - encore * .06,
       pivot: const Offset(371, 287),
+      face: true,
     );
     final blink = (t > 2.8 && t < 2.94) ||
         (t > 6.4 && t < 6.54) ||
         (t > 10.1 && t < 10.24);
-    if ((blink || happy) && closedFace != null) {
+    if ((blink || happy || jump > .7 || encore > .3) && closedFace != null) {
       c.drawImageRect(closedFace!, const Rect.fromLTWH(0, 0, 510, 434),
           const Rect.fromLTWH(217, 216, 255, 217), paint);
     } else {
       part(const Rect.fromLTWH(480, 65, 449, 383),
-          const Rect.fromLTWH(217, 216, 255, 217));
+          const Rect.fromLTWH(217, 216, 255, 217),
+          face: true);
     }
     if (accessories != null && accessoryBounds.length == 12) {
       final a = accessories!;
@@ -293,6 +353,9 @@ class _MoniPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _MoniPainter old) =>
       old.rig != rig ||
+      old.faceRig != faceRig ||
+      old.stage != stage ||
+      old.celebrationProgress != celebrationProgress ||
       old.closedFace != closedFace ||
       old.t != t ||
       old.happy != happy ||

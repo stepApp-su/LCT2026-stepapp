@@ -13,6 +13,7 @@ import '../theme/finni_theme.dart';
 import '../widgets/emoji_art.dart';
 import '../widgets/finni_ui.dart';
 import '../widgets/moni_scene.dart';
+import '../widgets/pet_celebration.dart';
 import '../widgets/coin_icon.dart';
 import '../widgets/game_icon.dart';
 import '../game_controller.dart';
@@ -31,14 +32,17 @@ class _GameShellState extends State<GameShell> {
   int page = 0;
   int filter = 0;
   Timer? idleTimer;
+  bool celebrating = false;
   GameController get s => widget.state;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) s.greet();
+      if (mounted && s.bubble == null) s.greet();
+      if (mounted) showCelebration();
     });
+    s.addListener(showCelebration);
     idleTimer = Timer.periodic(const Duration(seconds: 45), (_) {
       if (mounted && page == 0 && ModalRoute.of(context)?.isCurrent == true) {
         s.idle();
@@ -48,8 +52,26 @@ class _GameShellState extends State<GameShell> {
 
   @override
   void dispose() {
+    s.removeListener(showCelebration);
     idleTimer?.cancel();
     super.dispose();
+  }
+
+  void showCelebration() {
+    if (!mounted || celebrating || s.celebration == null) return;
+    celebrating = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final event = Map<String, dynamic>.of(s.celebration!);
+      await showDialog<void>(
+          context: context,
+          useRootNavigator: false,
+          barrierDismissible: false,
+          builder: (_) => PetCelebration(state: s, event: event));
+      if (!mounted) return;
+      s.acknowledgeCelebration();
+      celebrating = false;
+    });
   }
 
   void go(int value) {
@@ -70,6 +92,8 @@ class _GameShellState extends State<GameShell> {
         go(3);
       case 'plan':
         go(1);
+      case 'shop':
+        go(2);
       case 'savings':
         savings();
       case 'goals':
@@ -83,6 +107,7 @@ class _GameShellState extends State<GameShell> {
     }
     s.dismissBubble();
   }
+
   void toast(String text) => ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(text), behavior: SnackBarBehavior.floating),
       );
@@ -198,10 +223,9 @@ class _GameShellState extends State<GameShell> {
             child: Column(children: [
               Semantics(
                 button: true,
-                label:
-                    s.currentGoal == null
-                        ? 'Выбери мечту'
-                        : 'Мечта: ${s.goal}. ${s.wallet.wallet.savings} из ${s.target} монет',
+                label: s.currentGoal == null
+                    ? 'Выбери мечту'
+                    : 'Мечта: ${s.goal}. ${s.wallet.wallet.savings} из ${s.target} монет',
                 excludeSemantics: true,
                 child: Material(
                   color: FinniColors.lavender,
@@ -295,27 +319,11 @@ class _GameShellState extends State<GameShell> {
                           top: 14,
                           bottom: 4,
                           child: MoniScene(
+                            stage: s.stage,
                             outfit: s.outfit,
                             motion: s.motion,
                             equipped: s.equipped,
                           )),
-                      Positioned(
-                          left: 40,
-                          right: 40,
-                          top: 44,
-                          child: Center(
-                              child: ConstrainedBox(
-                                  constraints:
-                                      const BoxConstraints(maxWidth: 290),
-                                  child: AnimatedBubble(
-                                    line: s.bubble,
-                                    motion: s.motion,
-                                    onClose: s.dismissBubble,
-                                    onAction: s.bubble?.action == null
-                                        ? null
-                                        : () => bubbleAction(
-                                            s.bubble!.action!.route),
-                                  )))),
                       Positioned(
                           left: 8,
                           top: 4,
@@ -326,7 +334,8 @@ class _GameShellState extends State<GameShell> {
                                     style: const TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.w800)),
-                                Text(s.stageLabel,
+                                Text(
+                                    '${s.stageLabel} · ${s.currentTitle?.title ?? 'Новичок'}',
                                     style: const TextStyle(
                                         fontSize: 16,
                                         color: FinniColors.muted)),
@@ -338,6 +347,24 @@ class _GameShellState extends State<GameShell> {
                               tooltip: 'Подсказка',
                               onPressed: help,
                               icon: const Icon(Icons.help_outline_rounded))),
+                      Positioned(
+                          left: 16,
+                          right: 16,
+                          top: 44,
+                          child: Align(
+                              alignment: Alignment.topCenter,
+                              child: ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 310),
+                                  child: AnimatedBubble(
+                                    line: s.bubble,
+                                    motion: s.motion,
+                                    onClose: s.dismissBubble,
+                                    onAction: s.bubble?.action == null
+                                        ? null
+                                        : () => bubbleAction(
+                                            s.bubble!.action!.route),
+                                  )))),
                     ],
                   )),
               const SizedBox(height: 8),
@@ -524,7 +551,6 @@ class _GameShellState extends State<GameShell> {
           ),
         ],
       );
-
 
   Widget shop() {
     final items = s.catalog

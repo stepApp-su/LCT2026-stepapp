@@ -164,7 +164,8 @@ extension _GameSections on _GameShellState {
     sheet(withdrawal ? 'Взять из копилки' : 'Пополнить копилку',
         StatefulBuilder(builder: (context, update) {
       final before = s.wallet.wallet.savings;
-      final preview = withdrawal && amount > 0 ? s.previewWithdraw(amount) : null;
+      final preview =
+          withdrawal && amount > 0 ? s.previewWithdraw(amount) : null;
       final after = before + (withdrawal ? -amount : amount);
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Center(
@@ -272,8 +273,7 @@ extension _GameSections on _GameShellState {
                             style: Theme.of(context).textTheme.titleLarge),
                         if (goal.description.isNotEmpty)
                           Text(goal.description,
-                              style:
-                                  const TextStyle(color: FinniColors.muted)),
+                              style: const TextStyle(color: FinniColors.muted)),
                         const SizedBox(height: 6),
                         _Coins(goal.price),
                         const SizedBox(height: 8),
@@ -431,7 +431,10 @@ extension _GameSections on _GameShellState {
             SizedBox(
                 height: 250,
                 child: MoniScene(
-                    motion: s.motion, outfit: s.outfit, equipped: s.equipped)),
+                    stage: s.stage,
+                    motion: s.motion,
+                    outfit: s.outfit,
+                    equipped: s.equipped)),
             const SizedBox(height: 16),
             Text('Гардероб', style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 8),
@@ -498,8 +501,8 @@ extension _GameSections on _GameShellState {
             const SizedBox(height: 12),
             if (s.wishlist.isEmpty)
               const Text('Если вещь пока не по карману, сохрани её здесь.'),
-            for (final item in s.content.shop.items
-                .where((i) => s.wishlist.contains(i.id)))
+            for (final item
+                in s.content.shop.items.where((i) => s.wishlist.contains(i.id)))
               ListTile(
                   leading: ItemArt(item.id, size: 44),
                   title: Text(item.title),
@@ -511,23 +514,102 @@ extension _GameSections on _GameShellState {
   void titles() => section(
       'Звания и рост',
       (context) => ListView(padding: const EdgeInsets.all(16), children: [
-            const Icon(Icons.workspace_premium_outlined,
-                size: 56, color: FinniColors.purple),
-            const SizedBox(height: 20),
-            Text('Каждое решение — новый опыт',
+            SizedBox(
+                height: 220,
+                child: MoniScene(
+                    stage: s.stage, motion: s.motion, outfit: s.outfit)),
+            Text('${s.petName} растёт вместе с тобой',
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 16),
-            _Notice(
-                icon: Icons.check_circle_outline,
-                text:
-                    'Пройдено игр: ${s.tasks.completedTaskIds.length} из ${s.content.tasks.tasks.length}. В копилке ${s.wallet.wallet.savings} монет.'),
-            const SizedBox(height: 20),
-            const _PendingFeature(
-                owner: 'Макс, Юля',
-                text:
-                    'Очки развития, стадии и правила званий. Звания появятся после подключения сервиса прогресса; сейчас они не выдаются за покупки.'),
+            _Panel(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                  Text('${s.stageLabel} · ${s.progress.growthPoints} опыта',
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 10),
+                  LinearProgressIndicator(
+                      value: s.growthStatus.next == null
+                          ? 1
+                          : ((s.progress.growthPoints -
+                                      (s.stage == PetStage.baby
+                                          ? 0
+                                          : s.growth.rules
+                                              .thresholds[s.stage]!)) /
+                                  (s.growth.rules
+                                          .thresholds[s.growthStatus.next]! -
+                                      (s.stage == PetStage.baby
+                                          ? 0
+                                          : s.growth.rules
+                                              .thresholds[s.stage]!)))
+                              .clamp(0.0, 1.0),
+                      minHeight: 10,
+                      borderRadius: BorderRadius.circular(8)),
+                  const SizedBox(height: 10),
+                  Text(s.growthStatus.next == null
+                      ? 'Взрослый друг! Впереди ещё новые звания.'
+                      : 'До стадии «${s.growthStatus.nextLabel}» — ${s.growthStatus.pointsToNext} опыта'),
+                  const SizedBox(height: 8),
+                  const Text(
+                      'Опыт получаем вечером: за нужные покупки, план, накопления и игры.'),
+                ])),
+            const SizedBox(height: 24),
+            Text('Твои звания', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 6),
+            const Text(
+                'Выбери полученное звание — оно появится рядом с именем. Новые звания открываются по итогам дня.'),
+            const SizedBox(height: 12),
+            for (final title in s.content.titles.titles)
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _Panel(
+                      color: s.progress.currentTitleId == title.id
+                          ? FinniColors.honey
+                          : FinniColors.paper,
+                      child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                                s.progress.earnedTitles.contains(title.id)
+                                    ? Icons.workspace_premium_rounded
+                                    : Icons.lock_outline_rounded,
+                                color:
+                                    s.progress.earnedTitles.contains(title.id)
+                                        ? FinniColors.gold
+                                        : FinniColors.muted,
+                                size: 30),
+                            const SizedBox(width: 12),
+                            Expanded(
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                  Text(title.title,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium),
+                                  Text(s.titles.reasonOf(title)),
+                                  const SizedBox(height: 5),
+                                  if (s.progress.currentTitleId == title.id)
+                                    const Text('Выбрано',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w800))
+                                  else if (s.progress.earnedTitles
+                                      .contains(title.id))
+                                    TextButton(
+                                        onPressed: () =>
+                                            s.chooseTitle(title.id),
+                                        child: const Text('Выбрать'))
+                                  else
+                                    const Text('Ещё впереди',
+                                        style: TextStyle(
+                                            color: FinniColors.muted)),
+                                ])),
+                          ]))),
           ]));
   void daySummary() => section('Спокойной ночи', (context) {
+        final summaryDay = s.day;
         int actual(ExpenseCategory category) => s.wallet.journal
             .where((t) =>
                 t.dayNumber == s.day &&
@@ -576,13 +658,16 @@ extension _GameSections on _GameShellState {
                       Text('План ${row.$2} · факт ${row.$3}'),
                       Text('Разница: ${row.$3 - row.$2} монет')
                     ]))),
-          const _PendingFeature(
-              owner: 'Матвей, Юля; Макс, Юля',
+          _Notice(
+              icon: Icons.auto_awesome,
               text:
-                  'Закрытие дня, объяснение последствий и рост питомца. Здесь показаны реальные операции, но день пока не закрывается.'),
+                  'Сегодня можно получить ${s.growth.pointsFor(s.growth.factorsOf(s.dayFacts))} опыта. После завершения проверим новые звания и начнём следующий день.'),
           const SizedBox(height: 16),
-          const FilledButton(
-              onPressed: null, child: Text('Переход к новому дню в работе')),
+          FilledButton(
+              onPressed: () {
+                if (s.closeDay(summaryDay)) Navigator.of(context).pop();
+              },
+              child: const Text('Завершить день')),
         ]);
       });
   void glossary() => section(

@@ -122,7 +122,8 @@ class TagPill extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -131,7 +132,8 @@ class TagPill extends StatelessWidget {
 }
 
 class Squish extends StatefulWidget {
-  const Squish({super.key, required this.child, this.onTap, this.enabled = true});
+  const Squish(
+      {super.key, required this.child, this.onTap, this.enabled = true});
 
   final Widget child;
   final VoidCallback? onTap;
@@ -171,12 +173,14 @@ class SpeechBubble extends StatelessWidget {
     this.onClose,
     this.onAction,
     this.tailLeft = false,
+    this.tailAbove = false,
   });
 
   final PhraseLine line;
   final VoidCallback? onClose;
   final VoidCallback? onAction;
   final bool tailLeft;
+  final bool tailAbove;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -187,6 +191,14 @@ class SpeechBubble extends StatelessWidget {
           crossAxisAlignment:
               tailLeft ? CrossAxisAlignment.start : CrossAxisAlignment.center,
           children: [
+            if (tailAbove)
+              Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: CustomPaint(
+                  size: const Size(24, 14),
+                  painter: _TailPainter(above: true),
+                ),
+              ),
             Material(
               color: FinniColors.paper,
               elevation: 3,
@@ -209,42 +221,56 @@ class SpeechBubble extends StatelessWidget {
                             height: 1.25),
                       ),
                       if (line.action != null && onAction != null) ...[
-                        const SizedBox(height: 8),
-                        FilledButton.tonal(
-                          onPressed: onAction,
-                          child: Text(line.action!.label),
-                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.tonal(
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size(0, 44),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14)),
+                              ),
+                              onPressed: onAction,
+                              child: Text(line.action!.label,
+                                  textAlign: TextAlign.center),
+                            )),
                       ],
                     ],
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: EdgeInsets.only(left: tailLeft ? 28 : 0),
-              child: CustomPaint(
-                size: const Size(22, 12),
-                painter: _TailPainter(),
+            if (!tailAbove)
+              Padding(
+                padding: EdgeInsets.only(left: tailLeft ? 28 : 0),
+                child: CustomPaint(
+                  size: const Size(22, 12),
+                  painter: _TailPainter(),
+                ),
               ),
-            ),
           ],
         ),
       );
 }
 
 class _TailPainter extends CustomPainter {
+  _TailPainter({this.above = false});
+  final bool above;
   @override
   void paint(Canvas canvas, Size size) {
     final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width / 2, size.height)
+      ..moveTo(0, above ? size.height : 0)
+      ..lineTo(size.width, above ? size.height : 0)
+      ..lineTo(
+          above ? size.width * .2 : size.width / 2, above ? 0 : size.height)
       ..close();
     canvas.drawPath(path, Paint()..color = FinniColors.paper);
   }
 
   @override
-  bool shouldRepaint(_TailPainter oldDelegate) => false;
+  bool shouldRepaint(_TailPainter oldDelegate) => oldDelegate.above != above;
 }
 
 class AnimatedBubble extends StatelessWidget {
@@ -255,6 +281,7 @@ class AnimatedBubble extends StatelessWidget {
     this.onClose,
     this.onAction,
     this.tailLeft = false,
+    this.tailAbove = false,
   });
 
   final PhraseLine? line;
@@ -262,11 +289,16 @@ class AnimatedBubble extends StatelessWidget {
   final VoidCallback? onClose;
   final VoidCallback? onAction;
   final bool tailLeft;
+  final bool tailAbove;
 
   @override
   Widget build(BuildContext context) {
     final current = line;
     return AnimatedSwitcher(
+      layoutBuilder: (currentChild, previousChildren) => Stack(
+        alignment: Alignment.topCenter,
+        children: [...previousChildren, if (currentChild != null) currentChild],
+      ),
       duration: motionAllowed(context, motion)
           ? const Duration(milliseconds: 260)
           : Duration.zero,
@@ -283,6 +315,7 @@ class AnimatedBubble extends StatelessWidget {
               onClose: onClose,
               onAction: onAction,
               tailLeft: tailLeft,
+              tailAbove: tailAbove,
             ),
     );
   }
@@ -309,7 +342,8 @@ class Celebration {
 }
 
 class _CelebrationLayer extends StatefulWidget {
-  const _CelebrationLayer({required this.emoji, required this.onDone, this.text});
+  const _CelebrationLayer(
+      {required this.emoji, required this.onDone, this.text});
 
   final String emoji;
   final String? text;
@@ -392,7 +426,8 @@ class _CelebrationLayerState extends State<_CelebrationLayer>
 }
 
 class _Particle {
-  const _Particle(this.angle, this.speed, this.spin, this.color, this.size, this.round);
+  const _Particle(
+      this.angle, this.speed, this.spin, this.color, this.size, this.round);
 
   final double angle;
   final double speed;
@@ -451,7 +486,8 @@ class _ConfettiPainter extends CustomPainter {
       } else {
         canvas.drawRRect(
             RRect.fromRectAndRadius(
-                Rect.fromCenter(center: Offset.zero, width: p.size, height: p.size * .55),
+                Rect.fromCenter(
+                    center: Offset.zero, width: p.size, height: p.size * .55),
                 const Radius.circular(2)),
             paint);
       }
@@ -489,7 +525,8 @@ class StarRow extends StatelessWidget {
 }
 
 class PopIn extends StatelessWidget {
-  const PopIn({super.key, required this.child, required this.motion, this.delay = 0});
+  const PopIn(
+      {super.key, required this.child, required this.motion, this.delay = 0});
 
   final Widget child;
   final bool motion;
