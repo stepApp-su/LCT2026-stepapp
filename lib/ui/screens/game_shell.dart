@@ -1,9 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
+import '../../domain/ru_words.dart';
+import '../../domain/services/goal_service.dart';
 import '../../domain/services/plan_service.dart';
+import '../../domain/services/shop_service.dart';
 import '../../domain/services/wallet_service.dart';
+import '../games/games_hub.dart';
 import '../theme/finni_theme.dart';
+import '../widgets/emoji_art.dart';
+import '../widgets/finni_ui.dart';
 import '../widgets/moni_scene.dart';
 import '../widgets/coin_icon.dart';
 import '../widgets/game_icon.dart';
@@ -22,8 +30,59 @@ class GameShell extends StatefulWidget {
 class _GameShellState extends State<GameShell> {
   int page = 0;
   int filter = 0;
+  Timer? idleTimer;
   GameController get s => widget.state;
-  void go(int value) => setState(() => page = value);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) s.greet();
+    });
+    idleTimer = Timer.periodic(const Duration(seconds: 45), (_) {
+      if (mounted && page == 0 && ModalRoute.of(context)?.isCurrent == true) {
+        s.idle();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    idleTimer?.cancel();
+    super.dispose();
+  }
+
+  void go(int value) {
+    setState(() => page = value);
+    switch (value) {
+      case 1:
+        s.openPlanner();
+      case 2:
+        s.openShop();
+      case 3:
+        s.openGames();
+    }
+  }
+
+  void bubbleAction(String route) {
+    switch (route) {
+      case 'tasks':
+        go(3);
+      case 'plan':
+        go(1);
+      case 'savings':
+        savings();
+      case 'goals':
+        chooseGoal();
+      case 'room' || 'wardrobe':
+        room();
+      case 'glossary':
+        glossary();
+      case 'close_day':
+        daySummary();
+    }
+    s.dismissBubble();
+  }
   void toast(String text) => ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(text), behavior: SnackBarBehavior.floating),
       );
@@ -82,145 +141,6 @@ class _GameShellState extends State<GameShell> {
           },
         ),
       );
-  void questionExercise() {
-    String? response;
-    bool success = s.completed;
-    sheet(
-      'Задание дня',
-      StatefulBuilder(
-        builder: (context, update) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              s.question['text'] as String,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 20),
-            for (int i = 0; i < (s.question['answers'] as List).length; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: OutlinedButton(
-                  onPressed: success
-                      ? null
-                      : () {
-                          final ok = s.answer(i);
-                          update(() {
-                            success = ok;
-                            response = ok
-                                ? 'Верно! ${s.question['explanation']} +${s.question['reward']} монет.'
-                                : 'Давай подумаем: сначала важно утолить голод. Попробуй ещё раз.';
-                          });
-                        },
-                  child: Text((s.question['answers'] as List)[i] as String),
-                ),
-              ),
-            if (response != null || success)
-              _Notice(
-                icon: success
-                    ? Icons.check_circle_outline
-                    : Icons.lightbulb_outline,
-                text: response ??
-                    '${s.question['explanation']} Награда уже в кошельке.',
-              ),
-            const SizedBox(height: 12),
-            const Text(
-              'Тема: нужное и желаемое.',
-              style: TextStyle(color: FinniColors.muted, fontSize: 16),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void purchase(ShopItem item) {
-    final detail = s.details(item.id);
-    bool bought = false;
-    sheet(
-      item.title,
-      StatefulBuilder(
-        builder: (context, update) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 150,
-              child: Center(
-                child: SizedBox(
-                  width: 150,
-                  height: 150,
-                  child: ProductArt(
-                    sheet: detail['art'] as String,
-                    cell: detail['cell'] as int,
-                  ),
-                ),
-              ),
-            ),
-            Text(detail['note'] as String, textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            if (bought)
-              _Notice(
-                icon: Icons.check_circle_outline,
-                text: 'Готово! Осталось ${s.wallet.wallet.balance} монет.',
-              )
-            else if (s.ownsAccessory(item))
-              const _Notice(
-                  icon: Icons.check_circle_outline,
-                  text: 'У тебя уже есть этот аксессуар.')
-            else if (s.wallet.wallet.balance >= item.price) ...[
-              Text(
-                'Было ${s.wallet.wallet.balance} → останется ${s.wallet.wallet.balance - item.price} монет.\n${priceComparison(item)}',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: () {
-                  final result = s.buy(item);
-                  if (result is WalletOk) update(() => bought = true);
-                },
-                icon: const Icon(Icons.shopping_bag_outlined),
-                label: Text('Купить за ${item.price} монет'),
-              ),
-            ] else ...[
-              _Notice(
-                icon: Icons.lightbulb_outline,
-                text:
-                    'Нужно ещё ${item.price - s.wallet.wallet.balance} монет. Давай выберем, что делать.',
-              ),
-              const SizedBox(height: 12),
-              if (!s.completed)
-                FilledButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    tasks();
-                  },
-                  icon: const Icon(Icons.extension_outlined),
-                  label: const Text('Выполнить задание'),
-                ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  s.postpone(item.id);
-                  toast('Сохранили в желаниях.');
-                },
-                child: const Text('Отложить на завтра'),
-              ),
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    page = 2;
-                    filter = 3;
-                  });
-                },
-                child: const Text('Посмотреть доступные товары'),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
         animation: s,
@@ -279,7 +199,9 @@ class _GameShellState extends State<GameShell> {
               Semantics(
                 button: true,
                 label:
-                    'Мечта: ${s.goal}. ${s.wallet.wallet.savings} из ${s.target} монет',
+                    s.currentGoal == null
+                        ? 'Выбери мечту'
+                        : 'Мечта: ${s.goal}. ${s.wallet.wallet.savings} из ${s.target} монет',
                 excludeSemantics: true,
                 child: Material(
                   color: FinniColors.lavender,
@@ -299,7 +221,10 @@ class _GameShellState extends State<GameShell> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                    Text('Мечта: ${s.goal}',
+                                    Text(
+                                        s.currentGoal == null
+                                            ? 'Выбери мечту'
+                                            : 'Мечта: ${s.goal}',
                                         style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w800)),
@@ -375,6 +300,23 @@ class _GameShellState extends State<GameShell> {
                             equipped: s.equipped,
                           )),
                       Positioned(
+                          left: 40,
+                          right: 40,
+                          top: 44,
+                          child: Center(
+                              child: ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 290),
+                                  child: AnimatedBubble(
+                                    line: s.bubble,
+                                    motion: s.motion,
+                                    onClose: s.dismissBubble,
+                                    onAction: s.bubble?.action == null
+                                        ? null
+                                        : () => bubbleAction(
+                                            s.bubble!.action!.route),
+                                  )))),
+                      Positioned(
                           left: 8,
                           top: 4,
                           child: Column(
@@ -384,8 +326,8 @@ class _GameShellState extends State<GameShell> {
                                     style: const TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.w800)),
-                                const Text('Малыш',
-                                    style: TextStyle(
+                                Text(s.stageLabel,
+                                    style: const TextStyle(
                                         fontSize: 16,
                                         color: FinniColors.muted)),
                               ])),
@@ -433,43 +375,43 @@ class _GameShellState extends State<GameShell> {
                         .toList());
               }),
               const SizedBox(height: 12),
-              Material(
-                color: FinniColors.sky,
-                borderRadius: BorderRadius.circular(22),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                    onTap: tasks,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(children: [
-                        Icon(
-                            s.completed
-                                ? Icons.check_circle_outline_rounded
-                                : Icons.extension_outlined,
-                            size: 28),
-                        const SizedBox(width: 12),
-                        Expanded(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                              Text(
-                                  s.completed
-                                      ? 'Задание выполнено'
-                                      : '${s.question['title']}',
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800)),
-                              Text(
-                                  s.completed
-                                      ? 'Монеты уже в кошельке'
-                                      : 'Задание дня · +${s.question['reward']} монет',
-                                  style: const TextStyle(
-                                      fontSize: 16, color: FinniColors.muted)),
-                            ])),
-                        const Icon(Icons.chevron_right_rounded),
-                      ]),
-                    )),
-              ),
+              Builder(builder: (context) {
+                final daily = s.dailyGame;
+                final reward = s.rewardFor(daily);
+                return Material(
+                  color: FinniColors.sky,
+                  borderRadius: BorderRadius.circular(22),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                      onTap: () => openGame(context, s, daily.id),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(children: [
+                          EmojiBadge(daily.iconId,
+                              size: 36, color: FinniColors.paper),
+                          const SizedBox(width: 12),
+                          Expanded(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                Text(daily.title,
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800)),
+                                Text(
+                                    reward > 0
+                                        ? 'Игра дня · +$reward монет'
+                                        : 'Можно играть просто так',
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        color: FinniColors.muted)),
+                              ])),
+                          const Icon(Icons.play_circle_fill_rounded,
+                              size: 32, color: FinniColors.primary),
+                        ]),
+                      )),
+                );
+              }),
             ]),
           ),
         );
@@ -531,9 +473,9 @@ class _GameShellState extends State<GameShell> {
                 ],
                 _Notice(
                   icon: Icons.savings_outlined,
-                  text: (s.daysToGoal == null
+                  text: (s.daysWithPlan == null
                       ? 'Добавь монеты в копилку — и мы посчитаем путь до мечты.'
-                      : 'Если откладывать по ${s.plan.plan.savings} монет в день, до мечты ещё ${s.daysToGoal} дн.'),
+                      : 'Если откладывать по ${s.plan.plan.savings} монет в день, до мечты ещё ${s.daysWithPlan} ${ruDays(s.daysWithPlan ?? 0)}.'),
                 ),
                 const SizedBox(height: 12),
                 const Text(
@@ -582,6 +524,7 @@ class _GameShellState extends State<GameShell> {
           ),
         ],
       );
+
 
   Widget shop() {
     final items = s.catalog
@@ -662,18 +605,27 @@ class _GameShellState extends State<GameShell> {
           const _Notice(
             icon: Icons.savings_outlined,
             text:
-                'Пока не хватает монет. Выполни задание или вернись к покупке позже.',
+                'Пока не хватает монет. Сыграй в игру или вернись к покупке позже.',
           ),
         LayoutBuilder(
           builder: (context, c) {
-            const columns = 1;
+            final columns =
+                MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
             final width = (c.maxWidth - (columns - 1) * 12) / columns;
             return Wrap(
               spacing: 12,
               runSpacing: 12,
               children: [
-                for (final item in items)
-                  SizedBox(width: width, child: product(item)),
+                for (final (i, item) in items.indexed)
+                  SizedBox(
+                    width: width,
+                    child: PopIn(
+                      key: ValueKey('shop-${item.id}-$filter'),
+                      motion: s.motion,
+                      delay: (i % 6) * 40,
+                      child: product(item),
+                    ),
+                  ),
               ],
             );
           },
@@ -687,53 +639,204 @@ class _GameShellState extends State<GameShell> {
     );
   }
 
+  Widget _categoryPill(ShopItemView view) => _Pill(
+      icon: view.category == ExpenseCategory.mandatory
+          ? Icons.check_circle_outline_rounded
+          : Icons.auto_awesome_outlined,
+      label: view.categoryLabel,
+      color: view.category == ExpenseCategory.mandatory
+          ? FinniColors.mint
+          : FinniColors.lavender);
+
   Widget product(ShopItem item) {
-    final d = s.details(item.id),
-        needed = item.category == ExpenseCategory.mandatory;
-    final enlarged = MediaQuery.textScalerOf(context).scale(16) > 22;
-    final details =
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(item.title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-      const SizedBox(height: 8),
-      Text(d['note'] as String,
-          style: const TextStyle(color: FinniColors.muted)),
-    ]);
-    final picture = SizedBox(
-        width: 100,
-        height: 100,
-        child: ProductArt(sheet: d['art'] as String, cell: d['cell'] as int));
-    return _Panel(
-        child:
-            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      if (enlarged) ...[Center(child: picture), details] else
-        Row(children: [
-          picture,
-          const SizedBox(width: 16),
-          Expanded(child: details)
-        ]),
-      const SizedBox(height: 12),
-      Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            _Pill(
-                icon: needed
-                    ? Icons.check_circle_outline_rounded
-                    : Icons.auto_awesome_outlined,
-                label: needed ? 'Обязательное' : 'Желаемое',
-                color: needed ? FinniColors.mint : FinniColors.lavender),
-            Semantics(
-                label: 'Открыть покупку: ${item.title}',
-                button: true,
-                child: OutlinedButton(
-                    onPressed: () => purchase(item),
-                    child: s.ownsAccessory(item)
-                        ? const Text('Куплено')
-                        : _Coins(item.price))),
-          ]),
-    ]));
+    final view = s.viewOf(item);
+    return Semantics(
+      button: true,
+      label:
+          'Открыть покупку: ${item.title}. ${view.priceText}. ${view.categoryLabel}',
+      excludeSemantics: true,
+      child: Squish(
+        onTap: () => purchase(item),
+        child: _Panel(
+          padding: 12,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Center(child: ItemArt(item.id, size: 86)),
+                  if (view.isOwned)
+                    const Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Icon(Icons.check_circle_rounded,
+                          color: FinniColors.primary, size: 28),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(item.title,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 6),
+              _categoryPill(view),
+              const SizedBox(height: 6),
+              for (final effect in view.effectTexts)
+                Text(effect,
+                    style: const TextStyle(
+                        color: FinniColors.muted, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 8),
+              view.isOwned
+                  ? const Text('Уже есть',
+                      style: TextStyle(fontWeight: FontWeight.w800))
+                  : _Coins(item.price),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void purchase(ShopItem item) {
+    PurchaseOutcome outcome = s.askToBuy(item.id);
+    final before = s.wallet.wallet.balance;
+    sheet(
+      item.title,
+      StatefulBuilder(
+        builder: (context, update) {
+          final view = s.viewOf(item);
+          final current = outcome;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: PopIn(
+                  motion: s.motion,
+                  child: ItemArt(item.id, size: 150),
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (item.description.isNotEmpty)
+                Text(item.description, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _categoryPill(view),
+                  for (final effect in view.effectTexts)
+                    _Pill(
+                        icon: Icons.favorite_border_rounded,
+                        label: effect,
+                        color: FinniColors.honey),
+                  for (final effect in view.dailyEffectTexts)
+                    _Pill(
+                        icon: Icons.wb_sunny_outlined,
+                        label: effect,
+                        color: FinniColors.sky),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(view.categoryHint,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: FinniColors.muted)),
+              const SizedBox(height: 16),
+              ...switch (current) {
+                PurchaseDone(:final diaryText, :final noteText) => [
+                    _Notice(
+                      icon: Icons.check_circle_outline,
+                      text:
+                          '$diaryText${noteText == null ? '' : ' $noteText'} Осталось ${s.wallet.wallet.balance} монет.',
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.celebration_outlined),
+                      label: const Text('Ура!'),
+                    ),
+                  ],
+                PurchaseRefused(:final textRu) => [
+                    _Notice(icon: Icons.info_outline_rounded, text: textRu),
+                  ],
+                PurchaseNotEnough(:final gap, :final options) => [
+                    _Notice(
+                      icon: Icons.lightbulb_outline,
+                      text: 'Пока не хватает $gap монет. Что сделаем?',
+                    ),
+                    const SizedBox(height: 12),
+                    for (final option in options)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            notEnoughOption(option, item);
+                          },
+                          icon: Icon(option.route == 'tasks'
+                              ? Icons.extension_outlined
+                              : option.route == 'postpone'
+                                  ? Icons.bookmark_add_outlined
+                                  : Icons.sell_outlined),
+                          label: Text(option.textRu),
+                        ),
+                      ),
+                  ],
+                PurchaseConfirm confirm => [
+                    if (confirm.view.comparisonText != null) ...[
+                      _Notice(
+                          icon: Icons.lightbulb_outline_rounded,
+                          text: confirm.view.comparisonText!),
+                      const SizedBox(height: 12),
+                    ],
+                    Text(
+                      before >= item.price
+                          ? 'Было $before → останется ${before - item.price} монет'
+                          : 'Сейчас у тебя $before монет',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(confirm.question,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: () {
+                        final result = s.confirmPurchase(confirm);
+                        update(() => outcome = result);
+                        if (result is PurchaseDone) {
+                          Celebration.show(this.context,
+                              motion: s.motion, emoji: '🛍️');
+                        }
+                      },
+                      icon: const Icon(Icons.shopping_bag_outlined),
+                      label: Text('Купить за ${item.price} монет'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Подумаю ещё'),
+                    ),
+                  ],
+              },
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void notEnoughOption(NotEnoughOption option, ShopItem item) {
+    final route = option.route;
+    if (route == 'tasks') {
+      go(3);
+    } else if (route == 'postpone') {
+      s.postpone(item.id);
+      toast('Сохранили в желаниях. Вернёмся к покупке завтра!');
+    } else if (route.startsWith('shop:')) {
+      final cheaper = s.content.shop.byId(route.substring(5));
+      if (cheaper != null) purchase(cheaper);
+    }
   }
 }

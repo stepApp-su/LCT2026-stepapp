@@ -1,6 +1,45 @@
 {
   "schemaVersion": 1,
-  "templates": {
+
+  "rules": {
+    "neverJudgeChild": "Оцениваем решения и их последствия, а не ребёнка. Без «молодец», «плохо», «неправильно»",
+    "alwaysShowCause": "К каждому изменению шкалы и к каждому очку — своя причина",
+    "noNegativeTotal": "Итог дня не бывает «проигранным»: любой день заканчивается тем, что получилось"
+  },
+
+  "texts": {
+    "header": "Как прошёл день",
+    "planFactHeader": "План и дело",
+    "statsHeader": "Как чувствует себя питомец",
+    "pointsHeader": "Очки развития",
+    "goalHeader": "Копилка",
+    "tomorrowHeader": "Завтра",
+    "close": "Спокойной ночи"
+  },
+
+  "planFact": {
+    "row": "{direction}: планировали {planned} {coin}, потратили {actual} {coin}",
+    "rowSavings": "Копилка: планировали {planned} {coin}, отложили {actual} {coin}",
+    "verdicts": {
+      "exact": "Ровно как планировали.",
+      "less": "На {diff} {coin} меньше плана.",
+      "more": "На {diff} {coin} больше плана.",
+      "zeroPlanned": "В плане тут было пусто."
+    }
+  },
+
+  "overall": [
+    { "id": "all_matched", "condition": { "maxDiffPercent": 0 },
+      "text": "План и дело совпали полностью. Такой день легко повторить." },
+    { "id": "close", "condition": { "maxDiffPercent": 20 },
+      "text": "План и дело почти совпали. Небольшая разница — это нормально." },
+    { "id": "far", "condition": { "maxDiffPercent": 100 },
+      "text": "Сегодня получилось не так, как в плане. Посмотрим, где разошлось." },
+    { "id": "no_plan", "condition": { "planMade": false },
+      "text": "Сегодня плана не было. Завтра можно попробовать составить." }
+  ],
+
+  "explain": {
     "perfect": "Ты потратил ровно столько, сколько планировал. Так держать — до мечты уже {savedTotal} монеток!",
     "savedMore": "Ты отложил на {extraSavings} монеток больше плана. Мечта стала ближе!",
     "overspentOptional": "На желаемое ушло на {overOptional} монеток больше, чем планировали. Поэтому в копилку попало меньше. В следующий раз можно отложить чуть больше.",
@@ -8,5 +47,73 @@
     "underSavings": "В копилку попало {actualSavings} монеток из {plannedSavings}. Ничего страшного — завтра получится добавить ещё.",
     "emptyDay": "Сегодня монетки отдыхали. Завтра сам решишь, куда их отправить!",
     "generic": "День прошёл! Ты заработал {earned} и потратил {spent} монеток. Завтра будет новый план."
+  },
+
+  "stats": {
+    "row": "{stat}: {sign}{delta} — {reason}",
+    "unchanged": "{stat}: без изменений",
+    "reasons": {
+      "fromPurchase": "купили {itemTitle}",
+      "fromPenalty": "{penaltyReason}",
+      "fromDecay": "прошёл день",
+      "fromTask": "выполнили задание",
+      "fromEvent": "событие: {eventTitle}",
+      "fromPetting": "гладили питомца",
+      "fromGoal": "достигли цель: {goalTitle}"
+    }
+  },
+
+  "points": {
+    "row": "+{value} — {reason}",
+    "reasons": {
+      "mandatoryPaid": "всё обязательное оплачено",
+      "followedPlan": "дело совпало с планом",
+      "savedAsPlanned": "отложили в копилку не меньше плана",
+      "taskDone": "выполнено задание"
+    },
+    "missed": {
+      "row": "{reason} — в другой раз",
+      "mandatoryPaid": "обязательное оплачено не всё",
+      "followedPlan": "дело разошлось с планом",
+      "savedAsPlanned": "в копилку отложили меньше плана",
+      "taskDone": "задание сегодня не решали"
+    },
+    "total": "Всего за день: {points} {point}",
+    "toNextStage": "До следующей стадии: {left} {point}"
+  },
+
+  "goal": {
+    "progress": "На «{goalTitle}» накоплено {saved} из {price}",
+    "depositedToday": "Сегодня в копилку ушло {amount} {coin}",
+    "nothingToday": "Сегодня копилка отдыхала.",
+    "eta": "Если откладывать по {avg} {coin}, до цели ещё {days} {day}.",
+    "noGoal": "Цель пока не выбрана. Её можно выбрать в копилке.",
+    "reached": "Цель достигнута! «{goalTitle}» теперь с нами навсегда."
+  },
+
+  "growth": {
+    "stageUp": "Питомец подрос: теперь это стадия «{stageTitle}»!",
+    "stageUpWhy": "Стадия меняется от очков развития, а не от количества монет.",
+    "title": "Новое звание: «{titleName}» — {titleDescription}",
+    "cozyLevel": "Дом стал уютнее: теперь это «{cozyTitle}»."
+  },
+
+  "tomorrow": [
+    { "id": "mandatory_missed", "condition": { "mandatoryPaid": false },
+      "text": "Завтра первым делом еда и порядок: питомец будет ждать." },
+    { "id": "nothing_saved", "condition": { "hasGoal": true, "savedToday": 0 },
+      "text": "Завтра можно отложить в копилку хоть немного: цель станет ближе." },
+    { "id": "goal_close", "condition": { "goalProgressAtLeastPercent": 75 },
+      "text": "До цели совсем немного. Завтра будет интересно!" },
+    { "id": "no_goal", "condition": { "hasGoal": false },
+      "text": "Завтра можно выбрать цель: копить веселее, когда есть мечта." },
+    { "id": "default", "condition": {},
+      "text": "Завтра придут новые монеты и новое задание." }
+  ],
+
+  "forAdult": {
+    "header": "Что тренировалось сегодня",
+    "row": "{competenceText}",
+    "hint": "Спросите ребёнка: что он решил сегодня и почему?"
   }
 }

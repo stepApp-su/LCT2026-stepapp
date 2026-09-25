@@ -10,7 +10,7 @@ final _at = DateTime(2026, 9, 24, 12);
 
 Map<String, String> _loadTemplates() {
   final raw = jsonDecode(File('assets/content/summaries.json').readAsStringSync());
-  return ((raw as Map)['templates'] as Map).cast<String, String>();
+  return SummaryTexts.fromJson((raw as Map).cast<String, Object?>()).explain;
 }
 
 Transaction _tx(TransactionType type, int amount,

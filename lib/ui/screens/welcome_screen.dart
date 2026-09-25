@@ -118,7 +118,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 onTap: () => setState(() => simple = false)),
                             const SizedBox(height: 16),
                             const Text(
-                                'Выбор сохраним. Подбор заданий по сложности подключают Макс и Юля.',
+                                'Выбор сохраним. Поменять его можно в разделе для взрослого.',
                                 style: TextStyle(color: FinniColors.muted)),
                           ],
                         ])),

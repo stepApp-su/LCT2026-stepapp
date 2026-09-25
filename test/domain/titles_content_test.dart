@@ -273,7 +273,7 @@ void main() {
         'planner': 3,
         'dreamer': 3,
         'saver': 5,
-        'shopping_expert': 5,
+        'shopping_expert': payments.length,
         'budget_master': 10,
         'mentor': 30,
       });

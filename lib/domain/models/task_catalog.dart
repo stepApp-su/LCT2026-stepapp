@@ -3,7 +3,23 @@
 /// assets/content/tasks.json. Новое задание = объект в JSON.
 library;
 
-enum TaskType { sort, coins, distribute, order, choice, basket, week }
+import 'content_json.dart';
+
+part 'task_games.dart';
+
+enum TaskType {
+  sort,
+  coins,
+  distribute,
+  order,
+  choice,
+  basket,
+  week,
+  board,
+  stall,
+  cashier,
+  pricetag,
+}
 
 enum TaskDifficulty { easy, hard }
 
@@ -18,6 +34,9 @@ enum TaskRuleType {
   nonDecreasingRank,
   neverNegative,
   savingsAtLeast,
+  coinsAtLeast,
+  exactChange,
+  bestDeal,
 }
 
 final class TaskRule {
@@ -213,6 +232,10 @@ final class TaskTexts {
     required this.coins,
     required this.order,
     required this.week,
+    required this.board,
+    required this.stall,
+    required this.cashier,
+    required this.pricetag,
   });
 
   final String check;
@@ -225,6 +248,10 @@ final class TaskTexts {
   final CoinsTexts coins;
   final OrderTexts order;
   final WeekTexts week;
+  final TextGroup board;
+  final TextGroup stall;
+  final TextGroup cashier;
+  final TextGroup pricetag;
 
   static Map<String, Object?> _group(Map<String, Object?> json, String key) =>
       (json[key] as Map).cast<String, Object?>();
@@ -240,6 +267,12 @@ final class TaskTexts {
         coins: CoinsTexts.fromJson(_group(json, 'coins')),
         order: OrderTexts.fromJson(_group(json, 'order')),
         week: WeekTexts.fromJson(_group(json, 'week')),
+        board: TextGroup.fromJson(json['board'], 'texts.board', TextGroup.boardKeys),
+        stall: TextGroup.fromJson(json['stall'], 'texts.stall', TextGroup.stallKeys),
+        cashier: TextGroup.fromJson(
+            json['cashier'], 'texts.cashier', TextGroup.cashierKeys),
+        pricetag: TextGroup.fromJson(
+            json['pricetag'], 'texts.pricetag', TextGroup.pricetagKeys),
       );
 }
 
@@ -720,6 +753,34 @@ TaskVariant _variantFromJson(
         events: list('events', WeekEvent.fromJson),
         rules: rules(),
       ),
+    TaskType.board => BoardPayload(
+        startCoins: jsonInt(json['startCoins'], 'startCoins', min: 0),
+        step: jsonInt(json['step'] ?? 5, 'step', min: 1),
+        target: jsonInt(json['target'], 'target', min: 1),
+        dice: jsonInts(json['dice'], 'dice', min: 1),
+        cells: list('cells', BoardCell.fromJson),
+        rules: rules(),
+      ),
+    TaskType.stall => StallPayload(
+        startCoins: jsonInt(json['startCoins'], 'startCoins', min: 0),
+        costPerPortion: jsonInt(json['costPerPortion'], 'costPerPortion', min: 1),
+        portionStep: jsonInt(json['portionStep'] ?? 1, 'portionStep', min: 1),
+        maxPortions: jsonInt(json['maxPortions'], 'maxPortions', min: 1),
+        prices: jsonInts(json['prices'], 'prices', min: 1),
+        days: list('days', StallDay.fromJson),
+        target: jsonInt(json['target'], 'target', min: 1),
+        rules: rules(),
+      ),
+    TaskType.pricetag => PriceTagPayload(
+        rounds: list('rounds', PriceRound.fromJson),
+        rules: rules(),
+      ),
+    TaskType.cashier => CashierPayload(
+        customers: list('customers', CashierCustomer.fromJson),
+        showTotal: (json['showTotal'] ?? true) as bool,
+        denominations: jsonInts(json['denominations'], 'denominations', min: 1),
+        rules: rules(),
+      ),
   };
 
   return TaskVariant(
@@ -743,6 +804,7 @@ final class TaskCatalog {
     required this.themes,
     required this.texts,
     required this.tasks,
+    required this.tutorials,
   });
 
   factory TaskCatalog.create({
@@ -750,7 +812,13 @@ final class TaskCatalog {
     required List<TaskTheme> themes,
     required TaskTexts texts,
     required List<TaskDef> tasks,
+    Map<TaskType, List<TutorialStep>> tutorials = const {},
   }) {
+    for (final entry in tutorials.entries) {
+      if (entry.value.isEmpty) {
+        throw ArgumentError.value(entry.key.name, 'tutorials', 'обучение без шагов');
+      }
+    }
     if (themes.isEmpty) throw ArgumentError('нет ни одной темы');
     if (tasks.isEmpty) throw ArgumentError('нет ни одного задания');
 
@@ -770,17 +838,7 @@ final class TaskCatalog {
         throw ArgumentError.value(task.themeId, 'themeId',
             'задание «${task.id}» ссылается на несуществующую тему');
       }
-      if (task.reward.correct <= 0 || task.reward.wrong < 0) {
-        throw ArgumentError.value(task.id, 'reward', 'награда должна быть > 0');
-      }
-      for (final difficulty in TaskDifficulty.values) {
-        final variant = task.variants[difficulty];
-        if (variant == null) {
-          throw ArgumentError.value(
-              task.id, 'variants', 'нет варианта «${difficulty.name}»');
-        }
-        _validateVariant(task, variant, texts);
-      }
+      validateTask(task, texts);
     }
 
     return TaskCatalog._(
@@ -788,7 +846,25 @@ final class TaskCatalog {
       themes: List.unmodifiable(themes),
       texts: texts,
       tasks: List.unmodifiable([...tasks]..sort((a, b) => a.order.compareTo(b.order))),
+      tutorials: Map.unmodifiable(tutorials),
     );
+  }
+
+  static void validateTask(TaskDef task, TaskTexts texts) {
+    if (task.reward.correct <= 0 ||
+        task.reward.wrong <= 0 ||
+        task.reward.wrong > task.reward.correct) {
+      throw ArgumentError.value(task.id, 'reward',
+          'награда за попытку от 1 и не больше награды за верный ответ');
+    }
+    for (final difficulty in TaskDifficulty.values) {
+      final variant = task.variants[difficulty];
+      if (variant == null) {
+        throw ArgumentError.value(
+            task.id, 'variants', 'нет варианта «${difficulty.name}»');
+      }
+      _validateVariant(task, variant, texts);
+    }
   }
 
   static void _validateVariant(
@@ -910,6 +986,91 @@ final class TaskCatalog {
           throw ArgumentError.value(
               where, 'target', 'дохода не хватит на события и цель');
         }
+      case BoardPayload payload:
+        final cells = payload.cells;
+        if (cells.length < 3 ||
+            cells.first.kind != BoardCellKind.start ||
+            cells.last.kind != BoardCellKind.finish) {
+          throw ArgumentError.value(where, 'cells', 'поле от старта до финиша');
+        }
+        for (var i = 1; i < cells.length - 1; i++) {
+          final kind = cells[i].kind;
+          if (kind == BoardCellKind.start || kind == BoardCellKind.finish) {
+            throw ArgumentError.value(i, where, 'старт и финиш только по краям');
+          }
+          if ((kind == BoardCellKind.income ||
+                  kind == BoardCellKind.expense ||
+                  kind == BoardCellKind.temptation) &&
+              cells[i].amount <= 0) {
+            throw ArgumentError.value(i, where, 'у клетки нет суммы');
+          }
+        }
+        for (final roll in payload.dice) {
+          if (roll < 1 || roll > 6) {
+            throw ArgumentError.value(roll, where, 'на кубике от 1 до 6');
+          }
+        }
+        if (payload.dice.fold(0, (a, b) => a + b) < cells.length - 1) {
+          throw ArgumentError.value(where, 'dice', 'до финиша не дойти');
+        }
+        if (!payload.solvable) {
+          throw ArgumentError.value(where, 'board', 'цель недостижима');
+        }
+      case StallPayload payload:
+        if (payload.days.isEmpty || payload.prices.isEmpty) {
+          throw ArgumentError.value(where, 'stall', 'нет дней или цен');
+        }
+        for (final day in payload.days) {
+          for (final price in payload.prices) {
+            if (!day.demand.containsKey(price)) {
+              throw ArgumentError.value(price, '$where/${day.id}', 'нет спроса для цены');
+            }
+          }
+        }
+        if (!payload.solvable) {
+          throw ArgumentError.value(where, 'stall', 'цель недостижима');
+        }
+      case PriceTagPayload payload:
+        if (payload.rounds.isEmpty) {
+          throw ArgumentError.value(where, 'rounds', 'нет ни одной задачи');
+        }
+        final roundIds = <String>{};
+        for (final round in payload.rounds) {
+          if (!roundIds.add(round.id)) {
+            throw ArgumentError.value(round.id, where, 'задача повторяется');
+          }
+          if (round.offers.length < 2) {
+            throw ArgumentError.value(round.id, where, 'нужно хотя бы два варианта');
+          }
+          final offerIds = {for (final offer in round.offers) offer.id};
+          if (offerIds.length != round.offers.length) {
+            throw ArgumentError.value(round.id, where, 'варианты повторяются');
+          }
+          final fitting = [for (final offer in round.offers) if (offer.fits) offer];
+          if (fitting.isEmpty) {
+            throw ArgumentError.value(round.id, where, 'ни один вариант не подходит');
+          }
+          final cheapest = fitting.map((o) => o.pay).reduce((a, b) => a < b ? a : b);
+          if (fitting.where((o) => o.pay == cheapest).length != 1) {
+            throw ArgumentError.value(round.id, where, 'выгодных вариантов несколько');
+          }
+        }
+      case CashierPayload payload:
+        if (payload.customers.isEmpty || payload.denominations.isEmpty) {
+          throw ArgumentError.value(where, 'cashier', 'нет покупателей или монет');
+        }
+        final ids = <String>{};
+        for (final customer in payload.customers) {
+          if (!ids.add(customer.id)) {
+            throw ArgumentError.value(customer.id, where, 'покупатель повторяется');
+          }
+          if (customer.items.isEmpty) {
+            throw ArgumentError.value(customer.id, where, 'покупатель без покупок');
+          }
+          if (customer.change <= 0 || !payload.canMake(customer.change)) {
+            throw ArgumentError.value(customer.id, where, 'сдачу не собрать');
+          }
+        }
     }
   }
 
@@ -924,7 +1085,18 @@ final class TaskCatalog {
           for (final raw in (json['tasks'] as List))
             TaskDef.fromJson((raw as Map).cast<String, Object?>())
         ],
+        tutorials: {
+          for (final entry in jsonMap(json['tutorials'] ?? const {}, 'tutorials').entries)
+            jsonEnum(TaskType.values, entry.key.toLowerCase(), 'tutorials'): [
+              for (final raw in jsonMaps(entry.value, 'tutorials.${entry.key}'))
+                TutorialStep.fromJson(raw),
+            ],
+        },
       );
+
+  final Map<TaskType, List<TutorialStep>> tutorials;
+
+  List<TutorialStep> tutorialFor(TaskDef task) => tutorials[task.type] ?? const [];
 
   final int schemaVersion;
   final List<TaskTheme> themes;
