@@ -1,3 +1,4 @@
+import 'bedtime_texts.dart';
 import 'economy_params.dart';
 import 'growth_rules.dart';
 import 'pet_rules.dart';
@@ -8,6 +9,7 @@ final class EconomyConfig {
     required this.pet,
     required this.growth,
     required this.params,
+    required this.bedtime,
   });
 
   factory EconomyConfig.create({
@@ -15,6 +17,7 @@ final class EconomyConfig {
     required PetRules pet,
     required GrowthRules growth,
     required EconomyParams params,
+    required BedtimeTexts bedtime,
   }) {
     if (schemaVersion < 1) {
       throw ArgumentError.value(schemaVersion, 'schemaVersion', '≥ 1');
@@ -23,7 +26,8 @@ final class EconomyConfig {
         schemaVersion: schemaVersion,
         pet: pet,
         growth: growth,
-        params: params);
+        params: params,
+        bedtime: bedtime);
   }
 
   factory EconomyConfig.fromJson(Map<String, Object?> json) =>
@@ -33,10 +37,13 @@ final class EconomyConfig {
         growth: GrowthRules.fromJson(
             (json['growth'] as Map).cast<String, Object?>()),
         params: EconomyParams.fromJson(json),
+        bedtime: BedtimeTexts.fromJson(
+            (json['bedtime'] as Map).cast<String, Object?>()),
       );
 
   final int schemaVersion;
   final PetRules pet;
   final GrowthRules growth;
   final EconomyParams params;
+  final BedtimeTexts bedtime;
 }

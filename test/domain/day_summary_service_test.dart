@@ -27,13 +27,18 @@ Transaction _tx(TransactionType type, int amount,
     );
 
 GameDay _day(List<Transaction> txs,
-        {int m = 25, int o = 5, int sv = 10, int income = 40}) =>
+        {int m = 25,
+        int o = 5,
+        int sv = 10,
+        int income = 40,
+        bool confirmed = true}) =>
     GameDay.create(
       number: 3,
       income: income,
       plan: BudgetPlan.create(
           mandatory: m, optional: o, savings: sv, income: income),
       transactions: txs,
+      planConfirmed: confirmed,
     );
 
 void main() {
@@ -160,6 +165,40 @@ void main() {
       expect(r.explainText, contains('на 5 монеток больше'));
     });
 
+    test('без подтверждённого плана — «плана не было», план в итогах нулевой',
+        () {
+      for (final day in [
+        _day([
+          _tx(TransactionType.expense, 25, cat: ExpenseCategory.mandatory),
+          _tx(TransactionType.expense, 5, cat: ExpenseCategory.optional),
+          _tx(TransactionType.toSavings, 10),
+        ], confirmed: false),
+        _day([
+          _tx(TransactionType.expense, 25, cat: ExpenseCategory.mandatory),
+          _tx(TransactionType.expense, 5, cat: ExpenseCategory.optional),
+          _tx(TransactionType.toSavings, 10),
+        ], m: 0, o: 0, sv: 0),
+      ]) {
+        final r = service.build(
+          day: day,
+          before: stateBefore,
+          after: stateAfter,
+          growthPoints: 2,
+          petName: 'Мони',
+        );
+        expect(
+            r.explainText,
+            'Сегодня плана не было: потратили 30, отложили 10 монеток. '
+            'Завтра начнём с плана!');
+        expect(r.summary.plannedMandatory, 0);
+        expect(r.summary.plannedOptional, 0);
+        expect(r.summary.plannedSavings, 0);
+        expect(r.diffMandatory, 25);
+        expect(r.diffOptional, 5);
+        expect(r.diffSavings, 10);
+      }
+    });
+
     test('пустой день тоже объясняется', () {
       final r = build([]);
       expect(r.explainText.trim(), isNotEmpty);
@@ -177,6 +216,16 @@ void main() {
         expect(build(txs).explainText.trim(), isNotEmpty);
       }
     });
+  });
+
+  test('без шаблона «плана не было» итоги не загружаются', () {
+    final raw =
+        (jsonDecode(File('assets/content/summaries.json').readAsStringSync())
+                as Map)
+            .cast<String, Object?>();
+    final explain = {...(raw['explain'] as Map)}..remove('noPlan');
+    expect(() => SummaryTexts.fromJson({...raw, 'explain': explain}),
+        throwsA(anything));
   });
 
   group('стоп-лист', () {
