@@ -7,7 +7,7 @@ final _currentTime = RegExp(r'DateTime\s*\.\s*(now|timestamp)\b');
 final _randomness = RegExp(r'\bRandom\b');
 
 String _code(String source) => source
-    .split('\n')
+    .split(RegExp(r'\r?\n'))
     .map((line) => line.replaceFirst(RegExp(r'//.*$'), ''))
     .join('\n');
 
@@ -44,10 +44,13 @@ void main() {
       'final t = DateTime.parse(raw);',
       'final t = DateTime(2026, 9, 25);',
       '// DateTime.now() только в RealClock',
+      '// DateTime.now() только в RealClock\r\n',
     ]) {
       expect(_currentTime.hasMatch(_code(source)), isFalse, reason: source);
     }
     expect(_randomness.hasMatch('final r = Random(42);'), isTrue);
     expect(_randomness.hasMatch('final r = RandomAccessFile;'), isFalse);
+    expect(_randomness.hasMatch(_code('// без Random\r\nfinal seed = 1;')),
+        isFalse);
   });
 }
