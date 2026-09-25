@@ -26,6 +26,7 @@ final class SummaryTexts {
     required this.planFactRowSavings,
     required this.verdicts,
     required this.overall,
+    required this.explain,
     required this.statRow,
     required this.statUnchanged,
     required this.statReasons,
@@ -78,6 +79,15 @@ final class SummaryTexts {
       verdicts: jsonTexts(planFact['verdicts'], 'planFact.verdicts',
           required: const {'exact', 'less', 'more', 'zeroPlanned'}),
       overall: List.unmodifiable(overall),
+      explain: jsonTexts(json['explain'], 'explain', required: const {
+        'perfect',
+        'savedMore',
+        'overspentOptional',
+        'underMandatory',
+        'underSavings',
+        'emptyDay',
+        'generic',
+      }),
       statRow: jsonText(stats['row'], 'stats.row'),
       statUnchanged: jsonText(stats['unchanged'], 'stats.unchanged'),
       statReasons: jsonTexts(stats['reasons'], 'stats.reasons', required: const {
@@ -125,6 +135,7 @@ final class SummaryTexts {
   final String planFactRowSavings;
   final Map<String, String> verdicts;
   final List<ConditionalText> overall;
+  final Map<String, String> explain;
   final String statRow;
   final String statUnchanged;
   final Map<String, String> statReasons;
