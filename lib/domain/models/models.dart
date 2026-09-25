@@ -19,6 +19,7 @@ export 'phrase_catalog.dart';
 export 'profile.dart';
 export 'room_catalog.dart';
 export 'shop_catalog.dart';
+export 'sound_scheme.dart';
 export 'stat_change.dart';
 export 'summary_texts.dart';
 export 'task_catalog.dart';
