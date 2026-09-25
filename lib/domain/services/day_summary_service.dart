@@ -47,6 +47,8 @@ final class DaySummaryService {
     int savedTotal = 0,
   }) {
     final facts = DayFacts.fromDay(day, mandatoryItemIds: const []);
+    final planned = day.planConfirmed && day.plan.distributed > 0;
+    final plan = planned ? day.plan : BudgetPlan.empty(day.income);
 
     var earned = 0;
     final purchases = <Transaction>[];
@@ -66,9 +68,9 @@ final class DaySummaryService {
 
     final summary = DaySummary.create(
       dayNumber: day.number,
-      plannedMandatory: day.plan.mandatory,
-      plannedOptional: day.plan.optional,
-      plannedSavings: day.plan.savings,
+      plannedMandatory: plan.mandatory,
+      plannedOptional: plan.optional,
+      plannedSavings: plan.savings,
       actualMandatory: facts.spentMandatory,
       actualOptional: facts.spentOptional,
       actualSavings: facts.deposited,
@@ -83,13 +85,14 @@ final class DaySummaryService {
 
     return DayResult(
       summary: summary,
-      diffMandatory: facts.spentMandatory - day.plan.mandatory,
-      diffOptional: facts.spentOptional - day.plan.optional,
-      diffSavings: facts.deposited - day.plan.savings,
+      diffMandatory: facts.spentMandatory - plan.mandatory,
+      diffOptional: facts.spentOptional - plan.optional,
+      diffSavings: facts.deposited - plan.savings,
       purchases: purchases,
       stateChanges: changes,
       explainText: _explain(
         summary: summary,
+        planned: planned,
         earned: earned,
         petName: petName,
         savedTotal: savedTotal,
@@ -102,6 +105,7 @@ final class DaySummaryService {
   /// недобор копилки — пустой день — похвала — общий случай.
   String _explain({
     required DaySummary summary,
+    required bool planned,
     required int earned,
     required String petName,
     required int savedTotal,
@@ -119,6 +123,9 @@ final class DaySummaryService {
 
     if (earned == 0 && spent == 0 && s.actualSavings == 0) {
       return pick('emptyDay', {});
+    }
+    if (!planned) {
+      return pick('noPlan', {'spent': spent, 'saved': s.actualSavings});
     }
     if (s.actualMandatory < s.plannedMandatory) {
       return pick('underMandatory',

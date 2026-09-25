@@ -1,6 +1,7 @@
 /// Модели домена. Чистый Dart, без Flutter.
 library;
 
+export 'bedtime_texts.dart';
 export 'budget_plan.dart';
 export 'competence_catalog.dart';
 export 'content_json.dart';

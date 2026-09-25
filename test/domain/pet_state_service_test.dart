@@ -5,6 +5,7 @@ import 'package:finni/domain/models/models.dart';
 import 'package:finni/domain/services/pet_state_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/day.dart';
 import '../support/economy.dart';
 import '../support/growth.dart';
 
@@ -810,6 +811,7 @@ void main() {
         'pet': _rulesJson(),
         'growth': growthRulesJson(),
         ...economyParamsJson(),
+        'bedtime': bedtimeTextsJson(),
       };
       expect(EconomyConfig.fromJson(json).schemaVersion, 1);
       expect(() => EconomyConfig.fromJson({...json, 'schemaVersion': 0}),

@@ -86,6 +86,7 @@ final class SummaryTexts {
         'underMandatory',
         'underSavings',
         'emptyDay',
+        'noPlan',
         'generic',
       }),
       statRow: jsonText(stats['row'], 'stats.row'),
