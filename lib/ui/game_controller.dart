@@ -9,6 +9,10 @@ import '../data/game_repository.dart';
 import '../domain/game_clock.dart';
 import '../domain/models/models.dart';
 import '../domain/services/goal_service.dart';
+import '../domain/services/day_summary_service.dart';
+import '../domain/services/growth_service.dart';
+import '../domain/services/title_service.dart';
+import '../domain/services/pet_state_service.dart';
 import '../domain/services/phrase_service.dart';
 import '../domain/services/plan_service.dart';
 import '../domain/services/shop_service.dart';
@@ -54,7 +58,12 @@ class GameController extends ChangeNotifier {
   late GoalService goals;
   late TaskEngine tasks;
   late PhraseService phrases;
-  late PetStage stage;
+  late PetProgress progress;
+  late GrowthService growth;
+  late TitleService titles;
+  late int _day;
+  Map<String, dynamic>? celebration;
+  PetStage get stage => progress.stage;
   late Set<String> wishlist;
   late Map<String, String> outfit;
   late List<String> legacyCompletedTasks;
@@ -82,6 +91,8 @@ class GameController extends ChangeNotifier {
 
   void _restore(Map<String, dynamic>? saved) {
     final data = {...config, ...?saved};
+    _day = data['day'] as int;
+    celebration = (data['celebration'] as Map?)?.cast<String, dynamic>();
     final journal = [
       for (final t in data['journal'] as List? ?? [])
         Transaction.fromJson((t as Map).cast<String, Object?>())
@@ -118,8 +129,26 @@ class GameController extends ChangeNotifier {
     simpleMode = data['simpleMode'] != false;
     onboarded = data['onboarded'] == true;
     petName = data['petName'] as String? ?? 'Мони';
-    stage = PetStage.values.firstWhere((s) => s.name == data['stage'],
-        orElse: () => PetStage.baby);
+    growth = GrowthService(content.economy.growth);
+    titles = TitleService.forContent(content.titles,
+        tasks: content.tasks, shop: content.shop);
+    final storedProgress = data['petProgress'] as Map?;
+    if (storedProgress != null) {
+      progress = PetProgress.fromJson(storedProgress.cast<String, Object?>());
+    } else {
+      final oldStage = PetStage.values.firstWhere(
+          (s) => s.name == data['stage'],
+          orElse: () => PetStage.baby);
+      progress = PetProgress.create(
+          growthPoints: oldStage == PetStage.egg || oldStage == PetStage.baby
+              ? 0
+              : growth.rules.thresholds[oldStage]!,
+          stage: oldStage == PetStage.egg ? PetStage.baby : oldStage);
+    }
+    if (progress.stage == PetStage.egg) {
+      progress = progress.copyWith(stage: PetStage.baby);
+    }
+    progress = titles.start(progress);
     wishlist = {...(data['wishlist'] as List? ?? []).cast<String>()};
     outfit = (data['outfit'] as Map? ?? {}).cast<String, String>();
     legacyCompletedTasks =
@@ -167,7 +196,102 @@ class GameController extends ChangeNotifier {
         catalog: content.phrases, clock: clock, character: character);
   }
 
-  int get day => config['day'] as int;
+  int get day => _day;
+  GrowthStatus get growthStatus => growth.status(progress);
+  TitleDef? get currentTitle => titles.current(progress);
+
+  DayFacts get dayFacts => DayFacts.fromDay(
+        GameDay.create(
+            number: day,
+            income: plan.plan.income,
+            plan: plan.plan,
+            planConfirmed: plan.isConfirmed,
+            transactions: wallet.journal),
+        mandatoryItemIds: content.economy.pet.needs.map((need) => need.itemId),
+      );
+
+  void chooseTitle(String id) {
+    progress = titles.choose(progress, id);
+    changed();
+  }
+
+  void acknowledgeCelebration() {
+    celebration = null;
+    changed();
+  }
+
+  bool closeDay(int expectedDay) {
+    if (expectedDay != day || celebration != null) return false;
+    final facts = dayFacts;
+    final result = growth.closeDay(progress, facts);
+    if (!result.counted) return false;
+    final awarded = titles.award(
+        result.progress,
+        TitleFacts.create(
+            dayNumber: day,
+            completedTaskIds: tasks.completedTaskIds,
+            reachedGoalIds: goals.reachedGoalIds,
+            savings: wallet.wallet.savings));
+    final pet = PetStateService(
+        rules: content.economy.pet, initial: stats, dayNumber: day);
+    final night = pet.closeDay(
+        boughtItemIds: wallet.journal
+            .where((t) =>
+                t.dayNumber == day &&
+                t.type == TransactionType.expense &&
+                t.sourceId.startsWith('shop:'))
+            .map((t) => t.sourceId.substring(5)),
+        ownedItems:
+            content.shop.items.where((item) => owned.contains(item.id)));
+    final summary =
+        DaySummaryService(templates: content.summaries.explain).build(
+      day: GameDay.create(
+          number: day,
+          income: plan.plan.income,
+          plan: plan.plan,
+          planConfirmed: plan.isConfirmed,
+          transactions: wallet.journal),
+      before: stats,
+      after: night.after,
+      growthPoints: result.day.points,
+      petName: petName,
+      savedTotal: wallet.wallet.savings,
+    );
+    progress = awarded.progress;
+    stats = night.after;
+    celebration = {
+      'from': result.day.stageBefore.name,
+      'to': stage.name,
+      'headline':
+          result.stageUp == null ? 'День $day завершён' : '$petName подрос!',
+      'reason': result.stageUp?.reasonText ?? summary.explainText,
+      'points': result.day.points,
+      'lines': growth.lines(result.day).map((line) => line.text).toList(),
+      'changes': night.changes
+          .map((change) => '${pet.describe(change)}. ${change.reasonText}')
+          .toList(),
+      'titles': awarded.earned.map((title) => title.title.id).toList(),
+    };
+    _day++;
+    shop.setStage(stage);
+    shop.startDay(day);
+    goals.startDay(day);
+    final params = content.economy.params;
+    plan = PlanService(
+        income: params.day.income,
+        step: params.plan.step,
+        mandatoryCost: mandatoryCost);
+    wallet.earn(
+        amount: params.day.income,
+        sourceId: 'day_income',
+        reasonText: params.day.incomeReason,
+        at: clock.now(),
+        dayNumber: day);
+    paidRepeatsDay = day;
+    paidRepeatsToday = [];
+    changed();
+    return true;
+  }
 
   int get mandatoryCost => content.shop.items
       .where((i) => i.category == ExpenseCategory.mandatory)
@@ -195,6 +319,7 @@ class GameController extends ChangeNotifier {
     if (goal == null || perDay <= 0) return null;
     return (goal.left + perDay - 1) ~/ perDay;
   }
+
   String get stageLabel =>
       content.economy.growth.texts.stageLabels[stage] ?? stage.name;
 
@@ -384,9 +509,8 @@ class GameController extends ChangeNotifier {
         paidRepeatsToday = [...paidRepeatsToday, completion.taskId];
       }
     }
-    final stars = completion.withMistakes
-        ? (completion.attempts > 2 ? 1 : 2)
-        : 3;
+    final stars =
+        completion.withMistakes ? (completion.attempts > 2 ? 1 : 2) : 3;
     if (stars > starsOf(completion.taskId)) {
       bestStars = {...bestStars, completion.taskId: stars};
     }
@@ -456,7 +580,8 @@ class GameController extends ChangeNotifier {
               ? 'evening'
               : 'day',
       'hasGoal': goal != null,
-      if (goal != null) 'goalProgress': goal.price == 0 ? 0 : goal.saved * 100 ~/ goal.price,
+      if (goal != null)
+        'goalProgress': goal.price == 0 ? 0 : goal.saved * 100 ~/ goal.price,
       if (rules.isLow(PetStat.satiety, stats.satiety))
         'statLow': 'satiety'
       else if (rules.isLow(PetStat.care, stats.care))
@@ -519,6 +644,16 @@ class GameController extends ChangeNotifier {
     petName = name;
     simpleMode = simple;
     onboarded = true;
+    progress =
+        titles.start(PetProgress.create(growthPoints: 0, stage: PetStage.baby));
+    shop.setStage(stage);
+    celebration = {
+      'from': 'egg',
+      'to': 'baby',
+      'headline': 'Привет, $petName!',
+      'reason': 'Теперь будем учиться и расти вместе.',
+      'titles': <String>[]
+    };
     changed();
   }
 
@@ -540,6 +675,9 @@ class GameController extends ChangeNotifier {
 
   Map<String, dynamic> snapshot() => {
         'schemaVersion': 2,
+        'day': day,
+        'petProgress': progress.toJson(),
+        'celebration': celebration,
         'balance': wallet.wallet.balance,
         'savings': wallet.wallet.savings,
         'plan': {
