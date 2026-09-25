@@ -26,6 +26,7 @@ class ContentLoader {
   static const String economyPath = 'assets/content/economy.json';
   static const String titlesPath = 'assets/content/titles.json';
   static const String testProfilePath = 'assets/content/test_profile.json';
+  static const String soundsPath = 'assets/content/sounds.json';
 
   /// Старые триггеры экранов-заглушек -> триггеры банка реплик.
   static const Map<String, String> _legacyTriggers = {
@@ -39,6 +40,13 @@ class ContentLoader {
   Future<domain.TaskCatalog> loadTaskCatalog() async {
     final raw = await rootBundle.loadString(tasksPath);
     return domain.TaskCatalog.fromJson(
+        (jsonDecode(raw) as Map).cast<String, Object?>());
+  }
+
+  /// Звуковая схема: события, бормотание питомцев, озвучка реплик.
+  Future<domain.SoundScheme> loadSoundScheme() async {
+    final raw = await rootBundle.loadString(soundsPath);
+    return domain.SoundScheme.fromJson(
         (jsonDecode(raw) as Map).cast<String, Object?>());
   }
 

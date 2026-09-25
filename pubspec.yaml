@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.2.3
+  audioplayers: ^6.1.0
   flutter_svg: ^2.0.10
 
 dev_dependencies:
@@ -25,6 +26,12 @@ flutter:
     - assets/images/
     - assets/images/hud/
     - assets/pets/moni/
+    - assets/audio/sfx/
+    - assets/audio/voice/
+    - assets/audio/babble/fox/
+    - assets/audio/babble/robot/
+    - assets/audio/babble/puppy/
+    - assets/audio/babble/dragon/
   fonts:
     - family: Nunito
       fonts:
