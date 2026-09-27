@@ -169,6 +169,7 @@ final class PetStateService {
   PetStateUpdate closeDay({
     required Iterable<String> boughtItemIds,
     Iterable<ShopItem> ownedItems = const [],
+    PetStage stage = PetStage.egg,
   }) {
     if (_dayClosed) return _nothing();
     _dayClosed = true;
@@ -176,8 +177,8 @@ final class PetStateService {
     final before = _state;
     final bought = boughtItemIds.toSet();
     final changes = <StatChange>[];
-    for (final need in _rules.needs) {
-      if (!bought.contains(need.itemId)) {
+    for (final need in _rules.needsOn(_day, stage)) {
+      if (!need.metBy(bought)) {
         changes.addAll(_applyAll(need.missedEffects, need.missedReason));
       }
     }

@@ -145,10 +145,14 @@ final class DayController {
     final day = profile.currentDay;
     final today = _transactionsOf(profile, day.number);
     final bought = _boughtIds(today).toSet();
+    final missing = [
+      for (final need
+          in _economy.pet.needsOn(day.number, profile.progress.stage))
+        if (!need.metBy(bought)) need
+    ];
     final unpaid = [
-      for (final need in _economy.pet.needs)
-        if (!bought.contains(need.itemId))
-          if (_shop.byId(need.itemId) case final item?) item
+      for (final need in missing)
+        if (_shop.byId(need.itemId) case final item?) item
     ];
     final tasksDone = {
       for (final t in today)
@@ -157,8 +161,10 @@ final class DayController {
           t.sourceId
     }.length;
     final affordable = [
-      for (final item in unpaid)
-        if (item.price <= profile.wallet.balance) item
+      for (final need in missing)
+        if (_cheapest(need) case final item?
+            when item.price <= profile.wallet.balance)
+          _shop.byId(need.itemId) ?? item
     ];
     final todos = [
       if (!day.planConfirmed) BedtimeTodo.plan,
@@ -212,15 +218,17 @@ final class DayController {
       actionsToday: profile.petActionsToday,
       changesToday: profile.petChangesToday,
     );
+    final stage = profile.progress.stage;
     final night = pet.closeDay(
       boughtItemIds: _boughtIds(today),
       ownedItems: _ownedItems(profile),
+      stage: stage,
     );
 
     final growth = _growth.closeDay(
       profile.progress,
-      DayFacts.fromDay(closedDay, mandatoryItemIds: [
-        for (final need in _economy.pet.needs) need.itemId
+      DayFacts.fromDay(closedDay, mandatoryItemIds: const [], mandatoryOptions: [
+        for (final need in _economy.pet.needsOn(day, stage)) need.itemIds
       ]),
     );
 
@@ -320,6 +328,16 @@ final class DayController {
               t.sourceId.startsWith(_shopSource))
             t.sourceId.substring(_shopSource.length)
       ];
+
+  ShopItem? _cheapest(PetNeed need) {
+    ShopItem? best;
+    for (final id in need.itemIds) {
+      final item = _shop.byId(id);
+      if (item == null) continue;
+      if (best == null || item.price < best.price) best = item;
+    }
+    return best;
+  }
 
   List<ShopItem> _ownedItems(Profile profile) => [
         for (final item in _shop.items)

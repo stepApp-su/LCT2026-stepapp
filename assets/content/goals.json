@@ -14,7 +14,7 @@
       50,
       75
     ],
-    "starterRecommendationId": "ball_rope"
+    "starterRecommendationId": "constructor"
   },
   "texts": {
     "starterHint": "Начни с цели поменьше: её легче достичь.",
@@ -62,10 +62,10 @@
   },
   "goals": [
     {
-      "id": "ball_rope",
-      "title": "Мячик и скакалка",
-      "titleAccusative": "мячик и скакалку",
-      "titleGenitive": "мячика и скакалки",
+      "id": "constructor",
+      "title": "Большой конструктор",
+      "titleAccusative": "большой конструктор",
+      "titleGenitive": "большого конструктора",
       "price": 90,
       "unlock": {
         "minGoalsReached": 0
@@ -78,11 +78,57 @@
           }
         ]
       },
-      "iconId": "icon_goal_ball_rope",
-      "assetId": "goal_ball_rope",
-      "description": "Играть во дворе хоть каждый день.",
-      "selectPhrase": "Мячик! Будем играть вместе!",
-      "reachedText": "Мячик и скакалка теперь наши навсегда!"
+      "iconId": "icon_goal_constructor",
+      "assetId": "goal_constructor",
+      "description": "Собрать робота, замок или космический корабль.",
+      "selectPhrase": "Конструктор! Построим что-нибудь невероятное!",
+      "reachedText": "Конструктор наш! Строим первого робота!"
+    },
+    {
+      "id": "slime_kit",
+      "title": "Набор для слаймов",
+      "titleAccusative": "набор для слаймов",
+      "titleGenitive": "набора для слаймов",
+      "price": 90,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 18
+          }
+        ]
+      },
+      "iconId": "icon_goal_slime_kit",
+      "assetId": "goal_slime_kit",
+      "description": "Тянучие, блестящие, любого цвета.",
+      "selectPhrase": "Слаймы! Сделаем самый блестящий!",
+      "reachedText": "Набор наш! Первый слайм уже тянется!"
+    },
+    {
+      "id": "giant_plush",
+      "title": "Большая мягкая игрушка",
+      "titleAccusative": "большую мягкую игрушку",
+      "titleGenitive": "большой мягкой игрушки",
+      "price": 90,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 18
+          }
+        ]
+      },
+      "iconId": "icon_goal_giant_plush",
+      "assetId": "goal_giant_plush",
+      "description": "Обнимашки размером почти с тебя.",
+      "selectPhrase": "Большая игрушка! Будет кого обнимать!",
+      "reachedText": "Игрушка наша! Самые тёплые обнимашки!"
     },
     {
       "id": "scooter",
@@ -103,15 +149,61 @@
       },
       "iconId": "icon_goal_scooter",
       "assetId": "goal_scooter",
-      "description": "Кататься быстро-быстро по дорожкам.",
+      "description": "Со светящимися колёсами — кататься с друзьями по парку.",
       "selectPhrase": "Самокат! Поедем кататься!",
-      "reachedText": "Самокат наш! Он встанет у стены."
+      "reachedText": "Самокат наш! Колёса светятся!"
     },
     {
-      "id": "telescope",
-      "title": "Телескоп",
-      "titleAccusative": "телескоп",
-      "titleGenitive": "телескопа",
+      "id": "roller_skates",
+      "title": "Роликовые коньки",
+      "titleAccusative": "роликовые коньки",
+      "titleGenitive": "роликовых коньков",
+      "price": 120,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 24
+          }
+        ]
+      },
+      "iconId": "icon_goal_roller_skates",
+      "assetId": "goal_roller_skates",
+      "description": "Катиться по дорожке, как ветер.",
+      "selectPhrase": "Ролики! Научимся кататься!",
+      "reachedText": "Ролики наши! Вжух — поехали!"
+    },
+    {
+      "id": "board_game",
+      "title": "Большая настольная игра",
+      "titleAccusative": "большую настольную игру",
+      "titleGenitive": "большой настольной игры",
+      "price": 120,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 24
+          }
+        ]
+      },
+      "iconId": "icon_goal_board_game",
+      "assetId": "goal_board_game",
+      "description": "Играть всей семьёй долгими вечерами.",
+      "selectPhrase": "Настольная игра! Позовём всех играть!",
+      "reachedText": "Игра наша! Кто ходит первым?"
+    },
+    {
+      "id": "smartwatch",
+      "title": "Умные часы",
+      "titleAccusative": "умные часы",
+      "titleGenitive": "умных часов",
       "price": 160,
       "unlock": {
         "minGoalsReached": 0
@@ -124,17 +216,63 @@
           }
         ]
       },
-      "iconId": "icon_goal_telescope",
-      "assetId": "goal_telescope",
-      "description": "Смотреть на звёзды и Луну.",
-      "selectPhrase": "Телескоп! Увидим звёзды близко-близко!",
-      "reachedText": "Телескоп наш! Он встанет у окна."
+      "iconId": "icon_goal_smartwatch",
+      "assetId": "goal_smartwatch",
+      "description": "Считают шаги, будят по утрам и меняют циферблаты.",
+      "selectPhrase": "Умные часы! Будем считать шаги!",
+      "reachedText": "Умные часы наши! Сколько шагов сегодня?"
     },
     {
-      "id": "treehouse",
-      "title": "Домик на дереве",
-      "titleAccusative": "домик на дереве",
-      "titleGenitive": "домика на дереве",
+      "id": "headphones",
+      "title": "Беспроводные наушники",
+      "titleAccusative": "беспроводные наушники",
+      "titleGenitive": "беспроводных наушников",
+      "price": 160,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 32
+          }
+        ]
+      },
+      "iconId": "icon_goal_headphones",
+      "assetId": "goal_headphones",
+      "description": "Слушать музыку и аудиосказки где угодно.",
+      "selectPhrase": "Наушники! Послушаем любимую песню!",
+      "reachedText": "Наушники наши! Включаем музыку!"
+    },
+    {
+      "id": "science_kit",
+      "title": "Набор юного учёного",
+      "titleAccusative": "набор юного учёного",
+      "titleGenitive": "набора юного учёного",
+      "price": 160,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 32
+          }
+        ]
+      },
+      "iconId": "icon_goal_science_kit",
+      "assetId": "goal_science_kit",
+      "description": "Опыты с кристаллами, вулканом и светом.",
+      "selectPhrase": "Опыты! Устроим настоящую лабораторию!",
+      "reachedText": "Набор наш! Первый опыт — вулкан!"
+    },
+    {
+      "id": "instant_camera",
+      "title": "Фотоаппарат с печатью",
+      "titleAccusative": "фотоаппарат с печатью",
+      "titleGenitive": "фотоаппарата с печатью",
       "price": 200,
       "unlock": {
         "minGoalsReached": 0
@@ -147,17 +285,63 @@
           }
         ]
       },
-      "iconId": "icon_goal_treehouse",
-      "assetId": "goal_treehouse",
-      "description": "Своё тайное место высоко-высоко.",
-      "selectPhrase": "Домик на дереве! Вот это мечта!",
-      "reachedText": "Домик наш! Его видно из окна."
+      "iconId": "icon_goal_instant_camera",
+      "assetId": "goal_instant_camera",
+      "description": "Щёлк — и фотография сразу в руках!",
+      "selectPhrase": "Фотоаппарат! Сделаем много снимков!",
+      "reachedText": "Фотоаппарат наш! Улыбаемся — щёлк!"
     },
     {
-      "id": "bicycle",
-      "title": "Велосипед",
-      "titleAccusative": "велосипед",
-      "titleGenitive": "велосипеда",
+      "id": "karaoke",
+      "title": "Караоке-микрофон",
+      "titleAccusative": "караоке-микрофон",
+      "titleGenitive": "караоке-микрофона",
+      "price": 200,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 40
+          }
+        ]
+      },
+      "iconId": "icon_goal_karaoke",
+      "assetId": "goal_karaoke",
+      "description": "Петь любимые песни, как на сцене.",
+      "selectPhrase": "Караоке! Устроим концерт!",
+      "reachedText": "Микрофон наш! Начинаем концерт!"
+    },
+    {
+      "id": "skateboard",
+      "title": "Скейтборд",
+      "titleAccusative": "скейтборд",
+      "titleGenitive": "скейтборда",
+      "price": 200,
+      "unlock": {
+        "minGoalsReached": 0
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 40
+          }
+        ]
+      },
+      "iconId": "icon_goal_skateboard",
+      "assetId": "goal_skateboard",
+      "description": "Кататься и учиться новым трюкам.",
+      "selectPhrase": "Скейтборд! Выучим первый трюк!",
+      "reachedText": "Скейтборд наш! Поехали во двор!"
+    },
+    {
+      "id": "robot_kit",
+      "title": "Робот-программист",
+      "titleAccusative": "робота-программиста",
+      "titleGenitive": "робота-программиста",
       "price": 250,
       "unlock": {
         "minGoalsReached": 3
@@ -170,17 +354,63 @@
           }
         ]
       },
-      "iconId": "icon_goal_bicycle",
-      "assetId": "goal_bicycle",
-      "description": "Настоящий, с корзинкой и звонком.",
-      "selectPhrase": "Велосипед! Дзынь-дзынь!",
-      "reachedText": "Велосипед наш! Дзынь-дзынь!"
+      "iconId": "icon_goal_robot_kit",
+      "assetId": "goal_robot_kit",
+      "description": "Собрать робота и научить его ездить и мигать.",
+      "selectPhrase": "Робот! Научим его новым командам!",
+      "reachedText": "Робот наш! Он уже мигает глазами!"
     },
     {
-      "id": "trampoline",
-      "title": "Батут",
-      "titleAccusative": "батут",
-      "titleGenitive": "батута",
+      "id": "keyboard",
+      "title": "Синтезатор",
+      "titleAccusative": "синтезатор",
+      "titleGenitive": "синтезатора",
+      "price": 250,
+      "unlock": {
+        "minGoalsReached": 3
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 50
+          }
+        ]
+      },
+      "iconId": "icon_goal_keyboard",
+      "assetId": "goal_keyboard",
+      "description": "Играть мелодии и сочинять свои песни.",
+      "selectPhrase": "Синтезатор! Сочиним свою песню!",
+      "reachedText": "Синтезатор наш! Сыграем мелодию!"
+    },
+    {
+      "id": "tent",
+      "title": "Палатка для походов",
+      "titleAccusative": "палатку для походов",
+      "titleGenitive": "палатки для походов",
+      "price": 250,
+      "unlock": {
+        "minGoalsReached": 3
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 50
+          }
+        ]
+      },
+      "iconId": "icon_goal_tent",
+      "assetId": "goal_tent",
+      "description": "Ночевать под звёздами на даче или в лесу.",
+      "selectPhrase": "Палатка! Пойдём в поход!",
+      "reachedText": "Палатка наша! Собираемся в поход!"
+    },
+    {
+      "id": "game_console",
+      "title": "Игровая приставка",
+      "titleAccusative": "игровую приставку",
+      "titleGenitive": "игровой приставки",
       "price": 300,
       "unlock": {
         "minGoalsReached": 4
@@ -193,11 +423,57 @@
           }
         ]
       },
-      "iconId": "icon_goal_trampoline",
-      "assetId": "goal_trampoline",
-      "description": "Прыгать до самых облаков.",
-      "selectPhrase": "Батут! Попрыгаем до облаков!",
-      "reachedText": "Батут наш! Прыг-скок!"
+      "iconId": "icon_goal_game_console",
+      "assetId": "goal_game_console",
+      "description": "Играть вместе с друзьями и всей семьёй.",
+      "selectPhrase": "Приставка! Сыграем вместе!",
+      "reachedText": "Приставка наша! Зовём друзей!"
+    },
+    {
+      "id": "bike",
+      "title": "Велосипед",
+      "titleAccusative": "велосипед",
+      "titleGenitive": "велосипеда",
+      "price": 300,
+      "unlock": {
+        "minGoalsReached": 4
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 60
+          }
+        ]
+      },
+      "iconId": "icon_goal_bike",
+      "assetId": "goal_bike",
+      "description": "Настоящий, с фонариком и звонком.",
+      "selectPhrase": "Велосипед! Дзынь-дзынь!",
+      "reachedText": "Велосипед наш! Дзынь-дзынь!"
+    },
+    {
+      "id": "drawing_tablet",
+      "title": "Планшет для рисования",
+      "titleAccusative": "планшет для рисования",
+      "titleGenitive": "планшета для рисования",
+      "price": 300,
+      "unlock": {
+        "minGoalsReached": 4
+      },
+      "reward": {
+        "effects": [
+          {
+            "stat": "cozy",
+            "delta": 60
+          }
+        ]
+      },
+      "iconId": "icon_goal_drawing_tablet",
+      "assetId": "goal_drawing_tablet",
+      "description": "Рисовать пальцем или стилусом что захочешь.",
+      "selectPhrase": "Планшет! Нарисуем целый мультфильм!",
+      "reachedText": "Планшет наш! Рисуем первую картину!"
     }
   ]
 }

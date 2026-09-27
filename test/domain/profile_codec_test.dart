@@ -97,7 +97,7 @@ void main() {
       expect(profile.copyWith(goalId: null).goalId, isNull);
       expect(
           profile.copyWith(activeWallpaperId: null).activeWallpaperId, isNull);
-      expect(profile.copyWith(goalId: 'treehouse').goalId, 'treehouse');
+      expect(profile.copyWith(goalId: 'instant_camera').goalId, 'instant_camera');
     });
 
     test('настройки: чего нет в сохранении — то включено', () {
@@ -306,9 +306,9 @@ void main() {
           equipped: {'head': 'crown', 'neck': 'scarf', 'eyes': null},
           activeWallpaperId: 'wp_gone',
           ownedItems: ['cap', 'rocket'],
-          reachedGoalIds: ['ball_rope', 'moon'],
+          reachedGoalIds: ['constructor', 'moon'],
         ),
-        goalIds: {'ball_rope', 'scooter'},
+        goalIds: {'constructor', 'scooter'},
         itemIds: {'glasses', 'scarf', 'cap', 'wp_dots'},
       );
       expect(profile.goalId, isNull);
@@ -316,14 +316,14 @@ void main() {
       expect(profile.equipped, {'head': null, 'neck': 'scarf', 'eyes': null});
       expect(profile.activeWallpaperId, isNull);
       expect(profile.ownedItems, ['cap', 'rocket']);
-      expect(profile.reachedGoalIds, ['ball_rope', 'moon']);
+      expect(profile.reachedGoalIds, ['constructor', 'moon']);
       expect(profile.wallet, richProfile().wallet);
     });
 
     test('всё знакомое не трогается', () {
       final profile = richProfile();
       final same = reconcileProfile(profile,
-          goalIds: {'scooter', 'ball_rope'},
+          goalIds: {'scooter', 'constructor'},
           itemIds: {'glasses', 'cap', 'wp_dots', 'bouncy_ball'});
       expectSameProfile(same, profile);
     });

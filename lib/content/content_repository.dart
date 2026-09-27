@@ -135,13 +135,28 @@ final class ContentRepository {
       economyFile,
       recordsPath: const ['pet', 'needs'],
       idKey: 'itemId',
-      references: (record) {
-        final item = shop.byId('${record['itemId']}');
-        if (item == null) return ['нет товара «${record['itemId']}»'];
-        if (item.category != ExpenseCategory.mandatory) {
-          return ['«${item.id}» не обязательная покупка'];
+      references: (record) => _needProblems(record, shop),
+      sanitize: (root) {
+        final pet = jsonMap(root['pet'], 'pet');
+        if (pet['occasionalNeeds'] is! List) return root;
+        final kept = <Object?>[];
+        for (final need in _maps(pet['occasionalNeeds'])) {
+          final problems = _needProblems(need, shop);
+          if (problems.isEmpty) {
+            kept.add(need);
+            continue;
+          }
+          for (final problem in problems) {
+            session.report(ContentIssue(
+                file: economyFile,
+                recordId: '${need['itemId']}',
+                message: problem));
+          }
         }
-        return const [];
+        return {
+          ...root,
+          'pet': {...pet, 'occasionalNeeds': kept}
+        };
       },
       build: EconomyConfig.fromJson,
     );
@@ -381,6 +396,19 @@ String? _emptyTextPath(Object? node, String path) {
     }
   }
   return null;
+}
+
+List<String> _needProblems(Map<String, Object?> record, ShopCatalog shop) {
+  final problems = <String>[];
+  for (final id in ['${record['itemId']}', ..._strings(record['alternatives'])]) {
+    final item = shop.byId(id);
+    if (item == null) {
+      problems.add('нет товара «$id»');
+    } else if (item.category != ExpenseCategory.mandatory) {
+      problems.add('«$id» не обязательная покупка');
+    }
+  }
+  return problems;
 }
 
 final class _Session {

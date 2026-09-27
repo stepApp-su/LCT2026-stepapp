@@ -242,8 +242,8 @@ void main() {
 
     test('Мечтатель: первая достигнутая цель', () {
       expect(_owned([idleDay(1)]), isNot(contains('dreamer')));
-      expect(_owned([idleDay(1)], goals: ['ball_rope']), contains('dreamer'));
-      expect(_owned([idleDay(1)], goals: ['ball_rope', 'scooter']),
+      expect(_owned([idleDay(1)], goals: ['constructor']), contains('dreamer'));
+      expect(_owned([idleDay(1)], goals: ['constructor', 'scooter']),
           contains('dreamer'));
     });
 
@@ -302,7 +302,7 @@ void main() {
     test('за вечер несколько званий — в порядке каталога, текущее — последнее',
         () {
       final award = _award([for (var d = 1; d <= 5; d++) dayFacts(d)],
-          tasks: payTasks, goals: ['ball_rope'], savings: 50);
+          tasks: payTasks, goals: ['constructor'], savings: 50);
       expect(_new(award),
           ['planner', 'saver', 'shopping_expert', 'reserve_keeper', 'dreamer']);
       expect(award.progress.earnedTitles, [
@@ -322,7 +322,7 @@ void main() {
       final progress = _live([for (var d = 1; d <= 3; d++) planOnly(d)],
           from: _progress(['old_rank', 'dreamer'], 'old_rank'));
       final award =
-          _titles.award(progress, _factsOn(progress, goals: ['ball_rope']));
+          _titles.award(progress, _factsOn(progress, goals: ['constructor']));
       expect(award.progress.earnedTitles,
           ['old_rank', 'dreamer', 'novice', 'planner']);
       expect(_new(award), ['planner']);
@@ -339,7 +339,7 @@ void main() {
 
       final next =
           _live([idleDay(4)], from: _titles.choose(planner.progress, 'novice'));
-      final dreamer = _titles.award(next, _factsOn(next, goals: ['ball_rope']));
+      final dreamer = _titles.award(next, _factsOn(next, goals: ['constructor']));
       expect(_new(dreamer), ['dreamer']);
       expect(dreamer.progress.currentTitleId, 'dreamer');
     });
@@ -347,7 +347,7 @@ void main() {
     test('повторная проверка того же дня ничего не выдаёт и не меняет', () {
       final progress = _live([for (var d = 1; d <= 5; d++) dayFacts(d)]);
       final facts = _factsOn(progress,
-          tasks: payTasks, goals: ['ball_rope'], savings: 50);
+          tasks: payTasks, goals: ['constructor'], savings: 50);
       final first = _titles.award(progress, facts);
       final second = _titles.award(first.progress, facts);
       expect(first.earned, hasLength(5));
@@ -380,7 +380,7 @@ void main() {
           .award(
               progress,
               _factsOn(progress,
-                  tasks: payTasks, goals: ['ball_rope'], savings: 999))
+                  tasks: payTasks, goals: ['constructor'], savings: 999))
           .progress;
       expect(after.earnedTitles, hasLength(7));
       expect(

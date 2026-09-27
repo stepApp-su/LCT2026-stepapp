@@ -19,6 +19,7 @@ class MoniScene extends StatefulWidget {
       this.onReady,
       this.equipped,
       this.onPet,
+      this.sleeping = false,
       this.outfit = const {}});
   final bool motion;
   final PetStage stage;
@@ -26,6 +27,7 @@ class MoniScene extends StatefulWidget {
   final VoidCallback? onReady;
   final String? equipped;
   final VoidCallback? onPet;
+  final bool sleeping;
   final Map<String, String> outfit;
   @override
   State<MoniScene> createState() => _MoniSceneState();
@@ -120,25 +122,46 @@ class _MoniSceneState extends State<MoniScene>
     final cells = <Rect>[];
     final cw = image.width / 4, ch = image.height / 3;
     for (var i = 0; i < 12; i++) {
-      var left = image.width, top = image.height, right = 0, bottom = 0;
-      for (var y = ((i ~/ 4) * ch + 3).ceil();
-          y < ((i ~/ 4 + 1) * ch - 3).floor();
-          y++) {
-        for (var x = ((i % 4) * cw + 3).ceil();
-            x < ((i % 4 + 1) * cw - 3).floor();
-            x++) {
+      final x0 = ((i % 4) * cw + 3).ceil();
+      final x1 = ((i % 4 + 1) * cw - 3).floor();
+      final y0 = ((i ~/ 4) * ch + 3).ceil();
+      final y1 = ((i ~/ 4 + 1) * ch - 3).floor();
+      final rows = List<bool>.filled(y1 - y0, false);
+      final cols = List<bool>.filled(x1 - x0, false);
+      for (var y = y0; y < y1; y++) {
+        for (var x = x0; x < x1; x++) {
           if (bytes.getUint8((y * image.width + x) * 4 + 3) > 70) {
-            left = math.min(left, x);
-            right = math.max(right, x);
-            top = math.min(top, y);
-            bottom = math.max(bottom, y);
+            rows[y - y0] = true;
+            cols[x - x0] = true;
           }
         }
       }
-      cells.add(Rect.fromLTRB(
-          left.toDouble(), top.toDouble(), right + 1.0, bottom + 1.0));
+      final (top, bottom) = _mainSpan(rows);
+      final (left, right) = _mainSpan(cols);
+      cells.add(Rect.fromLTRB((x0 + left).toDouble(), (y0 + top).toDouble(),
+          (x0 + right).toDouble(), (y0 + bottom).toDouble()));
     }
     return cells;
+  }
+
+  static (int, int) _mainSpan(List<bool> filled) {
+    final runs = <(int, int)>[];
+    int? start;
+    for (var i = 0; i <= filled.length; i++) {
+      final on = i < filled.length && filled[i];
+      if (on && start == null) start = i;
+      if (!on && start != null) {
+        runs.add((start, i));
+        start = null;
+      }
+    }
+    if (runs.isEmpty) return (0, filled.length);
+    final longest = runs.fold(0, (m, r) => math.max(m, r.$2 - r.$1));
+    final kept = [
+      for (final r in runs)
+        if (r.$2 - r.$1 >= longest * .35) r
+    ];
+    return (kept.first.$1, kept.last.$2);
   }
 
   void sync() {
@@ -196,7 +219,7 @@ class _MoniSceneState extends State<MoniScene>
                 widget.motion && !MediaQuery.disableAnimationsOf(context)
                     ? ticker.value * moniIdleSeconds
                     : 0,
-                happy,
+                happy || widget.sleeping,
                 widget.equipped,
                 Map.of(widget.outfit),
                 accessoryBounds,
@@ -328,15 +351,18 @@ class _MoniPainter extends CustomPainter {
       final a = accessories!;
       final selected = {...outfit.values, if (equipped != null) equipped!};
       const placements = {
-        'bow': (0, 254.0, 288.0, 62.0, -.30),
-        'cap': (1, 347.0, 269.0, 148.0, -.10),
-        'glasses': (2, 353.0, 371.0, 139.0, -.04),
-        'scarf': (3, 332.0, 461.0, 105.0, 0.0),
-        'balloon': (8, 478.0, 490.0, 72.0, .08),
+        'raincoat': (6, 330.0, 584.0, 192.0, 0.0),
+        'tshirt': (5, 330.0, 574.0, 176.0, 0.0),
+        'backpack': (7, 404.0, 528.0, 98.0, .10),
+        'scarf': (3, 338.0, 528.0, 132.0, 0.0),
+        'bowtie': (4, 342.0, 505.0, 110.0, 0.0),
+        'glasses': (2, 340.0, 381.0, 176.0, -.18),
+        'cap': (1, 350.0, 268.0, 178.0, -.10),
+        'bow': (0, 262.0, 262.0, 96.0, -.35),
+        'balloon': (8, 466.0, 600.0, 92.0, .10),
       };
-      for (final id in selected) {
-        final placement = placements[id];
-        if (placement == null) continue;
+      for (final MapEntry(key: id, value: placement) in placements.entries) {
+        if (!selected.contains(id)) continue;
         final source = accessoryBounds[placement.$1];
         final w = placement.$4, h = w * source.height / source.width;
         c.save();

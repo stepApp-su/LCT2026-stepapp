@@ -36,13 +36,43 @@ abstract final class CoachIds {
     'plan.confirm',
     'shop.wallet',
     'shop.plan',
+    'shop.needs',
     'shop.filters',
     'shop.wants',
     'shop.items',
     'hub.level',
     'hub.daily',
     'hub.practice',
+    'savings.change',
+    'savings.withdraw',
+    'section.back',
     'more.list',
+    'more.profile',
+    'more.wardrobe',
+    'more.titles',
+    'more.diary',
+    'more.summary',
+    'more.glossary',
+    'room.tabs',
+    'room.stage',
+    'room.legend',
+    'diary.days',
+    'diary.filters',
+    'diary.summary',
+    'diary.list',
+    'titles.stages',
+    'titles.xp',
+    'titles.current',
+    'titles.next',
+    'glossary.search',
+    'glossary.topics',
+    'glossary.list',
+    'glossary.learn',
+    'flash.card',
+    'flash.buttons',
+    'night.plan',
+    'night.todo',
+    'night.sleep',
     'more.coach',
     'level.header',
     'level.start',
@@ -545,14 +575,22 @@ class CoachHostState extends State<CoachHost> with SingleTickerProviderStateMixi
               if (run.title case final title?)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    _fill(title, run.values),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: FinniColors.primary,
-                    ),
-                  ),
+                  child: TagRow([
+                    for (final (i, part) in _fill(title, run.values)
+                        .split('·')
+                        .map((p) => p.trim())
+                        .where((p) => p.isNotEmpty)
+                        .indexed)
+                      if (i == 0 && title.contains('·'))
+                        TagChip(part, tone: TagTone.green)
+                      else
+                        Text(part,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: FinniColors.primary,
+                            )),
+                  ]),
                 ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

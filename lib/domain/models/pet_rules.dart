@@ -22,21 +22,86 @@ int? petStatCap(PetStat stat) => stat == PetStat.cozy ? null : PetState.cap;
 /// самое низкое — лёгкая скука.
 enum MoodLevel { bored, calm, joy, delight }
 
+final class NeedOccasion {
+  const NeedOccasion._({
+    required this.from,
+    required this.every,
+    required this.minStage,
+    required this.title,
+    required this.hint,
+  });
+
+  factory NeedOccasion.create({
+    required int from,
+    required int every,
+    PetStage minStage = PetStage.egg,
+    required String title,
+    required String hint,
+  }) {
+    if (from < 1) {
+      throw ArgumentError.value(from, 'occasion.from', 'дни нумеруются с 1');
+    }
+    if (every < 1) {
+      throw ArgumentError.value(every, 'occasion.every', 'шаг ≥ 1');
+    }
+    _requireText(title, 'occasion.title');
+    _requireText(hint, 'occasion.hint');
+    return NeedOccasion._(
+        from: from, every: every, minStage: minStage, title: title, hint: hint);
+  }
+
+  factory NeedOccasion.fromJson(Map<String, Object?> json) =>
+      NeedOccasion.create(
+        from: json['from'] as int,
+        every: json['every'] as int,
+        minStage: PetStage.values
+            .byName((json['minStage'] ?? PetStage.egg.name) as String),
+        title: json['title'] as String,
+        hint: json['hint'] as String,
+      );
+
+  final int from;
+  final int every;
+  final PetStage minStage;
+  final String title;
+  final String hint;
+
+  bool activeOn(int day, PetStage stage) =>
+      stage.index >= minStage.index &&
+      day >= from &&
+      (day - from) % every == 0;
+}
+
 /// Обязательная покупка и то, что будет со шкалами, если её пропустить.
 final class PetNeed {
   const PetNeed._({
     required this.itemId,
+    required this.alternatives,
+    required this.title,
+    required this.emoji,
+    required this.occasion,
     required this.missedEffects,
     required this.missedReason,
   });
 
   factory PetNeed.create({
     required String itemId,
+    List<String> alternatives = const [],
+    String title = '',
+    String emoji = '',
+    NeedOccasion? occasion,
     required List<StateEffect> missedEffects,
     required String missedReason,
   }) {
     if (itemId.trim().isEmpty) {
       throw ArgumentError.value(itemId, 'itemId', 'нужен id товара');
+    }
+    final ids = {itemId};
+    for (final id in alternatives) {
+      if (id.trim().isEmpty || !ids.add(id)) {
+        throw ArgumentError.value(id, 'alternatives «$itemId»',
+            'пустой или повторяющийся товар');
+      }
     }
     if (missedEffects.isEmpty) {
       throw ArgumentError.value(
@@ -54,6 +119,10 @@ final class PetNeed {
     _requireText(missedReason, 'missedReason «$itemId»');
     return PetNeed._(
       itemId: itemId,
+      alternatives: List.unmodifiable(alternatives),
+      title: title,
+      emoji: emoji,
+      occasion: occasion,
       missedEffects: List.unmodifiable(missedEffects),
       missedReason: missedReason,
     );
@@ -61,15 +130,38 @@ final class PetNeed {
 
   factory PetNeed.fromJson(Map<String, Object?> json) => PetNeed.create(
         itemId: json['itemId'] as String,
+        alternatives: [
+          for (final id in (json['alternatives'] as List? ?? const []))
+            id as String
+        ],
+        title: (json['title'] ?? '') as String,
+        emoji: (json['emoji'] ?? '') as String,
+        occasion: json['occasion'] == null
+            ? null
+            : NeedOccasion.fromJson(
+                (json['occasion'] as Map).cast<String, Object?>()),
         missedEffects: _effectsFromJson(json['missedEffects']),
         missedReason: json['missedReason'] as String,
       );
 
   final String itemId;
+  final List<String> alternatives;
+  final String title;
+  final String emoji;
+  final NeedOccasion? occasion;
 
   /// Что происходит ночью, если за день эту покупку не сделали.
   final List<StateEffect> missedEffects;
   final String missedReason;
+
+  List<String> get itemIds => [itemId, ...alternatives];
+
+  bool covers(String id) => id == itemId || alternatives.contains(id);
+
+  bool metBy(Iterable<String> bought) => bought.any(covers);
+
+  bool activeOn(int day, PetStage stage) =>
+      occasion?.activeOn(day, stage) ?? true;
 }
 
 /// Порог «питомцу чего-то хочется»: шкала на этом значении или ниже.
@@ -261,6 +353,7 @@ final class PetRules {
   const PetRules._({
     required this.initialState,
     required this.needs,
+    required this.occasionalNeeds,
     required this.low,
     required this.nightlyEffects,
     required this.nightlyReason,
@@ -277,6 +370,7 @@ final class PetRules {
   factory PetRules.create({
     required Map<PetStat, int> initial,
     required List<PetNeed> needs,
+    List<PetNeed> occasionalNeeds = const [],
     required Map<PetStat, PetLowRule> low,
     List<StateEffect> nightlyEffects = const [],
     String nightlyReason = '',
@@ -311,13 +405,27 @@ final class PetRules {
       throw ArgumentError.value(
           needs, 'needs', 'нет ни одной обязательной покупки');
     }
-    final itemIds = <String>{};
     for (final need in needs) {
-      if (!itemIds.add(need.itemId)) {
-        throw ArgumentError.value(need.itemId, 'needs', 'повторяется');
+      if (need.occasion != null) {
+        throw ArgumentError.value(
+            need.itemId, 'needs', 'ежедневная нужда без расписания');
+      }
+    }
+    for (final need in occasionalNeeds) {
+      if (need.occasion == null) {
+        throw ArgumentError.value(
+            need.itemId, 'occasionalNeeds', 'нужно расписание');
+      }
+    }
+    final itemIds = <String>{};
+    for (final need in [...needs, ...occasionalNeeds]) {
+      for (final id in need.itemIds) {
+        if (!itemIds.add(id)) {
+          throw ArgumentError.value(id, 'needs', 'повторяется');
+        }
       }
       for (final effect in need.missedEffects) {
-        if (!low.containsKey(effect.stat)) {
+        if (effect.stat != PetStat.mood && !low.containsKey(effect.stat)) {
           throw ArgumentError.value(effect.stat.name, 'low',
               'шкала снижается от пропуска, но порога «хочется» у неё нет');
         }
@@ -388,6 +496,7 @@ final class PetRules {
         cozy: initial[PetStat.cozy]!,
       ),
       needs: List.unmodifiable(needs),
+      occasionalNeeds: List.unmodifiable(occasionalNeeds),
       low: Map.unmodifiable(low),
       nightlyEffects: List.unmodifiable(nightlyEffects),
       nightlyReason: nightlyReason,
@@ -407,6 +516,10 @@ final class PetRules {
       },
       needs: [
         for (final raw in (json['needs'] as List))
+          PetNeed.fromJson((raw as Map).cast<String, Object?>())
+      ],
+      occasionalNeeds: [
+        for (final raw in (json['occasionalNeeds'] as List? ?? const []))
           PetNeed.fromJson((raw as Map).cast<String, Object?>())
       ],
       low: {
@@ -436,6 +549,16 @@ final class PetRules {
   /// Обязательные покупки и последствия их пропуска.
   final List<PetNeed> needs;
 
+  final List<PetNeed> occasionalNeeds;
+
+  List<PetNeed> get allNeeds => [...needs, ...occasionalNeeds];
+
+  List<PetNeed> needsOn(int day, PetStage stage) => [
+        ...needs,
+        for (final need in occasionalNeeds)
+          if (need.activeOn(day, stage)) need
+      ];
+
   /// Пороги «хочется» по шкалам. У уюта порога нет.
   final Map<PetStat, PetLowRule> low;
 
@@ -450,8 +573,8 @@ final class PetRules {
   final PetTexts texts;
 
   PetNeed? needFor(String itemId) {
-    for (final need in needs) {
-      if (need.itemId == itemId) return need;
+    for (final need in allNeeds) {
+      if (need.covers(itemId)) return need;
     }
     return null;
   }

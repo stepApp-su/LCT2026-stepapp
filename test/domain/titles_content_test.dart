@@ -266,7 +266,7 @@ void main() {
           buy: [...needs, 'treat'],
           deposit: 30,
           learn: true,
-          goalId: 'ball_rope');
+          goalId: 'constructor');
       expect(earnedOn, {
         'novice': 0,
         'reserve_keeper': 2,

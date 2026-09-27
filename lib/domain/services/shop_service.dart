@@ -162,6 +162,17 @@ final class ShopService {
 
   bool isOwned(String itemId) => _owned.contains(itemId);
 
+  bool applyWallpaper(String itemId) {
+    final item = _catalog.byId(itemId);
+    if (item == null ||
+        !_catalog.isSingleActive(item) ||
+        !_owned.contains(itemId)) {
+      return false;
+    }
+    _activeWallpaperId = itemId;
+    return true;
+  }
+
   int boughtToday(String itemId) => _boughtToday[itemId] ?? 0;
 
   String? _defaultWallpaperId() {
@@ -344,6 +355,8 @@ final class ShopService {
         for (final other in showcase())
           if (other.id != item.id &&
               other.category == item.category &&
+              (item.category == ExpenseCategory.optional ||
+                  other.group == item.group) &&
               refusalFor(other) == null)
             other
       ];

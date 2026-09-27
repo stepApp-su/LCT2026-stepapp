@@ -83,7 +83,7 @@ Profile richProfile() => Profile.create(
             source: 'savings', reason: 'Отложили в копилку'),
       ],
       wishlist: ['glasses'],
-      reachedGoalIds: ['ball_rope'],
+      reachedGoalIds: ['constructor'],
       activeWallpaperId: 'wp_dots',
       settings: const ProfileSettings(sound: false, motion: true),
       petActionsToday: const {'pet_tap': 2},

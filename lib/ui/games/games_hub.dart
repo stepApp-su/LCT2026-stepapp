@@ -91,7 +91,8 @@ class GamesHub extends StatelessWidget {
           LayoutBuilder(builder: (context, constraints) {
             final columns = MediaQuery.textScalerOf(context).scale(16) > 24 ? 1 : 2;
             final width = ((constraints.maxWidth - (columns - 1) * 10) / columns).clamp(0.0, double.infinity);
-            return Wrap(
+            return EqualGrid(
+              columns: columns,
               spacing: 10,
               runSpacing: 10,
               children: [

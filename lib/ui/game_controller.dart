@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
@@ -12,6 +13,7 @@ import '../domain/ru_words.dart';
 import '../domain/text_template.dart';
 import '../domain/models/models.dart';
 import '../domain/services/goal_service.dart';
+import '../domain/services/hint_service.dart';
 import '../domain/services/day_events.dart';
 import '../domain/services/day_summary_service.dart';
 import '../domain/services/growth_service.dart';
@@ -128,8 +130,12 @@ class GameController extends ChangeNotifier {
   late Map<String, int> bestStars;
   late Set<String> seenTutorials;
   late Set<String> seenCoach;
+  late Map<String, String> placed;
+  late Set<String> seenItems;
+  late Set<String> knownWords;
+  late Map<String, int> playCounts;
   late Set<String> passedVariants;
-  late bool motion, simpleMode, onboarded;
+  late bool motion, simpleMode, onboarded, sound;
   late String petName;
   PhraseLine? bubble;
   String? storageError;
@@ -173,14 +179,9 @@ class GameController extends ChangeNotifier {
             dayNumber: day);
       }
     }
-    plan = _newPlan();
-    final amounts = data['plan'] as Map;
-    for (final d in PlanDirection.values) {
-      plan.setAmount(d, amounts[d.name] as int);
-    }
-    if (data['confirmed'] == true) plan.confirm();
     stats = PetState.fromJson((data['stats'] as Map).cast<String, Object?>());
     motion = data['motion'] != false;
+    sound = data['sound'] != false;
     simpleMode = data['simpleMode'] != false;
     onboarded = data['onboarded'] == true;
     petName = data['petName'] as String? ?? 'Мони';
@@ -204,6 +205,12 @@ class GameController extends ChangeNotifier {
       progress = progress.copyWith(stage: PetStage.baby);
     }
     progress = titles.start(progress);
+    plan = _newPlan();
+    final amounts = data['plan'] as Map;
+    for (final d in PlanDirection.values) {
+      plan.setAmount(d, amounts[d.name] as int);
+    }
+    if (data['confirmed'] == true) plan.confirm();
     wishlist = {...(data['wishlist'] as List? ?? []).cast<String>()};
     outfit = (data['outfit'] as Map? ?? {}).cast<String, String>();
     legacyCompletedTasks =
@@ -288,11 +295,116 @@ class GameController extends ChangeNotifier {
     dailyDoneAt = doneAt == null ? null : DateTime.tryParse(doneAt);
     dailyHistory = {...(data['dailyHistory'] as List? ?? []).cast<String>()};
     dailyRun = (data['dailyRun'] as Map?)?.cast<String, Object?>();
+    final storedPlaced = data['placed'] as Map?;
+    placed = storedPlaced != null
+        ? {
+            for (final e in storedPlaced.cast<String, String>().entries)
+              if (_spot(e.key)?.accepts.contains(e.value) ?? false)
+                e.key: e.value
+          }
+        : {
+            for (final item in ownedItems)
+              if (room.spotFor(item.id) case final spot?
+                  when spot.type == RoomSpotType.item)
+                spot.id: item.id
+          };
+    final storedSeen = data['seenItems'] as List?;
+    seenItems = storedSeen != null
+        ? {...storedSeen.cast<String>()}
+        : {for (final item in ownedItems) item.id};
+    knownWords = {...(data['knownWords'] as List? ?? []).cast<String>()};
+    playCounts = (data['playCounts'] as Map? ?? {}).cast<String, int>();
     phrases = PhraseService(
         catalog: content.phrases, clock: clock, character: character);
   }
 
   int get day => _day;
+
+  RoomDef get room =>
+      content.rooms.rooms.firstWhere((r) => r.enabled);
+
+  RoomSpot? _spot(String id) {
+    for (final spot in room.spots) {
+      if (spot.id == id) return spot;
+    }
+    return null;
+  }
+
+  List<RoomSpot> get itemSpots => [
+        for (final spot in room.spots)
+          if (spot.type == RoomSpotType.item) spot
+      ];
+
+  ShopItem? placedAt(RoomSpot spot) {
+    final id = placed[spot.id];
+    return id == null || !shop.isOwned(id) ? null : content.shop.byId(id);
+  }
+
+  Goal? goalAt(RoomSpot spot) {
+    Goal? found;
+    for (final id in goals.reachedGoalIds) {
+      if (spot.accepts.contains(id)) found = content.goals.byId(id) ?? found;
+    }
+    return found;
+  }
+
+  List<ShopItem> spotItems(RoomSpot spot) => [
+        for (final id in spot.accepts)
+          if (content.shop.byId(id) case final item?) item
+      ];
+
+  bool canFill(RoomSpot spot) =>
+      spot.accepts.any((id) => shop.isOwned(id));
+
+  void place(RoomSpot spot, String? itemId) {
+    if (itemId == null) {
+      placed.remove(spot.id);
+    } else {
+      if (!spot.accepts.contains(itemId) || !shop.isOwned(itemId)) return;
+      placed[spot.id] = itemId;
+    }
+    changed();
+  }
+
+  List<ShopItem> get wallpapers => [
+        for (final item in content.shop.items)
+          if (item.kind == ShopItemKind.wallpaper) item
+      ];
+
+  String get wallpaperId =>
+      shop.activeWallpaperId ?? room.defaultWallpaperId;
+
+  void applyWallpaper(String id) {
+    if (shop.applyWallpaper(id)) changed();
+  }
+
+  bool get roomEmpty =>
+      placed.isEmpty &&
+      outfit.isEmpty &&
+      wallpaperId == room.defaultWallpaperId;
+
+  bool _roomThing(ShopItem item) =>
+      item.slot.isNotEmpty ||
+      item.kind == ShopItemKind.wallpaper ||
+      room.spotFor(item.id) != null;
+
+  bool get hasNewThings => ownedItems
+      .any((item) => _roomThing(item) && !seenItems.contains(item.id));
+
+  void markThingsSeen() {
+    final before = seenItems.length;
+    seenItems = {...seenItems, for (final item in ownedItems) item.id};
+    if (seenItems.length != before) changed();
+  }
+
+  void knowWord(String id, bool known) {
+    knownWords = known ? {...knownWords, id} : ({...knownWords}..remove(id));
+    changed();
+  }
+
+  int timesPlayed(TaskDef task) =>
+      math.max(playCounts[task.id] ?? 0, passedOf(task));
+
   GrowthStatus get growthStatus => growth.status(progress);
   TitleDef? get currentTitle => titles.current(progress);
 
@@ -303,8 +415,43 @@ class GameController extends ChangeNotifier {
             plan: fullPlan,
             planConfirmed: plan.isConfirmed,
             transactions: wallet.journal),
-        mandatoryItemIds: content.economy.pet.needs.map((need) => need.itemId),
+        mandatoryItemIds: const [],
+        mandatoryOptions: [for (final need in todayNeeds) need.itemIds],
       );
+
+  List<PetNeed> get todayNeeds => content.economy.pet.needsOn(day, stage);
+
+  Set<String> get boughtToday => {
+        for (final t in wallet.journal)
+          if (t.dayNumber == day &&
+              t.type == TransactionType.expense &&
+              t.sourceId.startsWith('shop:'))
+            t.sourceId.substring(5)
+      };
+
+  List<ShopItem> needOptions(PetNeed need) {
+    final visible = {for (final item in catalog) item.id};
+    final items = [
+      for (final id in need.itemIds)
+        if (content.shop.byId(id) case final item?)
+          if (visible.contains(id)) item
+    ];
+    items.sort((a, b) => a.price.compareTo(b.price));
+    return items;
+  }
+
+  ShopItem? boughtFor(PetNeed need) {
+    final bought = boughtToday;
+    for (final id in need.itemIds) {
+      if (bought.contains(id)) return content.shop.byId(id);
+    }
+    return null;
+  }
+
+  PetNeed? needOf(ShopItem item) => content.economy.pet.needFor(item.id);
+
+  String needTitle(PetNeed need) => fillTemplate(
+      need.occasion?.title ?? need.title, {'name': petName});
 
   void chooseTitle(String id) {
     progress = titles.choose(progress, id);
@@ -331,6 +478,7 @@ class GameController extends ChangeNotifier {
     final pet = PetStateService(
         rules: content.economy.pet, initial: stats, dayNumber: day);
     final night = pet.closeDay(
+        stage: stage,
         boughtItemIds: wallet.journal
             .where((t) =>
                 t.dayNumber == day &&
@@ -358,7 +506,55 @@ class GameController extends ChangeNotifier {
     ];
     progress = awarded.progress;
     stats = night.after;
+    final status = growth.status(progress);
+    final thresholds = content.economy.growth.thresholds;
+    final dayTransactions =
+        wallet.journal.where((t) => t.dayNumber == day).toList();
+    int total(TransactionType type) => dayTransactions
+        .where((t) => t.type == type)
+        .fold(0, (sum, t) => sum + t.amount);
+    final shifts = <PetStat, List<int>>{};
+    final reasons = <String>[];
+    for (final change in night.changes) {
+      final shift = shifts[change.stat];
+      if (shift == null) {
+        shifts[change.stat] = [change.before, change.after];
+      } else {
+        shift[1] = change.after;
+      }
+      if (!reasons.contains(change.reasonText)) reasons.add(change.reasonText);
+    }
     celebration = {
+      'kind': 'night',
+      'day': day,
+      'earned': total(TransactionType.income),
+      'spent': total(TransactionType.expense),
+      'rows': rows,
+      'explain': summary.explainText,
+      'factors': [
+        for (final line in growth.lines(result.day))
+          {
+            'id': line.factor.name,
+            'met': line.met,
+            'points': line.points,
+            'text': line.text,
+          }
+      ],
+      'growthPoints': status.points,
+      'stageFrom': thresholds[status.stage] ?? 0,
+      'nextAt': status.next == null ? null : thresholds[status.next],
+      'nextLabel': status.nextLabel,
+      'night': [
+        for (final entry in shifts.entries)
+          if (entry.value[0] != entry.value[1])
+            {
+              'stat': entry.key.name,
+              'before': entry.value[0],
+              'after': entry.value[1],
+            }
+      ],
+      'nightReasons': reasons,
+      'stageUp': result.stageUp != null,
       'from': result.day.stageBefore.name,
       'to': stage.name,
       'headline':
@@ -501,7 +697,7 @@ class GameController extends ChangeNotifier {
     final gap = item.price > left ? item.price - left : 0;
     var needsShort = 0;
     if (direction == PlanDirection.optional) {
-      final needs = unpaidNeeds.fold(0, (sum, need) => sum + need.price);
+      final needs = unpaidNeedsCost;
       final after = wallet.wallet.balance - item.price;
       if (needs > after) needsShort = needs - after;
     }
@@ -607,24 +803,35 @@ class GameController extends ChangeNotifier {
     ];
   }
 
-  List<ShopItem> get unpaidNeeds {
-    final bought = {
-      for (final t in wallet.journal)
-        if (t.dayNumber == day &&
-            t.type == TransactionType.expense &&
-            t.sourceId.startsWith('shop:'))
-          t.sourceId.substring(5)
-    };
+  List<PetNeed> get missingNeeds {
+    final bought = boughtToday;
     return [
-      for (final need in content.economy.pet.needs)
-        if (!bought.contains(need.itemId))
-          if (content.shop.byId(need.itemId) case final item?) item
+      for (final need in todayNeeds)
+        if (!need.metBy(bought)) need
     ];
   }
 
+  List<ShopItem> get unpaidNeeds => [
+        for (final need in missingNeeds)
+          if (content.shop.byId(need.itemId) case final item?) item
+      ];
+
+  int get unpaidNeedsCost => missingNeeds.fold(0, (sum, need) {
+        final options = needOptions(need);
+        final price = options.isEmpty
+            ? content.shop.byId(need.itemId)?.price ?? 0
+            : options.first.price;
+        return sum + price;
+      });
+
+  bool get _needsAffordable => missingNeeds.any((need) {
+        final options = needOptions(need);
+        return options.isNotEmpty &&
+            options.first.price <= wallet.wallet.balance;
+      });
+
   List<BedtimeTodo> get bedtimeTodos {
-    final affordable =
-        unpaidNeeds.any((item) => item.price <= wallet.wallet.balance);
+    final affordable = _needsAffordable;
     return [
       if (!plan.isConfirmed || extraPending > 0) BedtimeTodo.plan,
       if (affordable) BedtimeTodo.needs,
@@ -650,20 +857,18 @@ class GameController extends ChangeNotifier {
     final unpaid = unpaidNeeds;
     if (unpaid.isEmpty) return null;
     final texts = content.economy.bedtime;
-    final canShop = unpaid.any((item) => item.price <= wallet.wallet.balance);
+    final canShop = _needsAffordable;
     return fillTemplate(canShop ? texts.reminder : texts.shortOfMoney,
         {'items': _itemsText(unpaid)});
   }
 
-  bool get bedtimeCanShop =>
-      unpaidNeeds.any((item) => item.price <= wallet.wallet.balance);
+  bool get bedtimeCanShop => _needsAffordable;
 
   String _itemsText(List<ShopItem> items) =>
       items.map((item) => item.titleAccusative).join(', ');
 
-  int get mandatoryCost => content.shop.items
-      .where((i) => i.category == ExpenseCategory.mandatory)
-      .fold(0, (sum, i) => sum + i.price);
+  int get mandatoryCost => todayNeeds.fold(
+      0, (sum, need) => sum + (content.shop.byId(need.itemId)?.price ?? 0));
 
   TaskDifficulty get difficulty =>
       simpleMode ? TaskDifficulty.easy : TaskDifficulty.hard;
@@ -1047,6 +1252,8 @@ class GameController extends ChangeNotifier {
         TaskVerdict.incomplete => null,
       };
 
+  HintService get hints => HintService(content.tasks.texts.hints);
+
   PhraseLine? hintFor(TaskSession session) => say('task_hint',
       facts: {'taskType': session.task.type.name.toUpperCase()});
 
@@ -1059,7 +1266,13 @@ class GameController extends ChangeNotifier {
   GameReward _afterGame(TaskSession session) {
     final solved = session.isFinished;
     final completion = session.finish();
-    if (solved) passedVariants = {...passedVariants, session.variantKey};
+    if (solved) {
+      passedVariants = {...passedVariants, session.variantKey};
+      playCounts = {
+        ...playCounts,
+        completion.taskId: (playCounts[completion.taskId] ?? 0) + 1
+      };
+    }
     final stars =
         completion.withMistakes ? (completion.attempts > 2 ? 1 : 2) : 3;
     if (stars > starsOf(completion.taskId)) {
@@ -1176,6 +1389,43 @@ class GameController extends ChangeNotifier {
     changed();
   }
 
+  void setSound(bool value) {
+    sound = value;
+    changed();
+  }
+
+  ({int days, int earned, int mandatory, int optional, int saved}) get report {
+    var earned = 0, mandatory = 0, optional = 0, saved = 0;
+    final days = <int>{};
+    for (final t in wallet.journal) {
+      days.add(t.dayNumber);
+      switch (t.type) {
+        case TransactionType.income:
+          earned += t.amount;
+        case TransactionType.expense:
+          if (t.category == ExpenseCategory.mandatory) {
+            mandatory += t.amount;
+          } else {
+            optional += t.amount;
+          }
+        case TransactionType.toSavings:
+          saved += t.amount;
+        case TransactionType.fromSavings:
+          if (!t.sourceId.startsWith('goal:')) saved -= t.amount;
+      }
+    }
+    return (
+      days: days.isEmpty ? 1 : days.length,
+      earned: earned,
+      mandatory: mandatory,
+      optional: optional,
+      saved: saved < 0 ? 0 : saved,
+    );
+  }
+
+  int habitDays(GrowthFactor factor) =>
+      progress.growthDays.where((d) => d.factors.contains(factor)).length;
+
   void setSimple(bool value) {
     simpleMode = value;
     changed();
@@ -1187,8 +1437,12 @@ class GameController extends ChangeNotifier {
     changed();
   }
 
-  void createPet(String name, bool simple) {
+  void createPet(String name, bool simple, {String? goalId}) {
     if (petNameProblem(name) != null) throw ArgumentError.value(name);
+    if (goalId != null && goalId != this.goalId) {
+      final ask = askGoal(goalId);
+      if (ask is GoalSelectConfirm) goals.confirmSelect(ask);
+    }
     petName = normalizePetName(name);
     simpleMode = simple;
     onboarded = true;
@@ -1237,6 +1491,7 @@ class GameController extends ChangeNotifier {
         'stats': stats.toJson(),
         'journal': [for (final t in wallet.journal) t.toJson()],
         'motion': motion,
+        'sound': sound,
         'simpleMode': simpleMode,
         'onboarded': onboarded,
         'petName': petName,
@@ -1263,6 +1518,10 @@ class GameController extends ChangeNotifier {
         'planExtra': {for (final e in planExtra.entries) e.key.name: e.value},
         'dayHistory': dayHistory,
         'legacyCompletedTasks': legacyCompletedTasks,
+        'placed': placed,
+        'seenItems': seenItems.toList()..sort(),
+        'knownWords': knownWords.toList()..sort(),
+        'playCounts': playCounts,
       };
 
   void changed() {

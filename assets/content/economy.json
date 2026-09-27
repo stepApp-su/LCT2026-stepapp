@@ -54,18 +54,55 @@
     "needs": [
       {
         "itemId": "food",
+        "title": "Еда",
+        "emoji": "🍲",
+        "alternatives": ["porridge", "lunchbox"],
         "missedEffects": [{ "stat": "satiety", "delta": -30 }],
         "missedReason": "Сегодня не купили еду"
       },
       {
         "itemId": "water_light",
+        "title": "Вода и свет",
+        "emoji": "💡",
         "missedEffects": [{ "stat": "care", "delta": -10 }],
         "missedReason": "Сегодня не заплатили за воду и свет"
       },
       {
         "itemId": "cleaning",
+        "title": "Чистота",
+        "emoji": "🧼",
+        "alternatives": ["toothbrush", "laundry"],
         "missedEffects": [{ "stat": "care", "delta": -10 }],
         "missedReason": "Сегодня обошлись без мытья и уборки"
+      }
+    ],
+    "occasionalNeeds": [
+      {
+        "itemId": "warm_socks",
+        "title": "Тепло",
+        "emoji": "❄️",
+        "alternatives": ["mittens", "warm_jacket"],
+        "occasion": { "from": 3, "every": 4, "minStage": "baby", "title": "На улице холодно", "hint": "Нужно тепло" },
+        "missedEffects": [{ "stat": "care", "delta": -10 }],
+        "missedReason": "Было холодно без тёплых вещей"
+      },
+      {
+        "itemId": "honey_tea",
+        "title": "Здоровье",
+        "emoji": "🤧",
+        "alternatives": ["vitamins"],
+        "occasion": { "from": 5, "every": 8, "minStage": "baby", "title": "{name} чихает", "hint": "Нужно подлечиться" },
+        "missedEffects": [{ "stat": "care", "delta": -10 }],
+        "missedReason": "Простуда не прошла — нечем было лечиться"
+      },
+      {
+        "itemId": "notebook",
+        "title": "Учёба",
+        "emoji": "📚",
+        "alternatives": ["pencils", "book"],
+        "occasion": { "from": 2, "every": 4, "minStage": "teen", "title": "Сегодня занятия", "hint": "Нужно для учёбы" },
+        "missedEffects": [{ "stat": "mood", "delta": -8 }],
+        "missedReason": "Не с чем было идти на занятия"
       }
     ],
     "low": {

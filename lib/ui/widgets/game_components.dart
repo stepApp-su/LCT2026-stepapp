@@ -238,45 +238,444 @@ class _PlanLeft extends StatelessWidget {
   const _PlanLeft({required this.state});
   final GameController state;
 
+  Widget _row(String emoji, String label, int left, int planned, Color color) {
+    final shown = left < 0 ? 0 : left;
+    final spent = planned <= 0 ? 0.0 : ((planned - left) / planned).clamp(0.0, 1.0);
+    return Semantics(
+      label: planned <= 0
+          ? '$label: не планировали'
+          : '$label: осталось $shown из $planned',
+      excludeSemantics: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text('$emoji $label',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w800)),
+              ),
+              Text(planned <= 0 ? 'не планировали' : 'ещё $shown из $planned',
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: FinniColors.muted)),
+            ],
+          ),
+          const SizedBox(height: 5),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: spent,
+              minHeight: 9,
+              color: color,
+              backgroundColor: FinniColors.line,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final full = state.fullPlan;
     final mandatory = state.planLeft(PlanDirection.mandatory);
     final optional = state.planLeft(PlanDirection.optional);
     final savings = state.planLeft(PlanDirection.savings);
-    int shown(int value) => value < 0 ? 0 : value;
     return _Panel(
       padding: 12,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Осталось по плану',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _Pill(
-                  icon: Icons.restaurant_outlined,
-                  label: 'Нужное: ${shown(mandatory)}',
-                  color: FinniColors.mint),
-              _Pill(
-                  icon: Icons.celebration_outlined,
-                  label: 'Желаемое: ${shown(optional)}',
-                  color: FinniColors.sky),
-              _Pill(
-                  icon: Icons.savings_outlined,
-                  label: savings > 0 ? 'Отложить: $savings' : 'Копилка: готово',
-                  color: FinniColors.lavender),
-            ],
+          _row('🍲', 'Нужное', mandatory, full.mandatory, FinniColors.primary),
+          const SizedBox(height: 10),
+          _row('🎁', 'Желаемое', optional, full.optional, FinniColors.purple),
+          const SizedBox(height: 10),
+          Text(
+            savings > 0
+                ? '🐷 В копилку отложить ещё $savings ${ruCoins(savings)}'
+                : '🐷 В копилку отложено по плану',
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: FinniColors.muted),
           ),
           if (optional < 0) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
                 'На желаемое потрачено на ${-optional} больше плана — сегодня в копилку попадёт меньше.',
                 style: const TextStyle(fontSize: 16, color: FinniColors.muted)),
           ],
         ],
+      ),
+    );
+  }
+}
+
+const List<(PetStat, String, GameIconKind, Color)> _statRows = [
+  (PetStat.satiety, 'Сытость', GameIconKind.food, FinniColors.gold),
+  (PetStat.care, 'Уход', GameIconKind.care, FinniColors.blue),
+  (PetStat.mood, 'Радость', GameIconKind.joy, FinniColors.purple),
+  (PetStat.cozy, 'Уют', GameIconKind.cozy, FinniColors.primary),
+];
+
+class _StatBar extends StatelessWidget {
+  const _StatBar({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    this.low = false,
+    this.after,
+  });
+  final String label;
+  final int value;
+  final GameIconKind icon;
+  final Color color;
+  final bool low;
+  final int? after;
+
+  double _share(int v) => (v / PetState.cap).clamp(0.0, 1.0);
+
+  @override
+  Widget build(BuildContext context) {
+    final tint = low ? FinniColors.alert : FinniColors.ink;
+    final next = after;
+    return Semantics(
+      label: next == null
+          ? '$label: $value из ${PetState.cap}${low ? ', хочется' : ''}'
+          : '$label: было $value, станет $next',
+      excludeSemantics: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              GameIcon(icon, size: 20),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w800, color: tint)),
+              ),
+              Text(next == null ? '$value' : '$value → $next',
+                  style: TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w900, color: tint)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              height: 8,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ColoredBox(color: color.withValues(alpha: .15)),
+                  if (next != null)
+                    FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: _share(next),
+                      child: ColoredBox(color: color.withValues(alpha: .4)),
+                    ),
+                  FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: _share(value),
+                    child: ColoredBox(color: color),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ShopPet extends StatelessWidget {
+  const _ShopPet({required this.state});
+  final GameController state;
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = state.stats;
+    final rules = state.content.economy.pet;
+    return _Panel(
+      padding: 12,
+      child: Row(
+        children: [
+          ExcludeSemantics(
+            child: SizedBox(
+              width: 64,
+              height: 72,
+              child: MoniScene(
+                stage: state.stage,
+                outfit: state.outfit,
+                motion: false,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: LayoutBuilder(builder: (context, c) {
+              final columns =
+                  c.maxWidth >= 250 && MediaQuery.textScalerOf(context).scale(16) <= 20
+                      ? 2
+                      : 1;
+              final width = (c.maxWidth - (columns - 1) * 14) / columns;
+              return Wrap(
+                spacing: 14,
+                runSpacing: 8,
+                children: [
+                  for (final (stat, label, icon, color) in _statRows)
+                    SizedBox(
+                      width: width,
+                      child: _StatBar(
+                        label: label,
+                        value: stats.of(stat),
+                        icon: icon,
+                        color: color,
+                        low: rules.isLow(stat, stats.of(stat)),
+                      ),
+                    ),
+                ],
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatPreview extends StatelessWidget {
+  const _StatPreview({required this.state, required this.item});
+  final GameController state;
+  final ShopItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = state.stats;
+    return _Panel(
+      padding: 12,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, effect) in item.effects.indexed)
+            for (final (stat, label, icon, color) in _statRows)
+              if (stat == effect.stat)
+                Padding(
+                  padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
+                  child: _StatBar(
+                    label: label,
+                    value: stats.of(stat),
+                    after: (stats.of(stat) + effect.delta).clamp(
+                        petStatFloor(stat), petStatCap(stat) ?? 1 << 20),
+                    icon: icon,
+                    color: color,
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NeedCard extends StatelessWidget {
+  const _NeedCard(
+      {required this.state, required this.need, required this.onBuy});
+  final GameController state;
+  final PetNeed need;
+  final void Function(ShopItem item) onBuy;
+
+  @override
+  Widget build(BuildContext context) {
+    final bought = state.boughtFor(need);
+    final options = state.needOptions(need);
+    final occasion = need.occasion;
+    final color = bought != null
+        ? FinniColors.mint
+        : occasion == null
+            ? FinniColors.paper
+            : FinniColors.sky;
+    final String note;
+    if (bought != null) {
+      note = '✓ ${bought.title}';
+    } else if (occasion != null) {
+      note = occasion.hint;
+    } else {
+      note = options.length > 1 ? 'выбери одно' : '';
+    }
+    return _Panel(
+      color: color,
+      padding: 12,
+      radius: 20,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${need.emoji.isEmpty ? '' : '${need.emoji} '}${state.needTitle(need)}',
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w900),
+                ),
+              ),
+              if (note.isNotEmpty)
+                Flexible(
+                  child: Text(note,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: bought != null
+                              ? FinniColors.primary
+                              : FinniColors.muted)),
+                ),
+            ],
+          ),
+          if (bought == null && options.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            LayoutBuilder(builder: (context, c) {
+              const gap = 8.0;
+              final scale = MediaQuery.textScalerOf(context);
+              var columns = 3;
+              while (columns > 1 &&
+                  (c.maxWidth - (columns - 1) * gap) / columns <
+                      scale.scale(96)) {
+                columns--;
+              }
+              final width = (c.maxWidth - (columns - 1) * gap) / columns;
+              final height = 16 +
+                  scale.scale(16) * 1.3 +
+                  6 +
+                  48 +
+                  4 +
+                  scale.scale(16) * 1.1 * 2 +
+                  scale.scale(16) * 1.25 +
+                  2 +
+                  scale.scale(17) * 1.25 +
+                  6;
+              return Wrap(
+                spacing: gap,
+                runSpacing: gap,
+                children: [
+                  for (final (i, item) in options.indexed)
+                    SizedBox(
+                      width: width,
+                      height: height,
+                      child: _NeedOption(
+                        state: state,
+                        item: item,
+                        best: i == 0 && options.length > 1,
+                        onTap: () => onBuy(item),
+                      ),
+                    ),
+                ],
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _NeedOption extends StatelessWidget {
+  const _NeedOption(
+      {required this.state,
+      required this.item,
+      required this.best,
+      required this.onTap});
+  final GameController state;
+  final ShopItem item;
+  final bool best;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final effect = item.effects.isEmpty ? null : item.effects.first;
+    final gain = effect == null ? '' : '+${effect.delta}';
+    return Semantics(
+      button: true,
+      label:
+          '${item.title}, ${item.price} ${ruCoins(item.price)}${gain.isEmpty ? '' : ', $gain'}${best ? ', дешевле всего' : ''}',
+      excludeSemantics: true,
+      child: Squish(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+          decoration: BoxDecoration(
+            color: FinniColors.background,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: best ? FinniColors.gold : FinniColors.line,
+                width: best ? 2 : 1.5),
+          ),
+          child: Column(
+            children: [
+              Opacity(
+                opacity: best ? 1 : 0,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                  decoration: BoxDecoration(
+                      color: FinniColors.honey,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: const Text('выгодно',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: FinniColors.honeyInk)),
+                ),
+              ),
+              ItemArt(item.id, size: 48, background: false),
+              const SizedBox(height: 4),
+              Expanded(
+                child: Center(
+                  child: Text(item.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w800, height: 1.1)),
+                ),
+              ),
+              if (effect != null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (final (stat, _, icon, _) in _statRows)
+                      if (stat == effect.stat) GameIcon(icon, size: 16),
+                    const SizedBox(width: 3),
+                    Text(gain,
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: FinniColors.muted)),
+                  ],
+                ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CoinIcon(size: 18),
+                  const SizedBox(width: 4),
+                  Text('${item.price}',
+                      style: const TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.w900)),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -705,79 +1104,6 @@ class _ExtraPlannerState extends State<_ExtraPlanner> {
   }
 }
 
-class _DayRecap extends StatelessWidget {
-  const _DayRecap({required this.entry, required this.expanded});
-
-  final Map<String, dynamic> entry;
-  final bool expanded;
-
-  List<String> _strings(String key) =>
-      [for (final item in entry[key] as List? ?? const []) '$item'];
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = [
-      for (final row in entry['rows'] as List? ?? const [])
-        (row as List).map((cell) => '$cell').toList()
-    ];
-    final titles = _strings('titles');
-    final changes = _strings('changes');
-    final stageUp = entry['stageUp'] as String?;
-    final event = entry['event'] as String?;
-    return _Panel(
-      padding: 4,
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: FinniColors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: expanded,
-          leading: const Icon(Icons.bedtime_outlined, color: FinniColors.purple),
-          title: Text('День ${entry['day']}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-          subtitle: Text('Опыт: +${entry['points'] ?? 0}'),
-          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final row in rows)
-              if (row.length == 3)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: Text(row[0],
-                              style: const TextStyle(fontWeight: FontWeight.w800))),
-                      Text('план ${row[1]} · факт ${row[2]}'),
-                    ],
-                  ),
-                ),
-            const SizedBox(height: 6),
-            Text('${entry['explain'] ?? ''}', style: const TextStyle(fontSize: 16)),
-            if (event != null) ...[
-              const SizedBox(height: 8),
-              Text('Событие дня: $event'),
-            ],
-            if (stageUp != null) ...[
-              const SizedBox(height: 8),
-              Text('Питомец подрос: $stageUp',
-                  style: const TextStyle(fontWeight: FontWeight.w800)),
-            ],
-            if (titles.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text('Новые звания: ${titles.join(', ')}',
-                  style: const TextStyle(fontWeight: FontWeight.w800)),
-            ],
-            for (final change in changes)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text('• $change'),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _NeedsToday extends StatelessWidget {
   const _NeedsToday({required this.state});
 
@@ -785,12 +1111,8 @@ class _NeedsToday extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final unpaid = {for (final item in state.unpaidNeeds) item.id};
-    final items = [
-      for (final need in state.content.economy.pet.needs)
-        if (state.content.shop.byId(need.itemId) case final item?) item
-    ];
-    final total = items.fold(0, (sum, item) => sum + item.price);
+    final needs = state.todayNeeds;
+    final total = state.mandatoryCost;
     return _Panel(
       color: FinniColors.mint,
       padding: 12,
@@ -802,35 +1124,48 @@ class _NeedsToday extends StatelessWidget {
               const Icon(Icons.restaurant_outlined, color: FinniColors.primary),
               const SizedBox(width: 10),
               Expanded(
-                child: Text('Сегодня нужно — всего $total ${ruCoins(total)}',
+                child: Text('Сегодня нужно — обычно $total ${ruCoins(total)}',
                     style: const TextStyle(
                         fontSize: 17, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          for (final item in items)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Row(
-                children: [
-                  ItemArt(item.id, size: 36),
-                  const SizedBox(width: 10),
-                  Expanded(child: Text(item.title)),
-                  Text('${item.price}',
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
-                  const SizedBox(width: 8),
-                  Icon(
-                    unpaid.contains(item.id)
-                        ? Icons.radio_button_unchecked_rounded
-                        : Icons.check_circle_rounded,
-                    color: FinniColors.primary,
-                    semanticLabel:
-                        unpaid.contains(item.id) ? 'ещё не куплено' : 'куплено',
-                  ),
-                ],
+          const SizedBox(height: 4),
+          const Text('Можно выбрать подешевле и сэкономить.',
+              style: TextStyle(fontSize: 16, color: FinniColors.muted)),
+          const SizedBox(height: 4),
+          for (final need in needs)
+            if (state.content.shop.byId(need.itemId) case final primary?)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  children: [
+                    ItemArt((state.boughtFor(need) ?? primary).id, size: 36),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                          need.occasion == null
+                              ? (need.title.isEmpty ? primary.title : need.title)
+                              : '${need.title} — ${state.needTitle(need)}'),
+                    ),
+                    Text(
+                        state.needOptions(need).length > 1
+                            ? 'от ${state.needOptions(need).first.price}'
+                            : '${primary.price}',
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                    const SizedBox(width: 8),
+                    Icon(
+                      state.boughtFor(need) == null
+                          ? Icons.radio_button_unchecked_rounded
+                          : Icons.check_circle_rounded,
+                      color: FinniColors.primary,
+                      semanticLabel: state.boughtFor(need) == null
+                          ? 'ещё не куплено'
+                          : 'куплено',
+                    ),
+                  ],
+                ),
               ),
-            ),
         ],
       ),
     );

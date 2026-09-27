@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../theme/finni_theme.dart';
@@ -25,11 +27,22 @@ const Map<String, (String, int)> _sprites = {
 
 const Map<String, GameIconKind> _icons = {
   'scooter': GameIconKind.scooter,
-  'telescope': GameIconKind.telescope,
 };
 
 const Map<String, String> kEmoji = {
   'treat': '🍪',
+  'porridge': '🥣',
+  'lunchbox': '🍱',
+  'toothbrush': '🪥',
+  'laundry': '🧺',
+  'warm_socks': '🧦',
+  'mittens': '🧤',
+  'warm_jacket': '🧥',
+  'honey_tea': '🍯',
+  'vitamins': '💊',
+  'notebook': '📓',
+  'pencils': '✏️',
+  'book': '📖',
   'apple': '🍎',
   'puzzle': '🧩',
   'flower_pot': '🌷',
@@ -48,10 +61,23 @@ const Map<String, String> kEmoji = {
   'wp_leaves': '🍃',
   'wp_stars': '⭐',
   'wp_space': '🪐',
-  'ball_rope': '🏐',
-  'treehouse': '🏡',
-  'bicycle': '🚲',
-  'trampoline': '🤸',
+  'constructor': '🧱',
+  'slime_kit': '🫧',
+  'giant_plush': '🧸',
+  'roller_skates': '🛼',
+  'board_game': '🎲',
+  'smartwatch': '⌚',
+  'headphones': '🎧',
+  'science_kit': '🔬',
+  'instant_camera': '📸',
+  'karaoke': '🎤',
+  'skateboard': '🛹',
+  'robot_kit': '🤖',
+  'keyboard': '🎹',
+  'tent': '⛺',
+  'game_console': '🎮',
+  'bike': '🚲',
+  'drawing_tablet': '🎨',
   'icon_task_board': '🎲',
   'icon_task_stall': '🍦',
   'icon_task_cashier': '🧾',
@@ -142,6 +168,20 @@ const Map<String, String> kEmoji = {
   'icon_plan_mandatory': '🍲',
   'icon_plan_optional': '🎈',
   'icon_plan_savings': '🐷',
+  'icon_gl_money': '💰',
+  'icon_gl_income': '➕',
+  'icon_gl_expense': '➖',
+  'icon_gl_mandatory': '🍲',
+  'icon_gl_optional': '🎁',
+  'icon_gl_budget': '👛',
+  'icon_gl_plan': '📋',
+  'icon_gl_savings': '🐷',
+  'icon_gl_goal': '🎯',
+  'icon_gl_price': '🏷️',
+  'icon_gl_change': '🪙',
+  'icon_gl_ad': '📣',
+  'icon_gl_work': '🛠️',
+  'icon_gl_wait': '⏳',
 };
 
 const List<Color> kArtBackgrounds = [
@@ -195,6 +235,60 @@ class ItemArt extends StatelessWidget {
         child: art,
       ),
     );
+  }
+}
+
+class RoomArt extends StatelessWidget {
+  const RoomArt(this.id, {super.key, required this.size});
+
+  final String id;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final sprite = _sprites[id];
+    final icon = _icons[id];
+    final Widget art;
+    if (sprite != null) {
+      art = ProductArt(sheet: sprite.$1, cell: sprite.$2);
+    } else if (icon != null) {
+      art = Align(
+          alignment: Alignment.bottomCenter,
+          child: GameIcon(icon, size: size));
+    } else if (id == 'aquarium') {
+      art = Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          height: size * .78,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [FinniColors.sky, FinniColors.blue],
+              stops: [.1, 1],
+            ),
+            borderRadius: BorderRadius.circular(size * .12),
+            border: Border.all(
+                color: FinniColors.paper, width: math.max(2, size * .05)),
+          ),
+          child: Text('🐠',
+              style: TextStyle(fontSize: size * .42, height: 1),
+              textScaler: TextScaler.noScaling),
+        ),
+      );
+    } else {
+      art = Align(
+        alignment: Alignment.bottomCenter,
+        child: Text(
+          kEmoji[id] ?? '🎁',
+          style: TextStyle(fontSize: size * .9, height: 1),
+          textScaler: TextScaler.noScaling,
+        ),
+      );
+    }
+    return ExcludeSemantics(
+        child: SizedBox(width: size, height: size, child: art));
   }
 }
 

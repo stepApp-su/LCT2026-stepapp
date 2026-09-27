@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../../domain/services/phrase_service.dart';
 import '../theme/finni_theme.dart';
@@ -551,4 +552,148 @@ class PopIn extends StatelessWidget {
       child: child,
     );
   }
+}
+
+enum TagTone { neutral, green, gold, blue, purple, peach, white }
+
+class TagChip extends StatelessWidget {
+  const TagChip(this.label, {super.key, this.tone = TagTone.neutral});
+
+  final String label;
+  final TagTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final (background, ink) = switch (tone) {
+      TagTone.neutral => (FinniColors.line, FinniColors.ink),
+      TagTone.green => (FinniColors.mint, FinniColors.primary),
+      TagTone.gold => (FinniColors.honey, FinniColors.honeyInk),
+      TagTone.blue => (FinniColors.sky, FinniColors.blue),
+      TagTone.purple => (FinniColors.lavender, FinniColors.purple),
+      TagTone.peach => (FinniColors.peach, FinniColors.alert),
+      TagTone.white => (FinniColors.paper, FinniColors.ink),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+          color: background, borderRadius: BorderRadius.circular(999)),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 16, fontWeight: FontWeight.w800, color: ink, height: 1.25)),
+    );
+  }
+}
+
+class TagRow extends StatelessWidget {
+  const TagRow(this.tags, {super.key});
+
+  final List<Widget> tags;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+      spacing: 5,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: tags);
+}
+
+class EqualGrid extends MultiChildRenderObjectWidget {
+  const EqualGrid({
+    super.key,
+    required this.columns,
+    this.spacing = 10,
+    this.runSpacing = 10,
+    required super.children,
+  });
+
+  final int columns;
+  final double spacing;
+  final double runSpacing;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      RenderEqualGrid(columns: columns, spacing: spacing, runSpacing: runSpacing);
+
+  @override
+  void updateRenderObject(BuildContext context, RenderEqualGrid renderObject) {
+    renderObject
+      ..columns = columns
+      ..spacing = spacing
+      ..runSpacing = runSpacing;
+  }
+}
+
+class EqualGridParentData extends ContainerBoxParentData<RenderBox> {}
+
+class RenderEqualGrid extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, EqualGridParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, EqualGridParentData> {
+  RenderEqualGrid(
+      {required int columns, required double spacing, required double runSpacing})
+      : _columns = columns,
+        _spacing = spacing,
+        _runSpacing = runSpacing;
+
+  int _columns;
+  double _spacing;
+  double _runSpacing;
+
+  set columns(int value) {
+    if (value == _columns) return;
+    _columns = value;
+    markNeedsLayout();
+  }
+
+  set spacing(double value) {
+    if (value == _spacing) return;
+    _spacing = value;
+    markNeedsLayout();
+  }
+
+  set runSpacing(double value) {
+    if (value == _runSpacing) return;
+    _runSpacing = value;
+    markNeedsLayout();
+  }
+
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! EqualGridParentData) child.parentData = EqualGridParentData();
+  }
+
+  @override
+  void performLayout() {
+    final columns = math.max(1, _columns);
+    final maxWidth = constraints.maxWidth;
+    final cell = math.max(0.0, (maxWidth - (columns - 1) * _spacing) / columns);
+    var tallest = 0.0;
+    var child = firstChild;
+    while (child != null) {
+      child.layout(BoxConstraints(minWidth: cell, maxWidth: cell), parentUsesSize: true);
+      tallest = math.max(tallest, child.size.height);
+      child = childAfter(child);
+    }
+    var index = 0;
+    child = firstChild;
+    while (child != null) {
+      child.layout(BoxConstraints.tight(Size(cell, tallest)));
+      final data = child.parentData! as EqualGridParentData;
+      data.offset = Offset((index % columns) * (cell + _spacing),
+          (index ~/ columns) * (tallest + _runSpacing));
+      index++;
+      child = childAfter(child);
+    }
+    final rows = (childCount + columns - 1) ~/ columns;
+    size = constraints.constrain(Size(maxWidth,
+        rows == 0 ? 0 : rows * tallest + (rows - 1) * _runSpacing));
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+      defaultHitTestChildren(result, position: position);
+
+  @override
+  void paint(PaintingContext context, Offset offset) =>
+      defaultPaint(context, offset);
 }

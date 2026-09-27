@@ -8,6 +8,7 @@ import '../../domain/ru_words.dart';
 import '../../domain/services/goal_service.dart';
 import '../../domain/services/plan_service.dart';
 import '../../domain/services/shop_service.dart';
+import '../../domain/services/title_service.dart';
 import '../../domain/services/wallet_service.dart';
 import '../games/games_hub.dart';
 import '../games/level_screen.dart';
@@ -18,13 +19,17 @@ import '../widgets/finni_ui.dart';
 import '../widgets/moni_scene.dart';
 import '../widgets/name_picker.dart';
 import '../widgets/pet_celebration.dart';
+import '../widgets/room_view.dart';
+import '../widgets/bedtime_screen.dart';
 import '../widgets/coach.dart';
 import '../widgets/coin_icon.dart';
+import '../widgets/day_end.dart';
 import '../widgets/game_icon.dart';
 import '../game_controller.dart';
 
 part 'game_sections.dart';
 part '../widgets/game_components.dart';
+part 'more_pages.dart';
 
 class GameShell extends StatefulWidget {
   const GameShell({super.key, required this.state});
@@ -72,14 +77,20 @@ class _GameShellState extends State<GameShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final event = Map<String, dynamic>.of(s.celebration!);
-      await showDialog<void>(
-          context: context,
-          useRootNavigator: false,
-          barrierDismissible: false,
-          builder: (_) => PetCelebration(state: s, event: event));
+      String? next;
+      if (event['kind'] == 'night') {
+        next = await showDayEnd(context, s, event);
+      } else {
+        await showDialog<void>(
+            context: context,
+            useRootNavigator: false,
+            barrierDismissible: false,
+            builder: (_) => PetCelebration(state: s, event: event));
+      }
       if (!mounted) return;
       s.acknowledgeCelebration();
       celebrating = false;
+      if (next == 'plan') go(1);
       maybeCoach();
     });
   }
@@ -178,7 +189,9 @@ class _GameShellState extends State<GameShell> {
         savings();
       case 'goals':
         chooseGoal();
-      case 'room' || 'wardrobe':
+      case 'room':
+        room(1);
+      case 'wardrobe':
         room();
       case 'glossary':
         glossary();
@@ -302,6 +315,25 @@ class _GameShellState extends State<GameShell> {
             )),
       );
 
+  static const BorderRadius _archRadius = BorderRadius.vertical(
+      top: Radius.circular(150), bottom: Radius.circular(48));
+
+  List<RoomPiece> get roomPieces {
+    final pieces = <RoomPiece>[];
+    for (final spot in s.room.spots) {
+      final id = switch (spot.type) {
+        RoomSpotType.item => s.placedAt(spot)?.id,
+        RoomSpotType.goal => s.goalAt(spot)?.id,
+        RoomSpotType.wallpaper => null,
+      };
+      if (id != null) pieces.add(RoomPiece(spot, id));
+    }
+    return pieces;
+  }
+
+  bool get roomWindow => roomPieces.any((piece) =>
+      piece.spot.layer == 'windowView' || piece.spot.id.startsWith('sill'));
+
   Widget home() => LayoutBuilder(builder: (context, constraints) {
         final enlarged = MediaQuery.textScalerOf(context).scale(16) > 20;
         final petHeight = enlarged
@@ -395,12 +427,20 @@ class _GameShellState extends State<GameShell> {
                       Positioned.fill(
                           top: 26,
                           bottom: 0,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: FinniColors.mint.withValues(alpha: .5),
-                              borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(150),
-                                  bottom: Radius.circular(48)),
+                          child: Semantics(
+                            button: true,
+                            label: 'Комната питомца',
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => room(1),
+                              child: ClipRRect(
+                                borderRadius: _archRadius,
+                                child: RoomLayer(
+                                  pieces: const [],
+                                  wallpaperId: s.wallpaperId,
+                                  window: roomWindow,
+                                ),
+                              ),
                             ),
                           )),
                       Positioned(
@@ -414,29 +454,73 @@ class _GameShellState extends State<GameShell> {
                                 borderRadius: BorderRadius.circular(80)),
                           )),
                       Positioned.fill(
+                          top: 26,
+                          bottom: 0,
+                          child: IgnorePointer(
+                            child: ClipRRect(
+                              borderRadius: _archRadius,
+                              child: RoomLayer(pieces: roomPieces),
+                            ),
+                          )),
+                      Positioned.fill(
                           top: 14,
                           bottom: 4,
-                          child: MoniScene(
-                            stage: s.stage,
-                            outfit: s.outfit,
-                            motion: s.motion,
-                            equipped: s.equipped,
+                          child: IgnorePointer(
+                            child: MoniScene(
+                              stage: s.stage,
+                              outfit: s.outfit,
+                              motion: s.motion,
+                              equipped: s.equipped,
+                            ),
                           )),
+                      Positioned.fill(
+                          top: 26,
+                          bottom: 0,
+                          child: IgnorePointer(
+                            child: ClipRRect(
+                              borderRadius: _archRadius,
+                              child: RoomLayer(
+                                  pieces: roomPieces, front: true),
+                            ),
+                          )),
+                      if (s.roomEmpty)
+                        Positioned(
+                          right: 8,
+                          bottom: 12,
+                          child: _RoomButton(
+                              news: s.hasNewThings, onTap: () => room(1)),
+                        )
+                      else if (s.hasNewThings)
+                        const Positioned(
+                          right: 22,
+                          top: 44,
+                          child: _NewDot(),
+                        ),
                       Positioned(
                           left: 8,
+                          right: 48,
                           top: 4,
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(s.petName,
-                                    style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w800)),
-                                Text(
-                                    '${s.stageLabel} · ${s.currentTitle?.title ?? 'Новичок'}',
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        color: FinniColors.muted)),
+                                Wrap(
+                                  spacing: 0,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Text(s.petName,
+                                        style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w800)),
+                                    const SizedBox(width: 8),
+                                    TagChip(s.stageLabel,
+                                        tone: TagTone.green),
+                                    const SizedBox(width: 5),
+                                    TagChip(
+                                        '🏅 ${s.currentTitle?.title ?? 'Новичок'}',
+                                        tone: TagTone.gold),
+                                  ],
+                                ),
                               ])),
                       Positioned(
                           right: 0,
@@ -516,7 +600,8 @@ class _GameShellState extends State<GameShell> {
                     MediaQuery.textScalerOf(context).scale(13) > 19 ? 1 : 2;
                 final width =
                     ((constraints.maxWidth - (columns - 1) * 8) / columns).clamp(0.0, double.infinity);
-                return Wrap(
+                return EqualGrid(
+                    columns: columns,
                     spacing: 8,
                     runSpacing: 8,
                     children: [
@@ -725,92 +810,152 @@ class _GameShellState extends State<GameShell> {
         ],
       );
 
+  static const List<(String, String, ShopItemKind?)> _wantFilters = [
+    ('Всё', '', null),
+    ('Вкусное', '🍪', ShopItemKind.consumable),
+    ('Игрушки', '🧸', ShopItemKind.toy),
+    ('Наряды', '🎀', ShopItemKind.accessory),
+    ('Для дома', '🛋️', ShopItemKind.furniture),
+    ('Обои', '🖼️', ShopItemKind.wallpaper),
+    ('По карману', '👛', null),
+  ];
+
   Widget shop() {
-    final items = s.catalog
-        .where(
-          (item) =>
-              filter == 0 ||
-              filter == 1 && item.category == ExpenseCategory.mandatory ||
-              filter == 2 && item.category == ExpenseCategory.optional ||
-              filter == 3 && item.price <= s.wallet.wallet.balance,
-        )
-        .toList();
+    final wants = [
+      for (final item in s.catalog)
+        if (item.category == ExpenseCategory.optional) item
+    ];
+    final filters = [
+      for (final (i, entry) in _wantFilters.indexed)
+        if (entry.$3 == null || wants.any((item) => item.kind == entry.$3)) i
+    ];
+    final active = filters.contains(filter) ? filter : 0;
+    final kind = _wantFilters[active].$3;
+    final items = [
+      for (final item in wants)
+        if (active == 0 ||
+            kind != null && item.kind == kind ||
+            active == _wantFilters.length - 1 &&
+                item.price <= s.wallet.wallet.balance)
+          item
+    ];
+    final needs = s.todayNeeds;
+    final met = needs.length - s.missingNeeds.length;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         CoachTarget(
           id: 'shop.wallet',
           child: _Panel(
-          color: FinniColors.honey,
-          child: Row(
-            children: [
-              const Icon(
-                Icons.account_balance_wallet_outlined,
-                size: 28,
-                color: FinniColors.gold,
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Можно потратить',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+            color: FinniColors.honey,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  size: 28,
+                  color: FinniColors.gold,
                 ),
-              ),
-              _Coins(s.wallet.wallet.balance),
-            ],
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Можно потратить',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                _Coins(s.wallet.wallet.balance),
+              ],
+            ),
           ),
         ),
-        ),
+        const SizedBox(height: 12),
+        _ShopPet(state: s),
         if (s.plan.isConfirmed) ...[
           const SizedBox(height: 12),
           CoachTarget(id: 'shop.plan', child: _PlanLeft(state: s)),
         ],
         const SizedBox(height: 20),
-        Text(
-          'Что порадует ${s.petName}?',
-          style: Theme.of(context).textTheme.titleLarge,
+        CoachTarget(
+          id: 'shop.needs',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Нужно ${s.petName} сегодня',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  Text(
+                    '$met из ${needs.length}',
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: FinniColors.muted),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Из каждой строки хватит одного — подешевле или побольше.',
+                style: TextStyle(color: FinniColors.muted),
+              ),
+              const SizedBox(height: 10),
+              for (final need in needs)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _NeedCard(state: s, need: need, onBuy: purchase),
+                ),
+            ],
+          ),
         ),
-        const SizedBox(height: 6),
-        const Text(
-          'Сначала нужное. А дальше — твой выбор.',
-          style: TextStyle(color: FinniColors.muted),
+        const SizedBox(height: 12),
+        CoachTarget(
+          id: 'shop.wants',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Для радости',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 4),
+              const Text(
+                'Приятно, но можно и без этого.',
+                style: TextStyle(color: FinniColors.muted),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         CoachTarget(
           id: 'shop.filters',
           child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final (i, label) in [
-              'Всё',
-              'Нужное',
-              'Желаемое',
-              'По карману',
-            ].indexed)
-              _maybeTarget(
-                i == 2 ? 'shop.wants' : null,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final i in filters)
                 ChoiceChip(
-                label: Text(label),
-                selected: filter == i,
-                onSelected: (_) => setState(() => filter = i),
-                showCheckmark: false,
-                labelStyle: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: filter == i ? FinniColors.paper : FinniColors.ink,
+                  label: Text(_wantFilters[i].$2.isEmpty
+                      ? _wantFilters[i].$1
+                      : '${_wantFilters[i].$2} ${_wantFilters[i].$1}'),
+                  selected: active == i,
+                  onSelected: (_) => setState(() => filter = i),
+                  showCheckmark: false,
+                  labelStyle: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: active == i ? FinniColors.paper : FinniColors.ink,
+                  ),
+                  selectedColor: FinniColors.primary,
+                  backgroundColor: FinniColors.paper,
+                  side: BorderSide.none,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 10,
+                  ),
                 ),
-                selectedColor: FinniColors.primary,
-                backgroundColor: FinniColors.paper,
-                side: BorderSide.none,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 12,
-                ),
-              ),
-              ),
-          ],
-        ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         if (items.isEmpty)
@@ -822,40 +967,34 @@ class _GameShellState extends State<GameShell> {
         CoachTarget(
           id: 'shop.items',
           child: LayoutBuilder(
-          builder: (context, c) {
-            final columns =
-                MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
-            final width = (c.maxWidth - (columns - 1) * 12) / columns;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (final (i, item) in items.indexed)
-                  SizedBox(
-                    width: width,
-                    child: PopIn(
-                      key: ValueKey('shop-${item.id}-$filter'),
-                      motion: s.motion,
-                      delay: (i % 6) * 40,
-                      child: product(item),
+            builder: (context, c) {
+              final columns =
+                  MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
+              final width = (c.maxWidth - (columns - 1) * 12) / columns;
+              return EqualGrid(
+                columns: columns,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  for (final (i, item) in items.indexed)
+                    SizedBox(
+                      width: width,
+                      child: PopIn(
+                        key: ValueKey('shop-${item.id}-$active'),
+                        motion: s.motion,
+                        delay: (i % 6) * 40,
+                        child: product(item),
+                      ),
                     ),
-                  ),
-              ],
-            );
-          },
-        ),
-        ),
-        const SizedBox(height: 16),
-        const _Notice(
-          icon: Icons.info_outline_rounded,
-          text: 'Монеты игровые. Настоящих денег здесь нет.',
+                ],
+              );
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _maybeTarget(String? id, Widget child) =>
-      id == null ? child : CoachTarget(id: id, child: child);
 
   Widget _planNotice(ShopItem item) {
     final check = s.planCheck(item);
@@ -912,7 +1051,7 @@ class _GameShellState extends State<GameShell> {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Center(child: ItemArt(item.id, size: 86)),
+                  Center(child: ItemArt(item.id, size: 72)),
                   if (view.isOwned)
                     const Positioned(
                       right: 0,
@@ -926,9 +1065,7 @@ class _GameShellState extends State<GameShell> {
               Text(item.title,
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
-              _categoryPill(view),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               for (final effect in view.effectTexts)
                 Text(effect,
                     style: const TextStyle(
@@ -1123,8 +1260,19 @@ class _GameShellState extends State<GameShell> {
                       ),
                   ],
                 PurchaseConfirm confirm => [
-                    if (s.plan.isConfirmed) ...[
+                    if (s.needOf(item) case final need?
+                        when s.boughtFor(need) != null) ...[
+                      _Notice(
+                          icon: Icons.info_outline_rounded,
+                          text:
+                              '${need.title.isEmpty ? 'Это нужное' : need.title} на сегодня уже есть: ${s.boughtFor(need)!.title}. Эта покупка будет лишней.'),
+                      const SizedBox(height: 12),
+                    ] else if (s.plan.isConfirmed) ...[
                       _planNotice(item),
+                      const SizedBox(height: 12),
+                    ],
+                    if (item.effects.isNotEmpty) ...[
+                      _StatPreview(state: s, item: item),
                       const SizedBox(height: 12),
                     ],
                     if (confirm.view.comparisonText != null) ...[

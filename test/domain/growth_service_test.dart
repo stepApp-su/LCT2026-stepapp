@@ -551,7 +551,7 @@ void main() {
           _tx('6', TransactionType.expense, 10, source: 'event:rain'),
           _tx('7', TransactionType.toSavings, 20, source: 'savings'),
           _tx('8', TransactionType.fromSavings, 5, source: 'savings'),
-          _tx('12', TransactionType.fromSavings, 90, source: 'goal:ball_rope'),
+          _tx('12', TransactionType.fromSavings, 90, source: 'goal:constructor'),
           _tx('9', TransactionType.income, 12, source: 'task:sort'),
           _tx('10', TransactionType.income, 5, source: 'task:sort'),
           _tx('11', TransactionType.income, 8, source: 'task:basket'),

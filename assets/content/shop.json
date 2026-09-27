@@ -135,6 +135,7 @@
       "category": "mandatory",
       "kind": "consumable",
       "group": "food",
+      "dailyNeed": true,
       "price": 15,
       "effects": [
         {
@@ -158,6 +159,7 @@
       "category": "mandatory",
       "kind": "consumable",
       "group": "water_light",
+      "dailyNeed": true,
       "price": 5,
       "effects": [
         {
@@ -181,6 +183,7 @@
       "category": "mandatory",
       "kind": "consumable",
       "group": "cleaning",
+      "dailyNeed": true,
       "price": 5,
       "effects": [
         {
@@ -196,6 +199,282 @@
       "animation": "happy",
       "description": "Всё чистое и блестит!",
       "diaryText": "Устроили мытьё и уборку."
+    },
+    {
+      "id": "porridge",
+      "title": "Каша",
+      "titleAccusative": "кашу",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "food",
+      "price": 10,
+      "effects": [
+        {
+          "stat": "satiety",
+          "delta": 30
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_porridge",
+      "animation": "eat",
+      "description": "Сытно и недорого.",
+      "diaryText": "Сварили кашу."
+    },
+    {
+      "id": "lunchbox",
+      "title": "Ланч-бокс",
+      "titleAccusative": "ланч-бокс",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "food",
+      "price": 20,
+      "effects": [
+        {
+          "stat": "satiety",
+          "delta": 50
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_lunchbox",
+      "animation": "eat",
+      "description": "Большой обед: хватит надолго.",
+      "diaryText": "Купили ланч-бокс."
+    },
+    {
+      "id": "toothbrush",
+      "title": "Щётка и паста",
+      "titleAccusative": "щётку и пасту",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "cleaning",
+      "price": 6,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 20
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_toothbrush",
+      "animation": "happy",
+      "description": "Чистые зубки и свежая улыбка.",
+      "diaryText": "Купили щётку и пасту."
+    },
+    {
+      "id": "laundry",
+      "title": "Стирка",
+      "titleAccusative": "стирку",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "cleaning",
+      "price": 8,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 25
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "egg"
+      },
+      "iconId": "icon_shop_laundry",
+      "animation": "happy",
+      "description": "Всё постирано и пахнет свежестью.",
+      "diaryText": "Устроили стирку."
+    },
+    {
+      "id": "warm_socks",
+      "title": "Тёплые носки",
+      "titleAccusative": "тёплые носки",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "warmth",
+      "price": 5,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 15
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_warm_socks",
+      "animation": "happy",
+      "description": "Лапкам сразу тепло.",
+      "diaryText": "Купили тёплые носки."
+    },
+    {
+      "id": "mittens",
+      "title": "Варежки",
+      "titleAccusative": "варежки",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "warmth",
+      "price": 10,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 15
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_mittens",
+      "animation": "happy",
+      "description": "Можно лепить снеговика!",
+      "diaryText": "Купили варежки."
+    },
+    {
+      "id": "warm_jacket",
+      "title": "Тёплая куртка",
+      "titleAccusative": "тёплую куртку",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "warmth",
+      "price": 20,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 25
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_warm_jacket",
+      "animation": "happy",
+      "description": "Не страшен никакой мороз.",
+      "diaryText": "Купили тёплую куртку."
+    },
+    {
+      "id": "honey_tea",
+      "title": "Чай с мёдом",
+      "titleAccusative": "чай с мёдом",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "health",
+      "price": 5,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 15
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_honey_tea",
+      "animation": "happy",
+      "description": "Тёплый чай помогает от простуды.",
+      "diaryText": "Заварили чай с мёдом."
+    },
+    {
+      "id": "vitamins",
+      "title": "Витамины",
+      "titleAccusative": "витамины",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "health",
+      "price": 8,
+      "effects": [
+        {
+          "stat": "care",
+          "delta": 20
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "baby"
+      },
+      "iconId": "icon_shop_vitamins",
+      "animation": "happy",
+      "description": "Чтобы быстрее поправиться.",
+      "diaryText": "Купили витамины."
+    },
+    {
+      "id": "notebook",
+      "title": "Тетрадь",
+      "titleAccusative": "тетрадь",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "study",
+      "price": 5,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 5
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_notebook",
+      "animation": "happy",
+      "description": "Есть где писать и решать задачки.",
+      "diaryText": "Купили тетрадь."
+    },
+    {
+      "id": "pencils",
+      "title": "Карандаши",
+      "titleAccusative": "карандаши",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "study",
+      "price": 6,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 6
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_pencils",
+      "animation": "happy",
+      "description": "Рисовать и подчёркивать главное.",
+      "diaryText": "Купили карандаши."
+    },
+    {
+      "id": "book",
+      "title": "Книжка",
+      "titleAccusative": "книжку",
+      "category": "mandatory",
+      "kind": "consumable",
+      "group": "study",
+      "price": 12,
+      "effects": [
+        {
+          "stat": "mood",
+          "delta": 10
+        }
+      ],
+      "maxPerDay": 1,
+      "unlock": {
+        "minStage": "teen"
+      },
+      "iconId": "icon_shop_book",
+      "animation": "happy",
+      "description": "Интересная книжка для занятий.",
+      "diaryText": "Купили книжку."
     },
     {
       "id": "treat",

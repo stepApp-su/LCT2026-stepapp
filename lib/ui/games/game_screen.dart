@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
 import '../../domain/ru_words.dart';
+import '../../domain/services/hint_service.dart';
 import '../../domain/services/level_service.dart';
 import '../../domain/services/phrase_service.dart';
 import '../../domain/services/task_engine.dart';
@@ -41,6 +42,7 @@ class _GameScreenState extends State<GameScreen> {
   PhraseLine? petLine;
   LevelStep? step;
   bool showFeedback = false;
+  HintSituation Function()? situation;
 
   GameController get s => widget.state;
 
@@ -126,28 +128,47 @@ class _GameScreenState extends State<GameScreen> {
 
   void _hint() {
     final line = s.hintFor(session);
+    final variant = session.variant;
+    final hint = s.hints.hint(variant, answer: answer, situation: situation?.call());
+    final general = variant.hint.trim();
+    final showGeneral = general.isNotEmpty && !hint.text.contains(general);
     setState(() => petLine = line);
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       backgroundColor: FinniColors.background,
-      builder: (context) => Padding(
+      builder: (context) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('💡', style: TextStyle(fontSize: 48), textAlign: TextAlign.center),
+            Text(hint.ready ? '👍' : '💡',
+                style: const TextStyle(fontSize: 48), textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Text(session.variant.hint,
+            Text(hint.text,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge),
+            if (showGeneral) ...[
+              const SizedBox(height: 16),
+              SoftNotice(
+                icon: Icons.lightbulb_outline_rounded,
+                text: general,
+                color: FinniColors.paper,
+              ),
+            ],
             if (line != null) ...[
               const SizedBox(height: 12),
               Text(line.textRu,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: FinniColors.muted)),
+                  style: const TextStyle(fontSize: 16, color: FinniColors.muted)),
             ],
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Понятно'),
+            ),
           ],
         ),
       ),
@@ -218,6 +239,7 @@ class _GameScreenState extends State<GameScreen> {
                           });
                         },
                         onSubmit: _submit,
+                        onSituation: (read) => situation = read,
                       )),
                       ),
                       const SizedBox(height: 16),
@@ -260,11 +282,11 @@ class _GameScreenState extends State<GameScreen> {
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      if (_levelLabel() case final label?)
+                      for (final (i, label) in _levelLabels().indexed)
                         TagPill(
-                          icon: Icons.flag_rounded,
+                          icon: i == 0 ? Icons.flag_rounded : Icons.stars_rounded,
                           label: label,
-                          color: FinniColors.honey,
+                          color: i == 0 ? FinniColors.honey : FinniColors.mint,
                         ),
                       if (widget.mode == GameMode.daily)
                         const TagPill(
@@ -334,16 +356,19 @@ class _GameScreenState extends State<GameScreen> {
         ],
       );
 
-  String? _levelLabel() {
-    if (!inLevel) return null;
+  List<String> _levelLabels() {
+    if (!inLevel) return const [];
     final run = s.levelRun;
     final record = step?.finished;
     if (record != null) {
-      return 'Уровень ${record.number} · ${record.stars.length} из ${record.stars.length}';
+      return [
+        'Уровень ${record.number}',
+        '${record.stars.length} из ${record.stars.length}'
+      ];
     }
-    if (run == null) return null;
+    if (run == null) return const [];
     final position = reward == null ? run.done + 1 : run.done;
-    return 'Уровень ${run.number} · $position из ${run.slots.length}';
+    return ['Уровень ${run.number}', '$position из ${run.slots.length}'];
   }
 
   Widget _feedbackCard(TaskFeedback result) {

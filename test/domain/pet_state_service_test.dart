@@ -181,7 +181,7 @@ final ShopItem _broken = ShopItem.create(
 );
 
 final Goal _goal = Goal.create(
-  id: 'ball_rope',
+  id: 'constructor',
   title: 'Мячик и скакалка',
   price: 90,
   rewardEffects: const [StateEffect(stat: PetStat.cozy, delta: 18)],

@@ -46,11 +46,11 @@ class _HudChip extends StatelessWidget {
 }
 
 class _GoalMeter extends StatelessWidget {
-  const _GoalMeter({required this.value, required this.target, required this.label});
+  const _GoalMeter({required this.value, required this.target, required this.labels});
 
   final int value;
   final int target;
-  final String label;
+  final List<String> labels;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +58,10 @@ class _GoalMeter extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+        TagRow([
+          for (final (i, label) in labels.indexed)
+            TagChip(label, tone: i == 0 ? TagTone.purple : TagTone.blue),
+        ]),
         const SizedBox(height: 6),
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
@@ -126,6 +129,13 @@ class BoardGame extends StatefulWidget {
 
 class _BoardGameState extends State<BoardGame> {
   late BoardRun run = BoardRun.start(widget.payload);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.board.onSituation?.call(() => BoardSituation(run));
+  }
+
   int? face;
   bool spinning = false;
   bool submitted = false;
@@ -256,8 +266,10 @@ class _BoardGameState extends State<BoardGame> {
           child: _GoalMeter(
             value: run.savings,
             target: payload.target,
-            label:
-                '🐷 ${fillText(texts['savings'], {'savings': '${run.savings}'})} · ${fillText(texts['goal'], {'target': '${payload.target}'})}',
+            labels: [
+              '🐷 ${fillText(texts['savings'], {'savings': '${run.savings}'})}',
+              fillText(texts['goal'], {'target': '${payload.target}'}),
+            ],
           ),
         ),
         ),
@@ -508,6 +520,19 @@ class StallGame extends StatefulWidget {
 class _StallGameState extends State<StallGame> {
   int day = 0;
   late int coins = widget.payload.startCoins;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.board.onSituation?.call(() => StallSituation(
+          day: day,
+          coins: coins,
+          portions: portions,
+          price: price,
+          dayShown: shown != null,
+        ));
+  }
+
   final List<StallChoice> choices = [];
   final List<StallDayResult> results = [];
   int portions = 0;
@@ -585,7 +610,7 @@ class _StallGameState extends State<StallGame> {
             child: _GoalMeter(
               value: coins,
               target: payload.target,
-              label: fillText(texts['goal'], {'target': '${payload.target}'}),
+              labels: [fillText(texts['goal'], {'target': '${payload.target}'})],
             ),
           ),
         ),
@@ -783,6 +808,16 @@ class _CashierGameState extends State<CashierGame> {
   TextGroup get texts => board.texts.cashier;
 
   int get given => tray.fold(0, (a, b) => a + b);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.board.onSituation?.call(() => CashierSituation(
+          customer: index,
+          given: given,
+          answered: lastRight != null,
+        ));
+  }
 
   void _give() {
     final counts = <int, int>{};
@@ -1080,6 +1115,13 @@ class _PriceTagGameState extends State<PriceTagGame> {
   BoardContext get board => widget.board;
   TextGroup get texts => board.texts.pricetag;
 
+  @override
+  void initState() {
+    super.initState();
+    widget.board.onSituation
+        ?.call(() => PriceTagSituation(round: index, picked: pick != null));
+  }
+
   void _choose(PriceOffer offer) {
     if (pick != null || board.locked) return;
     final round = payload.rounds[index];
@@ -1156,7 +1198,8 @@ class _PriceTagGameState extends State<PriceTagGame> {
           child: LayoutBuilder(builder: (context, constraints) {
           final columns = MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
           final width = ((constraints.maxWidth - (columns - 1) * 10) / columns).clamp(0.0, double.infinity);
-          return Wrap(
+          return EqualGrid(
+            columns: columns,
             spacing: 10,
             runSpacing: 14,
             children: [
