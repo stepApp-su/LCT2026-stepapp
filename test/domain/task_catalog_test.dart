@@ -14,9 +14,11 @@ Map<String, Object?> _taskJson(Map<String, Object?> raw, String id) =>
         .cast<String, Object?>();
 
 Map<String, Object?> _variantJson(
-        Map<String, Object?> raw, String id, String difficulty) =>
-    ((_taskJson(raw, id)['variants'] as Map)[difficulty] as Map)
-        .cast<String, Object?>();
+    Map<String, Object?> raw, String id, String difficulty) {
+  final variant = (_taskJson(raw, id)['variants'] as Map)[difficulty];
+  return ((variant is List ? variant.first : variant) as Map)
+      .cast<String, Object?>();
+}
 
 List<String> _strings(Object? node) {
   if (node is String) return [node];

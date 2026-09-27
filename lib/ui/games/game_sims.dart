@@ -248,7 +248,9 @@ class _BoardGameState extends State<BoardGame> {
               color: FinniColors.lavender),
         ]),
         const SizedBox(height: 10),
-        FinniCard(
+        CoachTarget(
+          id: 'board.goal',
+          child: FinniCard(
           color: FinniColors.lavender,
           padding: 12,
           child: _GoalMeter(
@@ -258,8 +260,11 @@ class _BoardGameState extends State<BoardGame> {
                 '🐷 ${fillText(texts['savings'], {'savings': '${run.savings}'})} · ${fillText(texts['goal'], {'target': '${payload.target}'})}',
           ),
         ),
+        ),
         const SizedBox(height: 12),
-        FinniCard(
+        CoachTarget(
+          id: 'board.path',
+          child: FinniCard(
           color: const Color(0xFFEFF6E8),
           padding: 8,
           child: Column(
@@ -275,10 +280,13 @@ class _BoardGameState extends State<BoardGame> {
             ],
           ),
         ),
+        ),
         const SizedBox(height: 12),
         _eventPanel(),
         const SizedBox(height: 12),
-        Row(
+        CoachTarget(
+          id: 'board.roll',
+          child: Row(
           children: [
             _Die(face: face, spinning: spinning),
             const SizedBox(width: 12),
@@ -297,6 +305,7 @@ class _BoardGameState extends State<BoardGame> {
                       label: Text(texts['roll'])),
             ),
           ],
+        ),
         ),
       ],
     );
@@ -568,17 +577,22 @@ class _StallGameState extends State<StallGame> {
               color: FinniColors.sky),
         ]),
         const SizedBox(height: 10),
-        FinniCard(
-          color: FinniColors.paper,
-          padding: 12,
-          child: _GoalMeter(
-            value: coins,
-            target: payload.target,
-            label: fillText(texts['goal'], {'target': '${payload.target}'}),
+        CoachTarget(
+          id: 'stall.goal',
+          child: FinniCard(
+            color: FinniColors.paper,
+            padding: 12,
+            child: _GoalMeter(
+              value: coins,
+              target: payload.target,
+              label: fillText(texts['goal'], {'target': '${payload.target}'}),
+            ),
           ),
         ),
         const SizedBox(height: 12),
-        PopIn(
+        CoachTarget(
+          id: 'stall.weather',
+          child: PopIn(
           key: ValueKey('weather-$day'),
           motion: board.motion,
           child: FinniCard(
@@ -601,8 +615,12 @@ class _StallGameState extends State<StallGame> {
             ]),
           ),
         ),
+        ),
         const SizedBox(height: 12),
-        if (result == null) _planner() else _resultCard(result),
+        CoachTarget(
+          id: 'stall.planner',
+          child: result == null ? _planner() : _resultCard(result),
+        ),
       ],
     );
   }
@@ -819,7 +837,9 @@ class _CashierGameState extends State<CashierGame> {
               color: FinniColors.sky),
         ]),
         const SizedBox(height: 12),
-        PopIn(
+        CoachTarget(
+          id: 'cashier.customer',
+          child: PopIn(
           key: ValueKey('customer-$index-${changes.length}'),
           motion: board.motion,
           child: FinniCard(
@@ -882,8 +902,11 @@ class _CashierGameState extends State<CashierGame> {
             ),
           ),
         ),
+        ),
         const SizedBox(height: 12),
-        FinniCard(
+        CoachTarget(
+          id: 'cashier.tray',
+          child: FinniCard(
           color: const Color(0xFFF3E3C4),
           child: Column(
             children: [
@@ -917,9 +940,12 @@ class _CashierGameState extends State<CashierGame> {
             ],
           ),
         ),
+        ),
         const SizedBox(height: 12),
         if (!answered)
-          FinniCard(
+          CoachTarget(
+            id: 'cashier.coins',
+            child: FinniCard(
             color: FinniColors.lavender,
             child: Wrap(
               alignment: WrapAlignment.spaceEvenly,
@@ -939,6 +965,7 @@ class _CashierGameState extends State<CashierGame> {
                   ),
               ],
             ),
+          ),
           ),
         const SizedBox(height: 12),
         if (!answered)
@@ -1103,7 +1130,9 @@ class _PriceTagGameState extends State<PriceTagGame> {
           ),
         ]),
         const SizedBox(height: 12),
-        PopIn(
+        CoachTarget(
+          id: 'pricetag.need',
+          child: PopIn(
           key: ValueKey('need-$index'),
           motion: board.motion,
           child: FinniCard(
@@ -1118,12 +1147,15 @@ class _PriceTagGameState extends State<PriceTagGame> {
             ]),
           ),
         ),
+        ),
         const SizedBox(height: 8),
         Text(texts['pick'], style: const TextStyle(color: FinniColors.muted)),
         const SizedBox(height: 10),
-        LayoutBuilder(builder: (context, constraints) {
+        CoachTarget(
+          id: 'pricetag.offers',
+          child: LayoutBuilder(builder: (context, constraints) {
           final columns = MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
-          final width = (constraints.maxWidth - (columns - 1) * 10) / columns;
+          final width = ((constraints.maxWidth - (columns - 1) * 10) / columns).clamp(0.0, double.infinity);
           return Wrap(
             spacing: 10,
             runSpacing: 14,
@@ -1141,6 +1173,7 @@ class _PriceTagGameState extends State<PriceTagGame> {
             ],
           );
         }),
+        ),
         const SizedBox(height: 12),
         if (picked != null) ...[
           PopIn(

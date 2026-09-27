@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -9,11 +10,15 @@ import '../../domain/services/plan_service.dart';
 import '../../domain/services/shop_service.dart';
 import '../../domain/services/wallet_service.dart';
 import '../games/games_hub.dart';
+import '../games/level_screen.dart';
+import '../games/quests.dart';
 import '../theme/finni_theme.dart';
 import '../widgets/emoji_art.dart';
 import '../widgets/finni_ui.dart';
 import '../widgets/moni_scene.dart';
+import '../widgets/name_picker.dart';
 import '../widgets/pet_celebration.dart';
+import '../widgets/coach.dart';
 import '../widgets/coin_icon.dart';
 import '../widgets/game_icon.dart';
 import '../game_controller.dart';
@@ -33,6 +38,7 @@ class _GameShellState extends State<GameShell> {
   int filter = 0;
   Timer? idleTimer;
   bool celebrating = false;
+  bool coachQueued = false;
   GameController get s => widget.state;
 
   @override
@@ -41,8 +47,10 @@ class _GameShellState extends State<GameShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && s.bubble == null) s.greet();
       if (mounted) showCelebration();
+      maybeCoach();
     });
     s.addListener(showCelebration);
+    s.addListener(maybeCoach);
     idleTimer = Timer.periodic(const Duration(seconds: 45), (_) {
       if (mounted && page == 0 && ModalRoute.of(context)?.isCurrent == true) {
         s.idle();
@@ -53,6 +61,7 @@ class _GameShellState extends State<GameShell> {
   @override
   void dispose() {
     s.removeListener(showCelebration);
+    s.removeListener(maybeCoach);
     idleTimer?.cancel();
     super.dispose();
   }
@@ -71,11 +80,82 @@ class _GameShellState extends State<GameShell> {
       if (!mounted) return;
       s.acknowledgeCelebration();
       celebrating = false;
+      maybeCoach();
     });
+  }
+
+  void maybeCoach() {
+    if (coachQueued || !mounted) return;
+    coachQueued = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      coachQueued = false;
+      unawaited(coachNow());
+    });
+  }
+
+  String? get pendingTour {
+    final ids = switch (page) {
+      0 => [
+          'home',
+          'shopping',
+          'piggy',
+          'work',
+          if (s.eventPending) 'event',
+          if (s.bedtimeReady && !s.needsPlan) 'bedtime',
+          if (s.dailyTask != null && !s.dailyDoneToday && !s.needsPlan) 'daily',
+        ],
+      1 => ['plan'],
+      2 => ['shop'],
+      3 => ['hub'],
+      _ => ['more'],
+    };
+    for (final id in ids) {
+      final tour = s.coach.tour(id);
+      if (tour == null || s.coachSeen(id)) continue;
+      final requires = tour.requires;
+      if (requires != null && !(coachConditions[requires]?.call() ?? false)) continue;
+      return id;
+    }
+    return null;
+  }
+
+  Map<String, bool Function()> get coachConditions => {
+        'planConfirmed': () => s.plan.isConfirmed,
+        'needsPaid': () => s.unpaidNeeds.isEmpty,
+        'wantBought': () => s.wantBought,
+        'wantsPlanned': () => s.fullPlan.optional > 0,
+        'noWants': () => s.fullPlan.optional <= 0,
+        'savedAll': () => s.savingsToDeposit <= 0,
+        'onHome': () => page == 0,
+        'nothingSaved': () => s.savedToday <= 0,
+        'somethingSaved': () => s.savedToday > 0,
+      };
+
+  Future<void> coachNow() async {
+    if (!mounted || celebrating || s.celebration != null || !s.onboarded) return;
+    if (ModalRoute.of(context)?.isCurrent == false || Coach.busy(context)) return;
+    final id = pendingTour;
+    final tour = id == null ? null : s.coach.tour(id);
+    if (tour == null) return;
+    final finished = await Coach.run(
+      context,
+      steps: tour.steps,
+      texts: s.coach.texts,
+      title: tour.title,
+      values: {
+        'name': s.petName,
+        'income': '${s.plan.plan.income}',
+      },
+      conditions: coachConditions,
+      motion: s.motion,
+    );
+    s.markCoachSeen(tour.seenAfter(finished: finished));
+    maybeCoach();
   }
 
   void go(int value) {
     setState(() => page = value);
+    maybeCoach();
     switch (value) {
       case 1:
         s.openPlanner();
@@ -154,15 +234,15 @@ class _GameShellState extends State<GameShell> {
         Text(
           switch (page) {
             0 =>
-              'Нажми на питомца, чтобы погладить. Сверху — твоя мечта и монеты. Внизу — план, магазин, игры и другие разделы.',
+              'Каждый день начинается с плана: разложи монеты на обязательное, желаемое и копилку. Потом можно играть, покупать и копить. Нажми на питомца, чтобы погладить. Внизу — план, магазин, игры и другие разделы.',
             1 =>
-              'Сначала подумай, что нужно сегодня. Разложи монеты по трём направлениям. План — это твой выбор, а не списание денег.',
+              'Сначала подумай, что нужно сегодня. Разложи монеты по трём направлениям. План — это твой выбор, а не списание денег. Потом трать по плану, а монеты для копилки отложи кнопкой «Отложить в копилку». Если заработаешь ещё монеты, здесь появится окошко, чтобы разложить и их.',
             2 =>
-              'Обязательное — то, без чего никак. Желаемое — то, что радует. Перед покупкой посмотри, сколько монет останется.',
+              'Обязательное — то, без чего никак. Желаемое — то, что радует. Сверху видно, сколько осталось по плану. Старайся в него укладываться: если потратишь на желаемое больше, в копилку попадёт меньше, и мечта отодвинется. Если монет не хватает, их можно взять из копилки — но только если очень нужно.',
             3 =>
-              'Выбери задание. Можно подумать и попробовать ещё раз — за ошибку монеты не отнимаются.',
+              'Пройди уровень дня — за каждую игру в нём дают часть зарплаты. Задание дня появляется раз в сутки, оно посложнее. Остальные игры — тренировка: монет за них нет, зато звёзды копятся.',
             _ =>
-              'Здесь можно переодеть питомца, посмотреть дневник, узнать новые слова и подвести итоги дня. Настройки находятся в разделе для взрослого.',
+              'Здесь можно переодеть питомца, посмотреть дневник и итоги прошлых дней, узнать новые слова и уложить питомца спать. Настройки находятся в разделе для взрослого.',
           },
         ),
       );
@@ -192,6 +272,16 @@ class _GameShellState extends State<GameShell> {
                                   label: const Text('Повторить сохранение'))
                             ]),
                           ),
+                        if (page != 0)
+                          _PageHeader(
+                              title: const [
+                                '',
+                                'План на день',
+                                'Магазин',
+                                'Игры',
+                                'Ещё'
+                              ][page],
+                              onHelp: help),
                         Expanded(
                           child: page == 0
                               ? home()
@@ -216,12 +306,14 @@ class _GameShellState extends State<GameShell> {
         final enlarged = MediaQuery.textScalerOf(context).scale(16) > 20;
         final petHeight = enlarged
             ? 300.0
-            : (constraints.maxHeight - 356).clamp(240.0, 440.0);
+            : (constraints.maxHeight - 400).clamp(240.0, 440.0);
         return SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Column(children: [
-              Semantics(
+              CoachTarget(
+                id: 'home.goal',
+                child: Semantics(
                 button: true,
                 label: s.currentGoal == null
                     ? 'Выбери мечту'
@@ -265,8 +357,11 @@ class _GameShellState extends State<GameShell> {
                       )),
                 ),
               ),
+              ),
               const SizedBox(height: 8),
-              Row(children: [
+              CoachTarget(
+                id: 'home.coins',
+                child: Row(children: [
                 Expanded(
                     child: _ResourceChip(
                         label: 'День ${s.day}',
@@ -288,8 +383,11 @@ class _GameShellState extends State<GameShell> {
                         color: FinniColors.lavender,
                         onTap: savings)),
               ]),
+              ),
               const SizedBox(height: 8),
-              SizedBox(
+              CoachTarget(
+                id: 'home.pet',
+                child: SizedBox(
                   height: petHeight,
                   child: Stack(
                     alignment: Alignment.center,
@@ -343,10 +441,52 @@ class _GameShellState extends State<GameShell> {
                       Positioned(
                           right: 0,
                           top: 0,
-                          child: IconButton(
-                              tooltip: 'Подсказка',
-                              onPressed: help,
-                              icon: const Icon(Icons.help_outline_rounded))),
+                          child: CoachTarget(
+                              id: 'home.help',
+                              child: IconButton(
+                                  tooltip: 'Подсказка',
+                                  onPressed: help,
+                                  icon: const Icon(Icons.help_outline_rounded)))),
+                      if (s.todayEvent case final event? when s.eventPending)
+                        Positioned(
+                            left: 8,
+                            bottom: 14,
+                            child: CoachTarget(
+                              id: 'home.event',
+                              child: Semantics(
+                              button: true,
+                              label: '${s.eventHeader}: ${event.title}',
+                              excludeSemantics: true,
+                              child: Squish(
+                                onTap: showEvent,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: FinniColors.honey,
+                                    borderRadius: BorderRadius.circular(18),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                          color: FinniColors.shadow,
+                                          blurRadius: 8,
+                                          offset: Offset(0, 3)),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      EmojiBadge(event.iconId,
+                                          size: 30, color: FinniColors.paper),
+                                      const SizedBox(width: 8),
+                                      Text(s.eventHeader,
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w900)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ))),
                       Positioned(
                           left: 16,
                           right: 16,
@@ -367,12 +507,15 @@ class _GameShellState extends State<GameShell> {
                                   )))),
                     ],
                   )),
+              ),
               const SizedBox(height: 8),
-              LayoutBuilder(builder: (context, constraints) {
+              CoachTarget(
+                id: 'home.stats',
+                child: LayoutBuilder(builder: (context, constraints) {
                 final columns =
                     MediaQuery.textScalerOf(context).scale(13) > 19 ? 1 : 2;
                 final width =
-                    (constraints.maxWidth - (columns - 1) * 8) / columns;
+                    ((constraints.maxWidth - (columns - 1) * 8) / columns).clamp(0.0, double.infinity);
                 return Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -401,44 +544,16 @@ class _GameShellState extends State<GameShell> {
                         .map((stat) => SizedBox(width: width, child: stat))
                         .toList());
               }),
+              ),
               const SizedBox(height: 12),
-              Builder(builder: (context) {
-                final daily = s.dailyGame;
-                final reward = s.rewardFor(daily);
-                return Material(
-                  color: FinniColors.sky,
-                  borderRadius: BorderRadius.circular(22),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                      onTap: () => openGame(context, s, daily.id),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(children: [
-                          EmojiBadge(daily.iconId,
-                              size: 36, color: FinniColors.paper),
-                          const SizedBox(width: 12),
-                          Expanded(
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                Text(daily.title,
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w800)),
-                                Text(
-                                    reward > 0
-                                        ? 'Игра дня · +$reward монет'
-                                        : 'Можно играть просто так',
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        color: FinniColors.muted)),
-                              ])),
-                          const Icon(Icons.play_circle_fill_rounded,
-                              size: 32, color: FinniColors.primary),
-                        ]),
-                      )),
-                );
-              }),
+              HomeQuests(
+                state: s,
+                onLevel: playLevel,
+                onDaily: playDaily,
+                onPractice: () => go(3),
+                onBedtime: daySummary,
+                onPlan: () => go(1),
+              ),
             ]),
           ),
         );
@@ -449,30 +564,56 @@ class _GameShellState extends State<GameShell> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _Panel(
-                    color: FinniColors.mint,
-                    padding: 12,
-                    child: Row(children: [
-                      const Expanded(
-                          child: Text('Доход дня',
-                              style: TextStyle(fontWeight: FontWeight.w700))),
-                      _Coins(s.plan.plan.income)
-                    ])),
+                CoachTarget(
+                  id: 'plan.income',
+                  child: _Panel(
+                      color: FinniColors.mint,
+                      padding: 12,
+                      child: Row(children: [
+                        const Expanded(
+                            child: Text('Доход дня',
+                                style: TextStyle(fontWeight: FontWeight.w700))),
+                        _Coins(s.plan.plan.income)
+                      ])),
+                ),
+                const SizedBox(height: 8),
+                CoachTarget(id: 'plan.needs', child: _NeedsToday(state: s)),
+                if (s.earnedToday > 0) ...[
+                  const SizedBox(height: 8),
+                  _Panel(
+                      color: FinniColors.honey.withValues(alpha: .5),
+                      padding: 12,
+                      child: Row(children: [
+                        const Expanded(
+                            child: Text('Заработано сегодня',
+                                style: TextStyle(fontWeight: FontWeight.w700))),
+                        _Coins(s.earnedToday)
+                      ])),
+                ],
+                if (s.extraPending > 0) ...[
+                  const SizedBox(height: 12),
+                  _ExtraPlanner(state: s, onDone: toast),
+                ],
                 const SizedBox(height: 12),
                 const Text('Каждый шаг — 5 монет.',
                     style: TextStyle(color: FinniColors.muted)),
                 const SizedBox(height: 12),
-                _BudgetRow(
-                  title: 'Обязательное',
-                  subtitle: 'То, без чего никак',
-                  icon: Icons.restaurant_outlined,
-                  color: FinniColors.mint,
-                  value: s.plan.plan.mandatory,
-                  direction: PlanDirection.mandatory,
-                  state: s,
+                CoachTarget(
+                  id: 'plan.mandatory',
+                  child: _BudgetRow(
+                    title: 'Обязательное',
+                    subtitle: 'То, без чего никак',
+                    icon: Icons.restaurant_outlined,
+                    color: FinniColors.mint,
+                    value: s.plan.plan.mandatory,
+                    direction: PlanDirection.mandatory,
+                    state: s,
+                  ),
                 ),
                 const SizedBox(height: 12),
-                _BudgetRow(
+                CoachTarget(
+                  id: 'plan.optional',
+                  child: _BudgetRow(
                   title: 'Желаемое',
                   subtitle: 'То, что радует',
                   icon: Icons.celebration_outlined,
@@ -481,8 +622,11 @@ class _GameShellState extends State<GameShell> {
                   direction: PlanDirection.optional,
                   state: s,
                 ),
+                ),
                 const SizedBox(height: 12),
-                _BudgetRow(
+                CoachTarget(
+                  id: 'plan.savings',
+                  child: _BudgetRow(
                   title: 'Копилка',
                   subtitle: 'Навстречу мечте',
                   icon: Icons.savings_outlined,
@@ -490,6 +634,7 @@ class _GameShellState extends State<GameShell> {
                   value: s.plan.plan.savings,
                   direction: PlanDirection.savings,
                   state: s,
+                ),
                 ),
                 const SizedBox(height: 20),
                 if (s.plan.hint() != null) ...[
@@ -512,7 +657,9 @@ class _GameShellState extends State<GameShell> {
               ],
             ),
           ),
-          _Panel(
+          CoachTarget(
+            id: 'plan.confirm',
+            child: _Panel(
             radius: 0,
             padding: 16,
             child: Column(
@@ -529,13 +676,38 @@ class _GameShellState extends State<GameShell> {
                     _Coins(s.plan.remainder),
                   ],
                 ),
+                if (s.plan.isConfirmed && s.savingsToDeposit > 0) ...[
+                  const SizedBox(height: 12),
+                  CoachTarget(
+                    id: 'plan.save',
+                    child: FilledButton.tonalIcon(
+                      onPressed: () {
+                        final amount = s.savingsToDeposit;
+                        if (s.saveByPlan()) {
+                          Celebration.show(context, motion: s.motion, emoji: '🐷');
+                          toast('Отложили $amount ${ruCoins(amount)} в копилку. Мечта ближе!');
+                        } else {
+                          toast('Сначала выбери мечту — нажми на неё на главном экране.');
+                        }
+                      },
+                      icon: const Icon(Icons.savings_outlined),
+                      label: Text('Отложить в копилку ${s.savingsToDeposit} по плану'),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   onPressed: s.plan.isConfirmed
                       ? null
                       : () {
                           s.confirmPlan();
-                          toast('План готов. Теперь можно выбирать покупки!');
+                          toast('План готов! Теперь можно играть, покупать и копить.');
+                          go(0);
+                          if (s.eventPending) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) showEvent();
+                            });
+                          }
                         },
                   icon: Icon(
                     s.plan.isConfirmed
@@ -548,6 +720,7 @@ class _GameShellState extends State<GameShell> {
                 ),
               ],
             ),
+          ),
           ),
         ],
       );
@@ -565,7 +738,9 @@ class _GameShellState extends State<GameShell> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _Panel(
+        CoachTarget(
+          id: 'shop.wallet',
+          child: _Panel(
           color: FinniColors.honey,
           child: Row(
             children: [
@@ -585,6 +760,11 @@ class _GameShellState extends State<GameShell> {
             ],
           ),
         ),
+        ),
+        if (s.plan.isConfirmed) ...[
+          const SizedBox(height: 12),
+          CoachTarget(id: 'shop.plan', child: _PlanLeft(state: s)),
+        ],
         const SizedBox(height: 20),
         Text(
           'Что порадует ${s.petName}?',
@@ -596,7 +776,9 @@ class _GameShellState extends State<GameShell> {
           style: TextStyle(color: FinniColors.muted),
         ),
         const SizedBox(height: 16),
-        Wrap(
+        CoachTarget(
+          id: 'shop.filters',
+          child: Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
@@ -606,7 +788,9 @@ class _GameShellState extends State<GameShell> {
               'Желаемое',
               'По карману',
             ].indexed)
-              ChoiceChip(
+              _maybeTarget(
+                i == 2 ? 'shop.wants' : null,
+                ChoiceChip(
                 label: Text(label),
                 selected: filter == i,
                 onSelected: (_) => setState(() => filter = i),
@@ -624,7 +808,9 @@ class _GameShellState extends State<GameShell> {
                   vertical: 12,
                 ),
               ),
+              ),
           ],
+        ),
         ),
         const SizedBox(height: 16),
         if (items.isEmpty)
@@ -633,7 +819,9 @@ class _GameShellState extends State<GameShell> {
             text:
                 'Пока не хватает монет. Сыграй в игру или вернись к покупке позже.',
           ),
-        LayoutBuilder(
+        CoachTarget(
+          id: 'shop.items',
+          child: LayoutBuilder(
           builder: (context, c) {
             final columns =
                 MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
@@ -656,6 +844,7 @@ class _GameShellState extends State<GameShell> {
             );
           },
         ),
+        ),
         const SizedBox(height: 16),
         const _Notice(
           icon: Icons.info_outline_rounded,
@@ -663,6 +852,38 @@ class _GameShellState extends State<GameShell> {
         ),
       ],
     );
+  }
+
+  Widget _maybeTarget(String? id, Widget child) =>
+      id == null ? child : CoachTarget(id: id, child: child);
+
+  Widget _planNotice(ShopItem item) {
+    final check = s.planCheck(item);
+    final String text;
+    final IconData icon;
+    if (check.direction == PlanDirection.mandatory) {
+      icon = Icons.check_circle_outline_rounded;
+      text = check.fits
+          ? 'Это нужное. По плану на обязательное осталось ${check.left} ${ruCoins(check.left)}.'
+          : 'Это нужное — оно важнее всего. По плану на обязательное осталось ${check.left}, остальные ${check.gap} ${ruCoins(check.gap)} возьмём из других монет.';
+    } else if (check.fits) {
+      icon = Icons.check_circle_outline_rounded;
+      final after = check.left - check.price;
+      text =
+          'По плану на желаемое осталось ${check.left} ${ruCoins(check.left)}. После покупки останется $after — всё по плану!';
+    } else {
+      icon = Icons.warning_amber_rounded;
+      text = [
+        if (check.left == 0)
+          'На желаемое по плану монет уже не осталось.'
+        else
+          'На желаемое по плану осталось ${check.left} ${ruCoins(check.left)}, а это стоит ${check.price}.',
+        'Лишние ${check.gap} ${ruCoins(check.gap)} придётся взять из копилки: отложишь меньше${check.delayDays > 0 ? ', и мечта отодвинется примерно на ${check.delayDays} ${ruDays(check.delayDays)}' : ''}.',
+        if (check.needsShort > 0)
+          'А ещё тогда не хватит ${check.needsShort} ${ruCoins(check.needsShort)} на нужное для ${s.petName}!',
+      ].join(' ');
+    }
+    return _Notice(icon: icon, text: text);
   }
 
   Widget _categoryPill(ShopItemView view) => _Pill(
@@ -725,7 +946,9 @@ class _GameShellState extends State<GameShell> {
   }
 
   void purchase(ShopItem item) {
+    if (requirePlan()) return;
     PurchaseOutcome outcome = s.askToBuy(item.id);
+    WithdrawPreview? takeFromPiggy;
     final before = s.wallet.wallet.balance;
     sheet(
       item.title,
@@ -774,7 +997,53 @@ class _GameShellState extends State<GameShell> {
                     _Notice(
                       icon: Icons.check_circle_outline,
                       text:
-                          '$diaryText${noteText == null ? '' : ' $noteText'} Осталось ${s.wallet.wallet.balance} монет.',
+                          '$diaryText${noteText == null ? '' : ' $noteText'}',
+                    ),
+                    const SizedBox(height: 12),
+                    _Panel(
+                      padding: 14,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text('Что изменилось',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w900)),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              const CoinIcon(size: 24),
+                              const SizedBox(width: 10),
+                              const Expanded(
+                                child: Text('Монеты',
+                                    style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w800)),
+                              ),
+                              Text('$before → ${s.wallet.wallet.balance}',
+                                  style: const TextStyle(fontSize: 17)),
+                              const SizedBox(width: 8),
+                              _Pill(
+                                icon: Icons.remove_rounded,
+                                label: '${item.price}',
+                                color: FinniColors.lavender,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          _ShiftList(s.lastShifts),
+                          if (s.plan.isConfirmed &&
+                              item.category == ExpenseCategory.optional) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              s.planLeft(PlanDirection.optional) >= 0
+                                  ? 'На желаемое по плану осталось ${s.planLeft(PlanDirection.optional)}.'
+                                  : 'На желаемое потрачено на ${-s.planLeft(PlanDirection.optional)} больше плана — сегодня отложим меньше.',
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
                     FilledButton.icon(
@@ -786,12 +1055,56 @@ class _GameShellState extends State<GameShell> {
                 PurchaseRefused(:final textRu) => [
                     _Notice(icon: Icons.info_outline_rounded, text: textRu),
                   ],
+                PurchaseNotEnough(:final gap) when takeFromPiggy != null => [
+                    _Notice(
+                      icon: Icons.savings_outlined,
+                      text:
+                          'Копилка — это монеты на мечту. ${takeFromPiggy!.savedChangeText} ${takeFromPiggy!.etaChangeText}',
+                    ),
+                    const SizedBox(height: 12),
+                    Text(takeFromPiggy!.question,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: () {
+                        if (s.confirmWithdraw(takeFromPiggy!) is WithdrawDone) {
+                          update(() {
+                            takeFromPiggy = null;
+                            outcome = s.askToBuy(item.id);
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.arrow_upward_rounded),
+                      label: Text('Взять $gap из копилки'),
+                    ),
+                    TextButton(
+                      onPressed: () => update(() => takeFromPiggy = null),
+                      child: const Text('Нет, пусть копится'),
+                    ),
+                  ],
                 PurchaseNotEnough(:final gap, :final options) => [
                     _Notice(
                       icon: Icons.lightbulb_outline,
                       text: 'Пока не хватает $gap монет. Что сделаем?',
                     ),
                     const SizedBox(height: 12),
+                    if (s.wallet.wallet.savings >= gap)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            final preview = s.previewWithdraw(gap);
+                            if (preview is WithdrawPreview) {
+                              update(() => takeFromPiggy = preview);
+                            } else if (preview is GoalRefused) {
+                              toast(preview.textRu);
+                            }
+                          },
+                          icon: const Icon(Icons.savings_outlined),
+                          label: Text('Взять $gap из копилки'),
+                        ),
+                      ),
                     for (final option in options)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
@@ -810,6 +1123,10 @@ class _GameShellState extends State<GameShell> {
                       ),
                   ],
                 PurchaseConfirm confirm => [
+                    if (s.plan.isConfirmed) ...[
+                      _planNotice(item),
+                      const SizedBox(height: 12),
+                    ],
                     if (confirm.view.comparisonText != null) ...[
                       _Notice(
                           icon: Icons.lightbulb_outline_rounded,
@@ -856,7 +1173,11 @@ class _GameShellState extends State<GameShell> {
   void notEnoughOption(NotEnoughOption option, ShopItem item) {
     final route = option.route;
     if (route == 'tasks') {
-      go(3);
+      if (s.canEarnFromGames) {
+        unawaited(playLevel());
+      } else {
+        go(3);
+      }
     } else if (route == 'postpone') {
       s.postpone(item.id);
       toast('Сохранили в желаниях. Вернёмся к покупке завтра!');

@@ -104,7 +104,7 @@ final class WalletService {
       final options = <NotEnoughOption>[
         if (hasUnusedTasksToday)
           const NotEnoughOption(
-              textRu: 'Заработать: выполнить задание', route: 'tasks'),
+              textRu: 'Заработать: пройти уровень дня', route: 'tasks'),
         const NotEnoughOption(
             textRu: 'Отложить покупку до следующего дня', route: 'postpone'),
       ];

@@ -8,6 +8,7 @@ import '../../domain/ru_words.dart';
 import '../../domain/services/task_engine.dart';
 import '../../domain/text_template.dart';
 import '../theme/finni_theme.dart';
+import '../widgets/coach.dart';
 import '../widgets/coin_icon.dart';
 import '../widgets/emoji_art.dart';
 import '../widgets/finni_ui.dart';
@@ -213,7 +214,9 @@ class _SortBoardState extends State<SortBoard> {
         Text(board.texts.sort.instruction,
             style: const TextStyle(color: FinniColors.muted)),
         const SizedBox(height: 12),
-        AnimatedSize(
+        CoachTarget(
+          id: 'sort.cards',
+          child: AnimatedSize(
           duration: const Duration(milliseconds: 220),
           child: waiting.isEmpty
               ? const SizedBox(width: double.infinity)
@@ -248,6 +251,7 @@ class _SortBoardState extends State<SortBoard> {
                   ],
                 ),
         ),
+        ),
         if (waiting.isNotEmpty) ...[
           const SizedBox(height: 10),
           Text(
@@ -256,14 +260,17 @@ class _SortBoardState extends State<SortBoard> {
           ),
         ],
         const SizedBox(height: 16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final (i, bin) in payload.bins.indexed) ...[
-              if (i > 0) const SizedBox(width: 10),
-              Expanded(child: _bin(bin)),
+        CoachTarget(
+          id: 'sort.bins',
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final (i, bin) in payload.bins.indexed) ...[
+                if (i > 0) const SizedBox(width: 10),
+                Expanded(child: _bin(bin)),
+              ],
             ],
-          ],
+          ),
         ),
       ],
     );
@@ -468,7 +475,9 @@ class _CoinsBoardState extends State<CoinsBoard> {
           ],
         ),
         const SizedBox(height: 14),
-        DragTarget<int>(
+        CoachTarget(
+          id: 'coins.counter',
+          child: DragTarget<int>(
           onWillAcceptWithDetails: (details) {
             if (board.locked) return false;
             setState(() => glowing = true);
@@ -536,10 +545,13 @@ class _CoinsBoardState extends State<CoinsBoard> {
             ),
           ),
         ),
+        ),
         const SizedBox(height: 16),
         const Text('Кошелёк', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
-        FinniCard(
+        CoachTarget(
+          id: 'coins.wallet',
+          child: FinniCard(
           color: FinniColors.lavender,
           child: Wrap(
             alignment: WrapAlignment.spaceEvenly,
@@ -556,6 +568,7 @@ class _CoinsBoardState extends State<CoinsBoard> {
                 ),
             ],
           ),
+        ),
         ),
       ],
     );
@@ -697,7 +710,9 @@ class _DistributeBoardState extends State<DistributeBoard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FinniCard(
+        CoachTarget(
+          id: 'distribute.left',
+          child: FinniCard(
           color: FinniColors.honey,
           padding: 12,
           child: Row(
@@ -713,6 +728,7 @@ class _DistributeBoardState extends State<DistributeBoard> {
               CoinAmount(remainder),
             ],
           ),
+        ),
         ),
         const SizedBox(height: 12),
         for (final (i, counter) in payload.counters.indexed) ...[
@@ -738,7 +754,12 @@ class _DistributeBoardState extends State<DistributeBoard> {
                         Text(_hint(counter)!,
                             style: const TextStyle(color: FinniColors.muted)),
                       const SizedBox(height: 6),
-                      _stepper(counter, CoinAmount(amounts[counter.id] ?? 0)),
+                      i == 0
+                          ? CoachTarget(
+                              id: 'distribute.controls',
+                              child: _stepper(counter, CoinAmount(amounts[counter.id] ?? 0)),
+                            )
+                          : _stepper(counter, CoinAmount(amounts[counter.id] ?? 0)),
                     ],
                   ),
                 ),
@@ -761,7 +782,9 @@ class _DistributeBoardState extends State<DistributeBoard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FinniCard(
+        CoachTarget(
+          id: 'distribute.left',
+          child: FinniCard(
           color: FinniColors.lavender,
           child: Column(
             children: [
@@ -799,14 +822,18 @@ class _DistributeBoardState extends State<DistributeBoard> {
             ],
           ),
         ),
+        ),
         const SizedBox(height: 12),
         FinniCard(
           child: Column(
             children: [
-              _stepper(
-                counter,
-                Text('$count',
-                    style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900)),
+              CoachTarget(
+                id: 'distribute.controls',
+                child: _stepper(
+                  counter,
+                  Text('$count',
+                      style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900)),
+                ),
               ),
               Text(counter.label.isEmpty ? '' : counter.label,
                   style: const TextStyle(color: FinniColors.muted)),
@@ -960,6 +987,11 @@ class _OrderBoardState extends State<OrderBoard> {
           color: FinniColors.sky,
         ),
         const SizedBox(height: 12),
+        CoachTarget(
+          id: 'order.list',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
         for (final (i, item) in order.indexed)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -1021,6 +1053,9 @@ class _OrderBoardState extends State<OrderBoard> {
               ),
             ),
           ),
+            ],
+          ),
+        ),
         if (board.showMarks && check != null && check.placedRight.isNotEmpty)
           Text('✓ ${board.texts.order.placedRight}',
               style: const TextStyle(color: FinniColors.muted)),
@@ -1059,6 +1094,11 @@ class _ChoiceBoardState extends State<ChoiceBoard> {
         Text(widget.payload.question,
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
+        CoachTarget(
+          id: 'choice.options',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
         for (final (i, option) in widget.payload.options.indexed)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -1100,6 +1140,9 @@ class _ChoiceBoardState extends State<ChoiceBoard> {
               ),
             ),
           ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -1143,7 +1186,9 @@ class _BasketBoardState extends State<BasketBoard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FinniCard(
+        CoachTarget(
+          id: 'basket.budget',
+          child: FinniCard(
           color: over ? FinniColors.honey : FinniColors.mint,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1183,8 +1228,11 @@ class _BasketBoardState extends State<BasketBoard> {
             ],
           ),
         ),
+        ),
         const SizedBox(height: 12),
-        FinniCard(
+        CoachTarget(
+          id: 'basket.list',
+          child: FinniCard(
           color: FinniColors.paper,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1222,11 +1270,14 @@ class _BasketBoardState extends State<BasketBoard> {
             ],
           ),
         ),
+        ),
         const SizedBox(height: 12),
-        LayoutBuilder(builder: (context, constraints) {
+        CoachTarget(
+          id: 'basket.products',
+          child: LayoutBuilder(builder: (context, constraints) {
           final wide = MediaQuery.textScalerOf(context).scale(16) <= 22;
           final columns = wide ? 3 : 2;
-          final width = (constraints.maxWidth - (columns - 1) * 8) / columns;
+          final width = ((constraints.maxWidth - (columns - 1) * 8) / columns).clamp(0.0, double.infinity);
           return Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -1249,6 +1300,7 @@ class _BasketBoardState extends State<BasketBoard> {
             ],
           );
         }),
+        ),
       ],
     );
   }
@@ -1366,14 +1418,17 @@ class _WeekBoardState extends State<WeekBoard> {
         wallet -= event.cost;
       }
       if (wallet < 0) wallet = 0;
-      rows.add(_dayCard(day, put, wallet, savings, event, gap, texts));
+      final card = _dayCard(day, put, wallet, savings, event, gap, texts);
+      rows.add(day == 1 ? CoachTarget(id: 'week.first', child: card) : card);
     }
     final goalProgress =
         payload.target == 0 ? 0.0 : (savings / payload.target).clamp(0.0, 1.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FinniCard(
+        CoachTarget(
+          id: 'week.goal',
+          child: FinniCard(
           color: FinniColors.lavender,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1406,6 +1461,7 @@ class _WeekBoardState extends State<WeekBoard> {
               ),
             ],
           ),
+        ),
         ),
         const SizedBox(height: 12),
         ...rows,

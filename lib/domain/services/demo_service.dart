@@ -64,24 +64,24 @@ final class DemoService {
   /// «Разумный игрок»: шесть дней по плану, мечта достигнута,
   /// комната обставлена, питомец вырос.
   Future<DemoRun> prudentPlayer() => _play(goalId: 'ball_rope', days: const [
-        _DayScript(plan: (25, 5, 30), buy: [..._needs, 'treat'], deposit: 30, task: 'payments_sort_needs', taps: 3),
-        _DayScript(plan: (25, 5, 30), buy: [..._needs, 'treat'], deposit: 30, task: 'planning_distribute_day', taps: 3),
-        _DayScript(plan: (25, 5, 30), buy: [..._needs, 'treat'], deposit: 30, task: 'savings_distribute_days', taps: 3, claimGoal: true),
-        _DayScript(plan: (25, 30, 5), buy: [..._needs, 'treat', 'rug'], deposit: 5, task: 'payments_coins_pay', taps: 3),
-        _DayScript(plan: (25, 25, 10), buy: [..._needs, 'treat', 'flower_pot'], deposit: 10, task: 'planning_choice_enough', taps: 3),
-        _DayScript(plan: (25, 30, 5), buy: [..._needs, 'treat', 'poster'], deposit: 5, task: 'savings_week_plan', taps: 3),
+        _DayScript(plan: (25, 0, 15), buy: _needs, deposit: 15, task: 'payments_sort_needs', taps: 3),
+        _DayScript(plan: (25, 0, 15), buy: _needs, deposit: 15, task: 'planning_distribute_day', taps: 3),
+        _DayScript(plan: (25, 15, 0), buy: [..._needs, 'flower_pot'], deposit: 5, task: 'savings_distribute_days', taps: 3),
+        _DayScript(plan: (25, 15, 0), buy: [..._needs, 'cactus'], deposit: 5, task: 'payments_coins_pay', taps: 3),
+        _DayScript(plan: (25, 0, 15), buy: _needs, deposit: 50, task: 'planning_choice_enough', taps: 3, claimGoal: true),
+        _DayScript(plan: (25, 15, 0), buy: [..._needs, 'rug'], task: 'savings_week_plan', taps: 3),
       ]);
 
   /// «Транжира»: шесть дней без плана, вся сдача уходит на желаемое,
   /// копилка пустая. Питомец при этом здоров и весел: разница стратегий
   /// видна по комнате и росту, а не по наказанию.
   Future<DemoRun> spendthrift() => _play(days: const [
-        _DayScript(buy: [..._needs, 'treat', 'apple', 'balloon'], task: 'payments_sort_needs', taps: 3),
+        _DayScript(buy: [..._needs, 'treat', 'balloon'], task: 'payments_sort_needs', taps: 3),
         _DayScript(buy: [..._needs, 'treat', 'apple', 'bow'], task: 'payments_coins_pay', taps: 3),
         _DayScript(buy: [..._needs, 'treat', 'apple', 'scarf'], taps: 3),
-        _DayScript(buy: [..._needs, 'treat', 'apple', 'cap'], taps: 3),
-        _DayScript(buy: [..._needs, 'treat', 'apple', 'glasses'], taps: 3),
-        _DayScript(buy: [..._needs, 'treat', 'apple', 'raincoat'], taps: 3),
+        _DayScript(buy: [..._needs, 'treat', 'cap'], taps: 3),
+        _DayScript(buy: [..._needs, 'treat', 'apple'], taps: 3),
+        _DayScript(buy: [..._needs, 'treat', 'apple'], taps: 3),
       ]);
 
   static const List<String> _needs = ['food', 'water_light', 'cleaning'];
@@ -151,9 +151,9 @@ final class DemoService {
     }
     if (script.task case final task?) {
       wallet.earn(
-        amount: 10,
+        amount: 20,
         sourceId: 'task:$task',
-        reasonText: 'Задание выполнено.',
+        reasonText: 'Уровень дня пройден.',
         at: at,
         dayNumber: day,
       );

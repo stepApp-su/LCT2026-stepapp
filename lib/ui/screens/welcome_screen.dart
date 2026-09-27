@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../game_controller.dart';
 import '../theme/finni_theme.dart';
 import '../widgets/moni_scene.dart';
+import '../widgets/name_picker.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key, required this.state});
@@ -13,6 +14,7 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   int step = 0;
   String name = 'Мони';
+  bool nameOk = true;
   bool simple = true;
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -87,20 +89,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   title: Text(entry.$2)),
                             const SizedBox(height: 16),
                             const Text(
-                                'Сейчас доступен Мони. Другие питомцы и варианты внешности — в работе у Игоря.',
+                                'Монеты здесь игровые. Учимся тратить и копить без настоящих денег.',
                                 style: TextStyle(color: FinniColors.muted)),
                           ],
                           if (step == 1)
-                            Wrap(spacing: 8, runSpacing: 8, children: [
-                              for (final option
-                                  in widget.state.config['names'] as List)
-                                ChoiceChip(
-                                    label: Text(option as String),
-                                    selected: name == option,
-                                    onSelected: (_) =>
-                                        setState(() => name = option),
-                                    padding: const EdgeInsets.all(12))
-                            ]),
+                            NamePicker(
+                                initial: name,
+                                names: [
+                                  for (final option
+                                      in widget.state.config['names'] as List)
+                                    '$option'
+                                ],
+                                onChanged: (value, valid) => setState(() {
+                                      name = value;
+                                      nameOk = valid;
+                                    })),
                           if (step == 2) ...[
                             ListTile(
                                 title: const Text('Я только учусь'),
@@ -128,7 +131,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               FilledButton.icon(
-                                  onPressed: () {
+                                  onPressed: step == 1 && !nameOk
+                                      ? null
+                                      : () {
                                     if (step < 2) {
                                       setState(() => step++);
                                     } else {

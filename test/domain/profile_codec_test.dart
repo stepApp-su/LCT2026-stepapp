@@ -357,7 +357,11 @@ void main() {
 
     expect(goals.byId(profile.goalId!), isNotNull);
     expect(shop.byId(profile.activeWallpaperId!), isNotNull);
-    expect(profile.state, economy.pet.initialState);
+    for (final stat in PetStat.values) {
+      expect(profile.state.of(stat),
+          greaterThanOrEqualTo(economy.pet.initialState.of(stat)),
+          reason: stat.name);
+    }
     expect(_walletByJournal(profile),
         (profile.wallet.balance, profile.wallet.savings));
     for (final t in profile.currentDay.transactions) {

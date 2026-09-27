@@ -144,70 +144,200 @@
         "optional"
       ],
       "variants": {
-        "easy": {
-          "intro": "Помоги разложить покупки: что нужно обязательно, а что просто хочется?",
-          "hint": "Спроси себя: можно ли прожить без этого день?",
-          "cards": [
-            {
-              "id": "bread",
-              "label": "Хлеб",
-              "iconId": "icon_card_bread",
-              "bin": "mandatory",
-              "why": "Хлеб мы едим каждый день, без еды никак."
-            },
-            {
-              "id": "water",
-              "label": "Вода",
-              "iconId": "icon_card_water",
-              "bin": "mandatory",
-              "why": "Без воды не прожить и дня."
-            },
-            {
-              "id": "soap",
-              "label": "Мыло",
-              "iconId": "icon_card_soap",
-              "bin": "mandatory",
-              "why": "Мыло нужно, чтобы мыть руки и быть здоровым."
-            },
-            {
-              "id": "pet_food",
-              "label": "Корм для питомца",
-              "iconId": "icon_card_pet_food",
-              "bin": "mandatory",
-              "why": "Питомцу тоже нужно есть каждый день."
-            },
-            {
-              "id": "toy",
-              "label": "Игрушка",
-              "iconId": "icon_card_toy",
-              "bin": "optional",
-              "why": "С игрушкой весело, но и без неё можно."
-            },
-            {
-              "id": "candy",
-              "label": "Конфета",
-              "iconId": "icon_card_candy",
-              "bin": "optional",
-              "why": "Конфеты вкусные, но без них можно прожить."
-            },
-            {
-              "id": "bow",
-              "label": "Бант",
-              "iconId": "icon_card_bow",
-              "bin": "optional",
-              "why": "Бант красивый, но это украшение, а не необходимость."
-            },
-            {
-              "id": "stickers",
-              "label": "Наклейки",
-              "iconId": "icon_card_stickers",
-              "bin": "optional",
-              "why": "Наклейки — это для радости, а не для жизни."
-            }
-          ],
-          "explanationCorrect": "Всё верно! Без еды, воды и мыла не прожить. А игрушки и конфеты — это приятные желания.",
-          "explanationWrong": "Давай посмотрим на эти карточки ещё раз. На каждой есть подсказка."
-        },
+        "easy": [
+          {
+            "intro": "Помоги разложить покупки: что нужно обязательно, а что просто хочется?",
+            "hint": "Спроси себя: можно ли прожить без этого день?",
+            "cards": [
+              {
+                "id": "bread",
+                "label": "Хлеб",
+                "iconId": "icon_card_bread",
+                "bin": "mandatory",
+                "why": "Хлеб мы едим каждый день, без еды никак."
+              },
+              {
+                "id": "water",
+                "label": "Вода",
+                "iconId": "icon_card_water",
+                "bin": "mandatory",
+                "why": "Без воды не прожить и дня."
+              },
+              {
+                "id": "soap",
+                "label": "Мыло",
+                "iconId": "icon_card_soap",
+                "bin": "mandatory",
+                "why": "Мыло нужно, чтобы мыть руки и быть здоровым."
+              },
+              {
+                "id": "pet_food",
+                "label": "Корм для питомца",
+                "iconId": "icon_card_pet_food",
+                "bin": "mandatory",
+                "why": "Питомцу тоже нужно есть каждый день."
+              },
+              {
+                "id": "toy",
+                "label": "Игрушка",
+                "iconId": "icon_card_toy",
+                "bin": "optional",
+                "why": "С игрушкой весело, но и без неё можно."
+              },
+              {
+                "id": "candy",
+                "label": "Конфета",
+                "iconId": "icon_card_candy",
+                "bin": "optional",
+                "why": "Конфеты вкусные, но без них можно прожить."
+              },
+              {
+                "id": "bow",
+                "label": "Бант",
+                "iconId": "icon_card_bow",
+                "bin": "optional",
+                "why": "Бант красивый, но это украшение, а не необходимость."
+              },
+              {
+                "id": "stickers",
+                "label": "Наклейки",
+                "iconId": "icon_card_stickers",
+                "bin": "optional",
+                "why": "Наклейки — это для радости, а не для жизни."
+              }
+            ],
+            "explanationCorrect": "Всё верно! Без еды, воды и мыла не прожить. А игрушки и конфеты — это приятные желания.",
+            "explanationWrong": "Давай посмотрим на эти карточки ещё раз. На каждой есть подсказка."
+          },
+          {
+            "intro": "Собираемся на неделю. Разложи: что нужно обязательно, а что просто хочется?",
+            "hint": "Спроси себя: можно ли прожить без этого неделю?",
+            "cards": [
+              {
+                "id": "milk",
+                "label": "Молоко",
+                "iconId": "icon_card_milk",
+                "bin": "mandatory",
+                "why": "Молоко — это еда, её покупают регулярно."
+              },
+              {
+                "id": "eggs",
+                "label": "Яйца",
+                "iconId": "icon_card_eggs",
+                "bin": "mandatory",
+                "why": "Из яиц готовят завтрак — это нужная еда."
+              },
+              {
+                "id": "medicine",
+                "label": "Лекарство",
+                "iconId": "icon_card_medicine",
+                "bin": "mandatory",
+                "why": "Когда болеешь, лекарство нужно обязательно."
+              },
+              {
+                "id": "bus",
+                "label": "Проезд до школы",
+                "iconId": "icon_card_bus_ticket",
+                "bin": "mandatory",
+                "why": "Без проезда не добраться до школы."
+              },
+              {
+                "id": "chocolate",
+                "label": "Шоколадка",
+                "iconId": "icon_card_chocolate",
+                "bin": "optional",
+                "why": "Шоколадка вкусная, но без неё можно."
+              },
+              {
+                "id": "toy_car",
+                "label": "Машинка",
+                "iconId": "icon_card_toy_car",
+                "bin": "optional",
+                "why": "С машинкой весело, но это игрушка."
+              },
+              {
+                "id": "game",
+                "label": "Игра на телефон",
+                "iconId": "icon_card_phone_game",
+                "bin": "optional",
+                "why": "Игра радует, но без неё можно прожить."
+              },
+              {
+                "id": "ice_cream",
+                "label": "Мороженое",
+                "iconId": "icon_card_ice_cream",
+                "bin": "optional",
+                "why": "Мороженое — это угощение, а не необходимость."
+              }
+            ],
+            "explanationCorrect": "Отлично! Еда, лекарство и проезд нужны. А сладости и игры — приятные желания.",
+            "explanationWrong": "Давай посмотрим на эти карточки ещё раз. На каждой есть подсказка."
+          },
+          {
+            "intro": "Скоро в школу! Что нужно обязательно, а что просто хочется?",
+            "hint": "Подумай: без чего не получится учиться и не замёрзнуть?",
+            "cards": [
+              {
+                "id": "notebooks",
+                "label": "Тетради",
+                "iconId": "icon_card_notebooks",
+                "bin": "mandatory",
+                "why": "Без тетрадей не сделать уроки."
+              },
+              {
+                "id": "pen",
+                "label": "Ручка",
+                "iconId": "icon_card_pen",
+                "bin": "mandatory",
+                "why": "Ручкой пишут на уроках — она нужна."
+              },
+              {
+                "id": "jacket",
+                "label": "Тёплая куртка",
+                "iconId": "icon_card_jacket",
+                "bin": "mandatory",
+                "why": "Осенью без тёплой куртки холодно."
+              },
+              {
+                "id": "water",
+                "label": "Вода",
+                "iconId": "icon_card_water",
+                "bin": "mandatory",
+                "why": "Воду пьют каждый день."
+              },
+              {
+                "id": "jacket_fancy",
+                "label": "Вторая модная куртка",
+                "iconId": "icon_card_jacket_fancy",
+                "bin": "optional",
+                "why": "Одна тёплая куртка уже есть, вторая — для красоты."
+              },
+              {
+                "id": "cake",
+                "label": "Торт",
+                "iconId": "icon_card_cake",
+                "bin": "optional",
+                "why": "Торт — для праздника, а не на каждый день."
+              },
+              {
+                "id": "magazine",
+                "label": "Журнал с наклейками",
+                "iconId": "icon_card_magazine",
+                "bin": "optional",
+                "why": "Журнал интересный, но без него можно."
+              },
+              {
+                "id": "robot",
+                "label": "Робот",
+                "iconId": "icon_card_robot",
+                "bin": "optional",
+                "why": "Робот — классная игрушка, но это желание."
+              }
+            ],
+            "explanationCorrect": "Верно! Для школы нужны тетради, ручка и тёплая одежда. Остальное — для радости.",
+            "explanationWrong": "Давай посмотрим на эти карточки ещё раз. На каждой есть подсказка."
+          }
+        ],
         "hard": {
           "intro": "Разложи покупки. Осторожно: похожие вещи могут оказаться в разных корзинах!",
           "hint": "Важно не что это за вещь, а нужна ли она прямо сейчас.",
@@ -286,7 +416,235 @@
           "explanationCorrect": "Отлично! Главное замечено: одна куртка нужна, а вторая — уже желание.",
           "explanationWrong": "Почти! Посмотри на подсказки на карточках. Особенно на две куртки."
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Магазин у дома. Разложи: что нужно обязательно, а что просто хочется?",
+            "hint": "Спроси себя: без чего не обойтись сегодня?",
+            "cards": [
+              {
+                "id": "bread",
+                "label": "Хлеб к обеду",
+                "iconId": "icon_card_bread",
+                "bin": "mandatory",
+                "why": "Хлеб — это еда, без неё никак."
+              },
+              {
+                "id": "milk",
+                "label": "Молоко",
+                "iconId": "icon_card_milk",
+                "bin": "mandatory",
+                "why": "Молоко пьют каждый день, это еда."
+              },
+              {
+                "id": "soap",
+                "label": "Мыло",
+                "iconId": "icon_card_soap",
+                "bin": "mandatory",
+                "why": "Мыло нужно, чтобы быть чистым и здоровым."
+              },
+              {
+                "id": "pet_food",
+                "label": "Корм для питомца",
+                "iconId": "icon_card_pet_food",
+                "bin": "mandatory",
+                "why": "Питомцу нужно есть каждый день."
+              },
+              {
+                "id": "candy",
+                "label": "Леденцы",
+                "iconId": "icon_card_candy",
+                "bin": "optional",
+                "why": "Леденцы вкусные, но без них можно."
+              },
+              {
+                "id": "toy_car",
+                "label": "Машинка",
+                "iconId": "icon_card_toy_car",
+                "bin": "optional",
+                "why": "Машинка — игрушка, это желание."
+              },
+              {
+                "id": "stickers",
+                "label": "Наклейки",
+                "iconId": "icon_card_stickers",
+                "bin": "optional",
+                "why": "Наклейки для радости, а не для жизни."
+              },
+              {
+                "id": "balloon",
+                "label": "Воздушный шарик",
+                "iconId": "icon_board_balloon",
+                "bin": "optional",
+                "why": "Шарик красивый, но без него день пройдёт."
+              }
+            ],
+            "explanationCorrect": "Верно! Еда и мыло нужны всегда. Игрушки и сладости — приятные желания.",
+            "explanationWrong": "Давай посмотрим на эти карточки ещё раз. На каждой есть подсказка."
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Похожие вещи — разные корзины! Разложи внимательно.",
+            "hint": "Если такая вещь уже есть, вторая — это желание.",
+            "cards": [
+              {
+                "id": "notebooks",
+                "label": "Тетради для уроков",
+                "iconId": "icon_card_notebooks",
+                "bin": "mandatory",
+                "why": "Без тетрадей не сделать уроки."
+              },
+              {
+                "id": "medicine",
+                "label": "Лекарство, когда болеешь",
+                "iconId": "icon_card_medicine",
+                "bin": "mandatory",
+                "why": "Лекарство помогает поправиться."
+              },
+              {
+                "id": "water",
+                "label": "Вода",
+                "iconId": "icon_card_water",
+                "bin": "mandatory",
+                "why": "Воду пьют каждый день."
+              },
+              {
+                "id": "jacket",
+                "label": "Тёплая куртка",
+                "iconId": "icon_card_jacket",
+                "bin": "mandatory",
+                "why": "Без тёплой куртки зимой холодно."
+              },
+              {
+                "id": "bus",
+                "label": "Проезд до школы",
+                "iconId": "icon_card_bus_ticket",
+                "bin": "mandatory",
+                "why": "Без проезда до школы не добраться."
+              },
+              {
+                "id": "jacket_fancy",
+                "label": "Вторая куртка, модная",
+                "iconId": "icon_card_jacket_fancy",
+                "bin": "optional",
+                "why": "Одна тёплая куртка уже есть. Вторая — желание."
+              },
+              {
+                "id": "game",
+                "label": "Новая игра",
+                "iconId": "icon_card_phone_game",
+                "bin": "optional",
+                "why": "Игра радует, но без неё можно."
+              },
+              {
+                "id": "cake",
+                "label": "Торт без праздника",
+                "iconId": "icon_card_cake",
+                "bin": "optional",
+                "why": "Торт — угощение для праздника."
+              },
+              {
+                "id": "magazine",
+                "label": "Журнал",
+                "iconId": "icon_card_magazine",
+                "bin": "optional",
+                "why": "Журнал интересный, но это желание."
+              },
+              {
+                "id": "robot",
+                "label": "Робот",
+                "iconId": "icon_card_robot",
+                "bin": "optional",
+                "why": "Робот — игрушка, а не необходимость."
+              }
+            ],
+            "explanationCorrect": "Здорово! Ты заметил, что вторая куртка — уже желание, а не необходимость.",
+            "explanationWrong": "Давай посмотрим на эти карточки ещё раз. На каждой есть подсказка."
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Большая закупка на неделю! Тут есть хитрые карточки.",
+          "hint": "Подумай: это нужно, чтобы жить и учиться, или чтобы порадоваться?",
+          "cards": [
+            {
+              "id": "eggs",
+              "label": "Яйца",
+              "iconId": "icon_card_eggs",
+              "bin": "mandatory",
+              "why": "Яйца — еда на завтрак."
+            },
+            {
+              "id": "milk",
+              "label": "Молоко",
+              "iconId": "icon_card_milk",
+              "bin": "mandatory",
+              "why": "Молоко — еда на каждый день."
+            },
+            {
+              "id": "bread",
+              "label": "Хлеб",
+              "iconId": "icon_card_bread",
+              "bin": "mandatory",
+              "why": "Хлеб едим каждый день."
+            },
+            {
+              "id": "soap",
+              "label": "Мыло",
+              "iconId": "icon_card_soap",
+              "bin": "mandatory",
+              "why": "Без мыла не помыть руки."
+            },
+            {
+              "id": "medicine",
+              "label": "Лекарство от кашля, пока болеешь",
+              "iconId": "icon_card_medicine",
+              "bin": "mandatory",
+              "why": "Когда болеешь, лекарство нужно."
+            },
+            {
+              "id": "pen",
+              "label": "Ручка, если старая закончилась",
+              "iconId": "icon_card_pen",
+              "bin": "mandatory",
+              "why": "Без ручки не написать уроки."
+            },
+            {
+              "id": "pizza",
+              "label": "Пицца вместо обеда",
+              "iconId": "icon_card_pizza",
+              "bin": "optional",
+              "why": "Обед можно приготовить дома. Пицца — угощение."
+            },
+            {
+              "id": "juice",
+              "label": "Сок, когда есть вода",
+              "iconId": "icon_card_juice",
+              "bin": "optional",
+              "why": "Вода есть. Сок — это вкусное желание."
+            },
+            {
+              "id": "sneakers",
+              "label": "Третьи кроссовки",
+              "iconId": "icon_card_sneakers",
+              "bin": "optional",
+              "why": "Две пары уже есть, третья — желание."
+            },
+            {
+              "id": "ice_cream",
+              "label": "Мороженое",
+              "iconId": "icon_card_ice_cream",
+              "bin": "optional",
+              "why": "Мороженое — лакомство."
+            }
+          ],
+          "explanationCorrect": "Отлично! Ты разобрался даже в хитрых карточках. Вот что значит думать перед покупкой.",
+          "explanationWrong": "Давай посмотрим на эти карточки ещё раз. На каждой есть подсказка."
+        }
+      ]
     },
     {
       "id": "payments_coins_pay",
@@ -315,35 +673,95 @@
         "correctLogic": "Начинаем с самой крупной монеты, которая не больше цены, и добавляем мелкие, пока не наберётся ровно цена."
       },
       "variants": {
-        "easy": {
-          "intro": "Питомец хочет яблоко за 8 монет. Выложи на прилавок ровно 8.",
-          "hint": "Начни с самой большой монетки, которая не больше 8.",
-          "price": 8,
-          "wallet": {
-            "1": 3,
-            "2": 2,
-            "5": 1,
-            "10": 1
-          },
-          "rules": [
-            {
-              "type": "sumAtLeast",
-              "value": 8,
-              "failCode": "tooLittle"
+        "easy": [
+          {
+            "intro": "Питомец хочет яблоко за 8 монет. Выложи на прилавок ровно 8.",
+            "hint": "Начни с самой большой монетки, которая не больше 8.",
+            "price": 8,
+            "wallet": {
+              "1": 3,
+              "2": 2,
+              "5": 1,
+              "10": 1
             },
-            {
-              "type": "sumAtMost",
-              "value": 8,
-              "failCode": "tooMuch"
+            "rules": [
+              {
+                "type": "sumAtLeast",
+                "value": 8,
+                "failCode": "tooLittle"
+              },
+              {
+                "type": "sumAtMost",
+                "value": 8,
+                "failCode": "tooMuch"
+              }
+            ],
+            "explanationCorrect": "Ровно 8! Продавец доволен, яблоко наше.",
+            "explanationWrong": "Давай пересчитаем монетки на прилавке.",
+            "explanationsByReason": {
+              "tooLittle": "На прилавке {onCounter}. До 8 ещё не хватает — добавь монетку.",
+              "tooMuch": "На прилавке {onCounter}, а яблоко стоит 8. Одну монетку можно забрать."
             }
-          ],
-          "explanationCorrect": "Ровно 8! Продавец доволен, яблоко наше.",
-          "explanationWrong": "Давай пересчитаем монетки на прилавке.",
-          "explanationsByReason": {
-            "tooLittle": "На прилавке {onCounter}. До 8 ещё не хватает — добавь монетку.",
-            "tooMuch": "На прилавке {onCounter}, а яблоко стоит 8. Одну монетку можно забрать."
+          },
+          {
+            "intro": "Питомец хочет сок за 7 монет. Выложи на прилавок ровно 7.",
+            "hint": "Начни с самой большой монетки, которая не больше 7.",
+            "price": 7,
+            "wallet": {
+              "1": 3,
+              "2": 2,
+              "5": 1,
+              "10": 1
+            },
+            "rules": [
+              {
+                "type": "sumAtLeast",
+                "value": 7,
+                "failCode": "tooLittle"
+              },
+              {
+                "type": "sumAtMost",
+                "value": 7,
+                "failCode": "tooMuch"
+              }
+            ],
+            "explanationCorrect": "Ровно 7! Продавец доволен, покупка наша.",
+            "explanationWrong": "Давай пересчитаем монетки на прилавке.",
+            "explanationsByReason": {
+              "tooLittle": "На прилавке {onCounter}. До 7 ещё не хватает — добавь монетку.",
+              "tooMuch": "На прилавке {onCounter}, а нужно 7. Одну монетку можно забрать."
+            }
+          },
+          {
+            "intro": "Питомец хочет книжку за 13 монет. Выложи на прилавок ровно 13.",
+            "hint": "Начни с самой большой монетки, которая не больше 13.",
+            "price": 13,
+            "wallet": {
+              "1": 2,
+              "2": 2,
+              "5": 1,
+              "10": 1
+            },
+            "rules": [
+              {
+                "type": "sumAtLeast",
+                "value": 13,
+                "failCode": "tooLittle"
+              },
+              {
+                "type": "sumAtMost",
+                "value": 13,
+                "failCode": "tooMuch"
+              }
+            ],
+            "explanationCorrect": "Ровно 13! Продавец доволен, покупка наша.",
+            "explanationWrong": "Давай пересчитаем монетки на прилавке.",
+            "explanationsByReason": {
+              "tooLittle": "На прилавке {onCounter}. До 13 ещё не хватает — добавь монетку.",
+              "tooMuch": "На прилавке {onCounter}, а нужно 13. Одну монетку можно забрать."
+            }
           }
-        },
+        ],
         "hard": {
           "intro": "Лакомство стоит 17 монет. Заплати ровно 17, но не больше чем тремя монетками.",
           "hint": "Какая самая большая монетка поместится в 17?",
@@ -379,7 +797,114 @@
             "tooManyCoins": "Сумма верная! А можно ровно 17 всего тремя монетками?"
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Питомец хочет пенал за 11 монет. Выложи ровно 11.",
+            "hint": "Начни с самой большой монетки, которая не больше 11.",
+            "price": 11,
+            "wallet": {
+              "1": 3,
+              "2": 2,
+              "5": 1,
+              "10": 1
+            },
+            "rules": [
+              {
+                "type": "sumAtLeast",
+                "value": 11,
+                "failCode": "tooLittle"
+              },
+              {
+                "type": "sumAtMost",
+                "value": 11,
+                "failCode": "tooMuch"
+              }
+            ],
+            "explanationCorrect": "Ровно 11! Пенал наш.",
+            "explanationWrong": "Давай пересчитаем монетки на прилавке.",
+            "explanationsByReason": {
+              "tooLittle": "На прилавке {onCounter}. До 11 ещё не хватает.",
+              "tooMuch": "На прилавке {onCounter} — это больше 11. Что можно забрать?"
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Мячик стоит 16. Заплати ровно 16, но не больше чем тремя монетками.",
+            "hint": "Какая самая крупная монета поместится в 16?",
+            "price": 16,
+            "wallet": {
+              "1": 4,
+              "2": 3,
+              "5": 2,
+              "10": 1
+            },
+            "rules": [
+              {
+                "type": "sumAtLeast",
+                "value": 16,
+                "failCode": "tooLittle"
+              },
+              {
+                "type": "sumAtMost",
+                "value": 16,
+                "failCode": "tooMuch"
+              },
+              {
+                "type": "maxCoins",
+                "value": 3,
+                "failCode": "tooManyCoins"
+              }
+            ],
+            "explanationCorrect": "Ровно 16 тремя монетками: 10, 5 и 1. Ловко!",
+            "explanationWrong": "Давай пересчитаем монетки на прилавке.",
+            "explanationsByReason": {
+              "tooLittle": "На прилавке {onCounter}. До 16 ещё не хватает.",
+              "tooMuch": "На прилавке {onCounter} — это больше 16. Что можно забрать?",
+              "tooManyCoins": "Сумма верная! А можно ровно 16 не больше чем тремя монетками?"
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Книжка стоит 19. Заплати ровно 19, но не больше чем четырьмя монетками.",
+          "hint": "Сначала крупные монеты, потом добери мелкими.",
+          "price": 19,
+          "wallet": {
+            "1": 4,
+            "2": 3,
+            "5": 2,
+            "10": 1
+          },
+          "rules": [
+            {
+              "type": "sumAtLeast",
+              "value": 19,
+              "failCode": "tooLittle"
+            },
+            {
+              "type": "sumAtMost",
+              "value": 19,
+              "failCode": "tooMuch"
+            },
+            {
+              "type": "maxCoins",
+              "value": 4,
+              "failCode": "tooManyCoins"
+            }
+          ],
+          "explanationCorrect": "19 четырьмя монетками: 10, 5, 2 и 2. Настоящий кассир!",
+          "explanationWrong": "Давай пересчитаем монетки на прилавке.",
+          "explanationsByReason": {
+            "tooLittle": "На прилавке {onCounter}. До 19 ещё не хватает.",
+            "tooMuch": "На прилавке {onCounter} — это больше 19. Что можно забрать?",
+            "tooManyCoins": "Сумма верная! А можно ровно 19 не больше чем четырьмя монетками?"
+          }
+        }
+      ]
     },
     {
       "id": "planning_distribute_day",
@@ -410,9 +935,9 @@
       "counterSource": "plan.directions",
       "variants": {
         "easy": {
-          "intro": "Есть 60 монет. Обязательное стоит 25: еда 15, вода и свет 5, уборка 5. Отложи в копилку хотя бы 10.",
+          "intro": "Есть 40 монет. Обязательное стоит 25: еда 15, вода и свет 5, уборка 5. Отложи в копилку хотя бы 10.",
           "hint": "Начни с обязательного: сложи 15, 5 и 5.",
-          "pool": 60,
+          "pool": 40,
           "counters": [
             {
               "id": "mandatory",
@@ -506,7 +1031,164 @@
             "savingsShort": "В копилку нужно хотя бы 20. Монет хватает, проверь!"
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Есть 45 монет. Обязательное стоит 25. Отложи в копилку хотя бы 15.",
+            "hint": "Сначала обязательное: 15, 5 и 5.",
+            "pool": 45,
+            "counters": [
+              {
+                "id": "mandatory",
+                "step": 5,
+                "unitValue": 1,
+                "min": 0
+              },
+              {
+                "id": "optional",
+                "step": 5,
+                "unitValue": 1,
+                "min": 0
+              },
+              {
+                "id": "savings",
+                "step": 5,
+                "unitValue": 1,
+                "min": 0
+              }
+            ],
+            "rules": [
+              {
+                "type": "atLeast",
+                "counter": "mandatory",
+                "value": 25,
+                "failCode": "mandatoryShort"
+              },
+              {
+                "type": "atLeast",
+                "counter": "savings",
+                "value": 15,
+                "failCode": "savingsShort"
+              }
+            ],
+            "explanationCorrect": "Отличный план! Обязательное оплачено, копилка растёт.",
+            "explanationWrong": "Давай проверим план вместе.",
+            "explanationsByReason": {
+              "mandatoryShort": "Еда 15, вода и свет 5, уборка 5 — вместе 25. Столько нужно на обязательное.",
+              "savingsShort": "Обязательное на месте! В копилку нужно хотя бы 15."
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Есть 60 монет. Обязательное — 25. Хочется подарок другу за 15. И отложить хотя бы 15.",
+            "hint": "Сложи 25, 15 и 15. Хватит ли 60?",
+            "pool": 60,
+            "counters": [
+              {
+                "id": "mandatory",
+                "step": 5,
+                "unitValue": 1,
+                "min": 0
+              },
+              {
+                "id": "optional",
+                "step": 5,
+                "unitValue": 1,
+                "min": 0
+              },
+              {
+                "id": "savings",
+                "step": 5,
+                "unitValue": 1,
+                "min": 0
+              }
+            ],
+            "rules": [
+              {
+                "type": "atLeast",
+                "counter": "mandatory",
+                "value": 25,
+                "failCode": "mandatoryShort"
+              },
+              {
+                "type": "atLeast",
+                "counter": "optional",
+                "value": 15,
+                "failCode": "giftShort"
+              },
+              {
+                "type": "atLeast",
+                "counter": "savings",
+                "value": 15,
+                "failCode": "savingsShort"
+              }
+            ],
+            "explanationCorrect": "Всё поместилось: и нужное, и подарок, и копилка!",
+            "explanationWrong": "Давай проверим план вместе.",
+            "explanationsByReason": {
+              "mandatoryShort": "Сначала обязательное: вместе 25.",
+              "giftShort": "На подарок нужно 15. Добавь их в желаемое.",
+              "savingsShort": "В копилку нужно хотя бы 15. Монет хватает, проверь!"
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Есть 70 монет. Обязательное — 25. Кино с другом — 20. В копилку хотя бы 25. Монет ровно впритык!",
+          "hint": "Сложи всё: 25, 20 и 25.",
+          "pool": 70,
+          "counters": [
+            {
+              "id": "mandatory",
+              "step": 5,
+              "unitValue": 1,
+              "min": 0
+            },
+            {
+              "id": "optional",
+              "step": 5,
+              "unitValue": 1,
+              "min": 0
+            },
+            {
+              "id": "savings",
+              "step": 5,
+              "unitValue": 1,
+              "min": 0
+            }
+          ],
+          "rules": [
+            {
+              "type": "atLeast",
+              "counter": "mandatory",
+              "value": 25,
+              "failCode": "mandatoryShort"
+            },
+            {
+              "type": "atLeast",
+              "counter": "optional",
+              "value": 20,
+              "failCode": "movieShort"
+            },
+            {
+              "type": "atLeast",
+              "counter": "savings",
+              "value": 25,
+              "failCode": "savingsShort"
+            }
+          ],
+          "explanationCorrect": "Идеально! Все 70 монет разложены по плану, ни одной лишней.",
+          "explanationWrong": "Давай проверим план вместе.",
+          "explanationsByReason": {
+            "mandatoryShort": "Сначала обязательное: вместе 25.",
+            "movieShort": "На кино нужно 20. Добавь их в желаемое.",
+            "savingsShort": "В копилку нужно хотя бы 25. Посмотри, куда ушли лишние монеты."
+          }
+        }
+      ]
     },
     {
       "id": "payments_order_prices",
@@ -534,51 +1216,143 @@
         "correctLogic": "Мелкие вещи на каждый день стоят дёшево. Крупные вещи, которые служат годами, стоят дорого. Точные цены не нужны — важен порядок."
       },
       "variants": {
-        "easy": {
-          "intro": "Расставь сверху вниз: наверху самое дешёвое, внизу самое дорогое.",
-          "hint": "Подумай, что покупают часто, а что — раз в несколько лет.",
-          "items": [
-            {
-              "id": "candy",
-              "label": "Конфета",
-              "iconId": "icon_card_candy",
-              "rank": 1,
-              "why": "Конфета маленькая, её покупают часто. Она дешёвая."
-            },
-            {
-              "id": "book",
-              "label": "Книжка",
-              "iconId": "icon_card_book",
-              "rank": 2,
-              "why": "Книжку читают долго, она дороже конфеты."
-            },
-            {
-              "id": "bicycle",
-              "label": "Велосипед",
-              "iconId": "icon_card_bicycle",
-              "rank": 3,
-              "why": "Велосипед служит годами, он стоит намного дороже."
-            },
-            {
-              "id": "fridge",
-              "label": "Холодильник",
-              "iconId": "icon_card_fridge",
-              "rank": 4,
-              "why": "Холодильник — большая техника для всей семьи. Самая дорогая покупка тут."
+        "easy": [
+          {
+            "intro": "Расставь сверху вниз: наверху самое дешёвое, внизу самое дорогое.",
+            "hint": "Подумай, что покупают часто, а что — раз в несколько лет.",
+            "items": [
+              {
+                "id": "candy",
+                "label": "Конфета",
+                "iconId": "icon_card_candy",
+                "rank": 1,
+                "why": "Конфета маленькая, её покупают часто. Она дешёвая."
+              },
+              {
+                "id": "book",
+                "label": "Книжка",
+                "iconId": "icon_card_book",
+                "rank": 2,
+                "why": "Книжку читают долго, она дороже конфеты."
+              },
+              {
+                "id": "bicycle",
+                "label": "Велосипед",
+                "iconId": "icon_card_bicycle",
+                "rank": 3,
+                "why": "Велосипед служит годами, он стоит намного дороже."
+              },
+              {
+                "id": "fridge",
+                "label": "Холодильник",
+                "iconId": "icon_card_fridge",
+                "rank": 4,
+                "why": "Холодильник — большая техника для всей семьи. Самая дорогая покупка тут."
+              }
+            ],
+            "rules": [
+              {
+                "type": "nonDecreasingRank",
+                "failCode": "wrongOrder"
+              }
+            ],
+            "explanationCorrect": "Всё по местам! Чем крупнее вещь и чем дольше служит, тем она дороже.",
+            "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+            "explanationsByReason": {
+              "wrongOrder": "{why}"
             }
-          ],
-          "rules": [
-            {
-              "type": "nonDecreasingRank",
-              "failCode": "wrongOrder"
+          },
+          {
+            "intro": "Расставь сверху вниз: наверху самое дешёвое, внизу самое дорогое.",
+            "hint": "Подумай, что покупают часто, а что — раз в несколько лет.",
+            "items": [
+              {
+                "id": "pen",
+                "label": "Ручка",
+                "iconId": "icon_card_pen",
+                "rank": 1,
+                "why": "Ручка маленькая и стоит недорого."
+              },
+              {
+                "id": "book",
+                "label": "Книжка",
+                "iconId": "icon_card_book",
+                "rank": 2,
+                "why": "Книжка дороже ручки, её читают долго."
+              },
+              {
+                "id": "sneakers",
+                "label": "Кроссовки",
+                "iconId": "icon_card_sneakers",
+                "rank": 3,
+                "why": "Кроссовки носят целый сезон, они дороже книжки."
+              },
+              {
+                "id": "fridge",
+                "label": "Холодильник",
+                "iconId": "icon_card_fridge",
+                "rank": 4,
+                "why": "Холодильник служит много лет. Это самая дорогая покупка тут."
+              }
+            ],
+            "rules": [
+              {
+                "type": "nonDecreasingRank",
+                "failCode": "wrongOrder"
+              }
+            ],
+            "explanationCorrect": "Всё по местам! Чем дольше служит вещь, тем она обычно дороже.",
+            "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+            "explanationsByReason": {
+              "wrongOrder": "{why}"
             }
-          ],
-          "explanationCorrect": "Всё по местам! Чем крупнее вещь и чем дольше служит, тем она дороже.",
-          "explanationWrong": "Почти! Посмотри на карточку без галочки.",
-          "explanationsByReason": {
-            "wrongOrder": "{why}"
+          },
+          {
+            "intro": "Расставь сверху вниз: наверху самое дешёвое, внизу самое дорогое.",
+            "hint": "Подумай, что покупают часто, а что — раз в несколько лет.",
+            "items": [
+              {
+                "id": "juice",
+                "label": "Сок",
+                "iconId": "icon_card_juice",
+                "rank": 1,
+                "why": "Сок выпивают быстро, он дешёвый."
+              },
+              {
+                "id": "pizza",
+                "label": "Пицца",
+                "iconId": "icon_card_pizza",
+                "rank": 2,
+                "why": "Пицца дороже сока — это целый обед."
+              },
+              {
+                "id": "jacket",
+                "label": "Куртка",
+                "iconId": "icon_card_jacket",
+                "rank": 3,
+                "why": "Куртку носят несколько лет, она дороже пиццы."
+              },
+              {
+                "id": "bicycle",
+                "label": "Велосипед",
+                "iconId": "icon_card_bicycle",
+                "rank": 4,
+                "why": "Велосипед — большая вещь на годы. Самый дорогой тут."
+              }
+            ],
+            "rules": [
+              {
+                "type": "nonDecreasingRank",
+                "failCode": "wrongOrder"
+              }
+            ],
+            "explanationCorrect": "Всё по местам! Еда дешевле одежды, а одежда дешевле велосипеда.",
+            "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+            "explanationsByReason": {
+              "wrongOrder": "{why}"
+            }
           }
-        },
+        ],
         "hard": {
           "intro": "Расставь сверху вниз: от самого дешёвого к самому дорогому. Тут пять вещей!",
           "hint": "Сравни каждые две соседние карточки: что дороже?",
@@ -631,7 +1405,171 @@
             "wrongOrder": "{why}"
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Пять покупок на полке. Самое дешёвое — наверх, самое дорогое — вниз.",
+            "hint": "Что покупают часто, а что — раз в несколько лет?",
+            "items": [
+              {
+                "id": "eraser",
+                "label": "Ластик",
+                "iconId": "icon_card_eraser",
+                "rank": 1,
+                "why": "Ластик маленький и дешёвый."
+              },
+              {
+                "id": "ice_cream",
+                "label": "Мороженое",
+                "iconId": "icon_card_ice_cream",
+                "rank": 2,
+                "why": "Мороженое чуть дороже ластика."
+              },
+              {
+                "id": "pizza",
+                "label": "Пицца",
+                "iconId": "icon_card_pizza",
+                "rank": 3,
+                "why": "Пицца — целый ужин, она дороже мороженого."
+              },
+              {
+                "id": "jacket",
+                "label": "Куртка",
+                "iconId": "icon_card_jacket",
+                "rank": 4,
+                "why": "Куртку носят несколько лет, она дороже пиццы."
+              },
+              {
+                "id": "bicycle",
+                "label": "Велосипед",
+                "iconId": "icon_card_bicycle",
+                "rank": 5,
+                "why": "Велосипед — большая вещь на годы. Самый дорогой."
+              }
+            ],
+            "rules": [
+              {
+                "type": "nonDecreasingRank",
+                "failCode": "wrongOrder"
+              }
+            ],
+            "explanationCorrect": "Всё по местам! Чем дольше служит вещь, тем она обычно дороже.",
+            "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+            "explanationsByReason": {
+              "wrongOrder": "{why}"
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Пять вещей! Расставь от самой дешёвой наверху до самой дорогой внизу.",
+            "hint": "Маленькое и на один раз — дёшево. Большое и надолго — дорого.",
+            "items": [
+              {
+                "id": "pen",
+                "label": "Ручка",
+                "iconId": "icon_card_pen",
+                "rank": 1,
+                "why": "Ручка стоит совсем немного."
+              },
+              {
+                "id": "magazine",
+                "label": "Журнал",
+                "iconId": "icon_card_magazine",
+                "rank": 2,
+                "why": "Журнал дороже ручки, но его читают недолго."
+              },
+              {
+                "id": "cake",
+                "label": "Торт",
+                "iconId": "icon_card_cake",
+                "rank": 3,
+                "why": "Торт на праздник дороже журнала."
+              },
+              {
+                "id": "sneakers",
+                "label": "Кроссовки",
+                "iconId": "icon_card_sneakers",
+                "rank": 4,
+                "why": "Кроссовки носят целый сезон — дороже торта."
+              },
+              {
+                "id": "repair",
+                "label": "Ремонт комнаты",
+                "iconId": "icon_card_repair",
+                "rank": 5,
+                "why": "Ремонт — это работа мастеров и материалы. Очень дорого."
+              }
+            ],
+            "rules": [
+              {
+                "type": "nonDecreasingRank",
+                "failCode": "wrongOrder"
+              }
+            ],
+            "explanationCorrect": "Отлично! Ты расставил пять вещей по цене.",
+            "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+            "explanationsByReason": {
+              "wrongOrder": "{why}"
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Большая полка! Расставь пять вещей: наверху самое дешёвое, внизу самое дорогое.",
+          "hint": "Сравни, сколько времени служит каждая вещь.",
+          "items": [
+            {
+              "id": "candy",
+              "label": "Конфета",
+              "iconId": "icon_card_candy",
+              "rank": 1,
+              "why": "Конфету съедают за минуту. Она самая дешёвая."
+            },
+            {
+              "id": "book",
+              "label": "Книжка",
+              "iconId": "icon_card_book",
+              "rank": 2,
+              "why": "Книжку читают долго — она дороже конфеты."
+            },
+            {
+              "id": "jacket",
+              "label": "Куртка",
+              "iconId": "icon_card_jacket",
+              "rank": 3,
+              "why": "Куртку носят несколько лет."
+            },
+            {
+              "id": "bicycle",
+              "label": "Велосипед",
+              "iconId": "icon_card_bicycle",
+              "rank": 4,
+              "why": "Велосипед служит годами — дороже куртки."
+            },
+            {
+              "id": "fridge",
+              "label": "Холодильник",
+              "iconId": "icon_card_fridge",
+              "rank": 5,
+              "why": "Холодильник — большая техника для всей семьи. Самый дорогой."
+            }
+          ],
+          "rules": [
+            {
+              "type": "nonDecreasingRank",
+              "failCode": "wrongOrder"
+            }
+          ],
+          "explanationCorrect": "Всё верно! Полка цен в полном порядке.",
+          "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+          "explanationsByReason": {
+            "wrongOrder": "{why}"
+          }
+        }
+      ]
     },
     {
       "id": "planning_choice_enough",
@@ -660,27 +1598,71 @@
         "correctLogic": "Складываем цены всего, что осталось купить, и сравниваем с остатком. Если не хватает на всё — сначала обязательное."
       },
       "variants": {
-        "easy": {
-          "intro": "Осталось 20 монет. Ещё нужно купить еду за 15 и воду и свет за 5.",
-          "question": "Хватит монет?",
-          "hint": "Сложи 15 и 5 и сравни с 20.",
-          "options": [
-            {
-              "id": "yes",
-              "label": "Хватит",
-              "isCorrect": true,
-              "explanation": "Верно! 15 и 5 — это 20. Хватит ровно, без сдачи."
-            },
-            {
-              "id": "no",
-              "label": "Не хватит",
-              "isCorrect": false,
-              "explanation": "Давай сложим: 15 и 5 — это 20. А у нас как раз 20. Хватит ровно!"
-            }
-          ],
-          "explanationCorrect": "Верно! 15 и 5 — это 20. Хватит ровно, без сдачи.",
-          "explanationWrong": "Давай сложим: 15 и 5 — это 20. А у нас как раз 20. Хватит ровно!"
-        },
+        "easy": [
+          {
+            "intro": "Осталось 20 монет. Ещё нужно купить еду за 15 и воду и свет за 5.",
+            "question": "Хватит монет?",
+            "hint": "Сложи 15 и 5 и сравни с 20.",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Хватит",
+                "isCorrect": true,
+                "explanation": "Верно! 15 и 5 — это 20. Хватит ровно, без сдачи."
+              },
+              {
+                "id": "no",
+                "label": "Не хватит",
+                "isCorrect": false,
+                "explanation": "Давай сложим: 15 и 5 — это 20. А у нас как раз 20. Хватит ровно!"
+              }
+            ],
+            "explanationCorrect": "Верно! 15 и 5 — это 20. Хватит ровно, без сдачи.",
+            "explanationWrong": "Давай сложим: 15 и 5 — это 20. А у нас как раз 20. Хватит ровно!"
+          },
+          {
+            "intro": "Осталось 30 монет. Ещё нужно купить еду за 15 и уборку за 5.",
+            "question": "Хватит монет?",
+            "hint": "Сложи 15 и 5 и сравни с 30.",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Хватит",
+                "isCorrect": true,
+                "explanation": "Верно! 15 и 5 — это 20. Из 30 ещё и 10 останется."
+              },
+              {
+                "id": "no",
+                "label": "Не хватит",
+                "isCorrect": false,
+                "explanation": "Давай сложим: 15 и 5 — это 20. А у нас 30. Хватит, и ещё останется 10!"
+              }
+            ],
+            "explanationCorrect": "Верно! 15 и 5 — это 20. Из 30 ещё и 10 останется.",
+            "explanationWrong": "Давай сложим: 15 и 5 — это 20. А у нас 30. Хватит, и ещё останется 10!"
+          },
+          {
+            "intro": "Осталось 15 монет. Ещё нужно купить еду за 15 и воду и свет за 5.",
+            "question": "Хватит монет?",
+            "hint": "Сложи 15 и 5 и сравни с 15.",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Хватит",
+                "isCorrect": false,
+                "explanation": "Давай сложим: 15 и 5 — это 20. А у нас только 15. Не хватит 5 монет."
+              },
+              {
+                "id": "no",
+                "label": "Не хватит",
+                "isCorrect": true,
+                "explanation": "Верно! 15 и 5 — это 20, а у нас 15. Не хватит 5 монет. Сначала купим еду."
+              }
+            ],
+            "explanationCorrect": "Верно! 15 и 5 — это 20, а у нас 15. Не хватит 5 монет. Сначала купим еду.",
+            "explanationWrong": "Давай сложим: 15 и 5 — это 20. А у нас только 15. Не хватит 5 монет."
+          }
+        ],
         "hard": {
           "intro": "Осталось 25 монет. Нужно: еда 15, вода и свет 5, уборка 5. А ещё хочется лакомство за 5.",
           "question": "На что хватит монет?",
@@ -708,7 +1690,96 @@
           "explanationCorrect": "Точно! Обязательное стоит ровно 25. Лакомство подождёт до завтра.",
           "explanationWrong": "Давай сначала сложим обязательное: 15, 5 и 5."
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Осталось 30 монет. Нужно: еда 15, вода и свет 5, уборка 5. Хочется наклейки за 10.",
+            "question": "На что хватит монет?",
+            "hint": "Сначала сложи обязательное: 15, 5 и 5.",
+            "options": [
+              {
+                "id": "all",
+                "label": "На всё",
+                "isCorrect": false,
+                "explanation": "Обязательное — 25, наклейки — 10. Вместе 35, а у нас 30. На всё не хватит."
+              },
+              {
+                "id": "mandatory",
+                "label": "Только на обязательное",
+                "isCorrect": true,
+                "explanation": "Точно! Обязательное — 25. Останется 5, а наклейки стоят 10."
+              },
+              {
+                "id": "none",
+                "label": "Даже на обязательное не хватит",
+                "isCorrect": false,
+                "explanation": "Смотри: 15, 5 и 5 — это 25. А у нас 30. На обязательное хватает!"
+              }
+            ],
+            "explanationCorrect": "Точно! Обязательное — 25. Останется 5, а наклейки стоят 10.",
+            "explanationWrong": "Давай сложим: обязательное — 25, у нас 30. Хватает на нужное, а на наклейки — нет."
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Осталось 35 монет. Нужно: еда 15, вода и свет 5, уборка 5. Хочется лакомство за 5 и шарик за 10.",
+            "question": "На что хватит монет?",
+            "hint": "Сложи обязательное, а потом добавляй желания по одному.",
+            "options": [
+              {
+                "id": "all",
+                "label": "На всё",
+                "isCorrect": false,
+                "explanation": "Обязательное 25, лакомство 5, шарик 10 — вместе 40. У нас 35. На всё не хватит."
+              },
+              {
+                "id": "treat",
+                "label": "Обязательное и лакомство",
+                "isCorrect": true,
+                "explanation": "Верно! 25 и 5 — это 30. Даже 5 монет останется."
+              },
+              {
+                "id": "fun",
+                "label": "Лакомство и шарик",
+                "isCorrect": false,
+                "explanation": "Лакомство и шарик — это желания. Сначала обязательное!"
+              }
+            ],
+            "explanationCorrect": "Верно! 25 и 5 — это 30. Даже 5 монет останется.",
+            "explanationWrong": "Давай сложим: обязательное 25. Из 35 останется 10 — хватит на лакомство или шарик, но не на оба."
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Осталось 50 монет. Обязательное стоит 25. Хочется мяч за 20 и мороженое за 10.",
+          "question": "Что можно купить?",
+          "hint": "Сначала обязательное, потом посмотри, что осталось.",
+          "options": [
+            {
+              "id": "fun",
+              "label": "Мяч и мороженое",
+              "isCorrect": false,
+              "explanation": "Мяч и мороженое — 30. Но сначала обязательное: 25 и 30 — это 55. Больше, чем 50."
+            },
+            {
+              "id": "ball",
+              "label": "Обязательное и мяч",
+              "isCorrect": true,
+              "explanation": "Верно! 25 и 20 — это 45. Останется 5 монет."
+            },
+            {
+              "id": "all",
+              "label": "Обязательное, мяч и мороженое",
+              "isCorrect": false,
+              "explanation": "25, 20 и 10 — это 55. А у нас 50. Не хватит 5 монет."
+            }
+          ],
+          "explanationCorrect": "Верно! 25 и 20 — это 45. Останется 5 монет.",
+          "explanationWrong": "Давай сложим: обязательное 25, остаётся 25. Мяч 20 помещается, а мяч и мороженое — уже нет."
+        }
+      ]
     },
     {
       "id": "payments_basket_shop",
@@ -869,7 +1940,215 @@
             "overBudget": "Список стоит 39, от 50 остаётся 11. Что из желаемого в них поместится?"
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Есть 45 монет и список: хлеб, молоко, яйца. Если останется — можно взять что-то себе.",
+            "hint": "Сначала всё из списка, потом посмотри остаток.",
+            "budget": 45,
+            "products": [
+              {
+                "id": "bread",
+                "label": "Хлеб",
+                "iconId": "icon_card_bread",
+                "price": 10,
+                "onList": true
+              },
+              {
+                "id": "milk",
+                "label": "Молоко",
+                "iconId": "icon_card_milk",
+                "price": 8,
+                "onList": true
+              },
+              {
+                "id": "eggs",
+                "label": "Яйца",
+                "iconId": "icon_card_eggs",
+                "price": 11,
+                "onList": true
+              },
+              {
+                "id": "chocolate",
+                "label": "Шоколадка",
+                "iconId": "icon_card_chocolate",
+                "price": 10,
+                "onList": false
+              },
+              {
+                "id": "juice",
+                "label": "Сок",
+                "iconId": "icon_card_juice",
+                "price": 9,
+                "onList": false
+              },
+              {
+                "id": "robot",
+                "label": "Робот",
+                "iconId": "icon_card_robot",
+                "price": 25,
+                "onList": false
+              }
+            ],
+            "explanationCorrect": "Всё из списка в корзине, и бюджет не превышен!",
+            "explanationWrong": "Давай проверим корзину вместе.",
+            "explanationsByReason": {
+              "missingRequired": "В списке есть ещё: {item}. Сначала всё из списка.",
+              "overBudget": "Список стоит 29, от 45 остаётся 16. Что из желаемого поместится?"
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Поход в магазин перед выходными: 55 монет и четыре покупки в списке. Остаток — на себя.",
+            "hint": "Сложи список, потом выбери желание в остаток.",
+            "budget": 55,
+            "products": [
+              {
+                "id": "bread",
+                "label": "Хлеб",
+                "iconId": "icon_card_bread",
+                "price": 11,
+                "onList": true
+              },
+              {
+                "id": "apple",
+                "label": "Яблоки",
+                "iconId": "icon_card_apple",
+                "price": 9,
+                "onList": true
+              },
+              {
+                "id": "eggs",
+                "label": "Яйца",
+                "iconId": "icon_card_eggs",
+                "price": 12,
+                "onList": true
+              },
+              {
+                "id": "soap",
+                "label": "Мыло",
+                "iconId": "icon_card_soap",
+                "price": 8,
+                "onList": true
+              },
+              {
+                "id": "pizza",
+                "label": "Пицца",
+                "iconId": "icon_card_pizza",
+                "price": 18,
+                "onList": false
+              },
+              {
+                "id": "book",
+                "label": "Книжка",
+                "iconId": "icon_card_book",
+                "price": 16,
+                "onList": false
+              },
+              {
+                "id": "candy",
+                "label": "Конфета",
+                "iconId": "icon_card_candy",
+                "price": 4,
+                "onList": false
+              },
+              {
+                "id": "stickers",
+                "label": "Наклейки",
+                "iconId": "icon_card_stickers",
+                "price": 7,
+                "onList": false
+              }
+            ],
+            "explanationCorrect": "Отличный поход! Список собран, и ты уложился в 55.",
+            "explanationWrong": "Давай проверим корзину вместе.",
+            "explanationsByReason": {
+              "missingRequired": "В списке есть ещё: {item}. Сначала всё из списка, потом желания.",
+              "overBudget": "Список стоит 40, от 55 остаётся 15. Что из желаемого в них поместится?"
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Большая закупка: 60 монет и список из пяти покупок. Остаток — на себя, если хватит.",
+          "hint": "Список длинный — сложи его по шагам.",
+          "budget": 60,
+          "products": [
+            {
+              "id": "bread",
+              "label": "Хлеб",
+              "iconId": "icon_card_bread",
+              "price": 12,
+              "onList": true
+            },
+            {
+              "id": "milk",
+              "label": "Молоко",
+              "iconId": "icon_card_milk",
+              "price": 9,
+              "onList": true
+            },
+            {
+              "id": "eggs",
+              "label": "Яйца",
+              "iconId": "icon_card_eggs",
+              "price": 11,
+              "onList": true
+            },
+            {
+              "id": "soap",
+              "label": "Мыло",
+              "iconId": "icon_card_soap",
+              "price": 8,
+              "onList": true
+            },
+            {
+              "id": "apple",
+              "label": "Яблоки",
+              "iconId": "icon_card_apple",
+              "price": 7,
+              "onList": true
+            },
+            {
+              "id": "chocolate",
+              "label": "Шоколадка",
+              "iconId": "icon_card_chocolate",
+              "price": 10,
+              "onList": false
+            },
+            {
+              "id": "pizza",
+              "label": "Пицца",
+              "iconId": "icon_card_pizza",
+              "price": 18,
+              "onList": false
+            },
+            {
+              "id": "stickers",
+              "label": "Наклейки",
+              "iconId": "icon_card_stickers",
+              "price": 7,
+              "onList": false
+            },
+            {
+              "id": "toy_car",
+              "label": "Машинка",
+              "iconId": "icon_card_toy_car",
+              "price": 20,
+              "onList": false
+            }
+          ],
+          "explanationCorrect": "Вот это закупка! Все пять покупок в корзине, и монет хватило.",
+          "explanationWrong": "Давай проверим корзину вместе.",
+          "explanationsByReason": {
+            "missingRequired": "В списке есть ещё: {item}. Без этого дома не обойтись.",
+            "overBudget": "Список стоит 47, от 60 остаётся 13. Что из желаемого поместится?"
+          }
+        }
+      ]
     },
     {
       "id": "payments_coins_change",
@@ -964,7 +2243,116 @@
             "tooManyCoins": "Сдача верная! А можно отдать 7 всего двумя монетками?"
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Стакан лимонада стоит 6. Покупатель дал 10. Отсчитай сдачу.",
+            "hint": "Считай от 6 до 10.",
+            "price": 6,
+            "paid": 10,
+            "wallet": {
+              "1": 5,
+              "2": 5,
+              "5": 2
+            },
+            "rules": [
+              {
+                "type": "sumAtLeast",
+                "value": 4,
+                "failCode": "tooLittle"
+              },
+              {
+                "type": "sumAtMost",
+                "value": 4,
+                "failCode": "tooMuch"
+              }
+            ],
+            "explanationCorrect": "Сдача 4 — ровно! Покупатель доволен.",
+            "explanationWrong": "Давай посчитаем сдачу вместе.",
+            "explanationsByReason": {
+              "tooLittle": "От 6 до 10 — это 4. А на прилавке {onCounter}.",
+              "tooMuch": "На прилавке {onCounter}, а сдачи нужно 4. Что можно забрать?"
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Лимонад и печенье стоят 12. Покупатель дал 20. Отдай сдачу, но не больше чем тремя монетками.",
+            "hint": "От 12 до 20 — сколько шагов?",
+            "price": 12,
+            "paid": 20,
+            "wallet": {
+              "1": 4,
+              "2": 3,
+              "5": 2,
+              "10": 1
+            },
+            "rules": [
+              {
+                "type": "sumAtLeast",
+                "value": 8,
+                "failCode": "tooLittle"
+              },
+              {
+                "type": "sumAtMost",
+                "value": 8,
+                "failCode": "tooMuch"
+              },
+              {
+                "type": "maxCoins",
+                "value": 3,
+                "failCode": "tooManyCoins"
+              }
+            ],
+            "explanationCorrect": "Сдача 8 тремя монетками: 5, 2 и 1. Здорово!",
+            "explanationWrong": "Давай посчитаем сдачу вместе.",
+            "explanationsByReason": {
+              "tooLittle": "От 12 до 20 — это 8. А на прилавке {onCounter}.",
+              "tooMuch": "На прилавке {onCounter}, а сдачи нужно 8. Что можно забрать?",
+              "tooManyCoins": "Сдача верная! А можно отдать 8 не больше чем тремя монетками?"
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Большой заказ на 26 монет. Покупатель дал 50. Отдай сдачу, но не больше чем четырьмя монетками.",
+          "hint": "От 26 до 50 — это сколько? Начни с десяток.",
+          "price": 26,
+          "paid": 50,
+          "wallet": {
+            "1": 4,
+            "2": 3,
+            "5": 2,
+            "10": 2
+          },
+          "rules": [
+            {
+              "type": "sumAtLeast",
+              "value": 24,
+              "failCode": "tooLittle"
+            },
+            {
+              "type": "sumAtMost",
+              "value": 24,
+              "failCode": "tooMuch"
+            },
+            {
+              "type": "maxCoins",
+              "value": 4,
+              "failCode": "tooManyCoins"
+            }
+          ],
+          "explanationCorrect": "Сдача 24: 10, 10, 2 и 2. Как настоящий продавец!",
+          "explanationWrong": "Давай посчитаем сдачу вместе.",
+          "explanationsByReason": {
+            "tooLittle": "От 26 до 50 — это 24. А на прилавке {onCounter}.",
+            "tooMuch": "На прилавке {onCounter}, а сдачи нужно 24. Что можно забрать?",
+            "tooManyCoins": "Сдача верная! А можно отдать 24 не больше чем четырьмя монетками?"
+          }
+        }
+      ]
     },
     {
       "id": "savings_distribute_days",
@@ -1066,7 +2454,126 @@
             "tooMany": "За 7 дней уже будет 210. Это больше 200, лишние дни не нужны."
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Мячик и скакалка стоят 90. Откладываем по 15 в день. Сколько дней нужно?",
+            "hint": "Добавляй по дню и смотри на копилку.",
+            "target": 90,
+            "counters": [
+              {
+                "id": "days",
+                "label": "Дней",
+                "iconId": "icon_counter_days",
+                "step": 1,
+                "unitValue": 15,
+                "min": 0,
+                "max": 12
+              }
+            ],
+            "preview": "{days} {day} по 15 = {daysTotal} {coin}",
+            "rules": [
+              {
+                "type": "atLeast",
+                "counter": "days",
+                "value": 6,
+                "failCode": "tooFew"
+              },
+              {
+                "type": "atMost",
+                "counter": "days",
+                "value": 6,
+                "failCode": "tooMany"
+              }
+            ],
+            "explanationCorrect": "Верно! 6 дней по 15 — это 90.",
+            "explanationWrong": "Давай посчитаем по дням вместе.",
+            "explanationsByReason": {
+              "tooFew": "Пока в копилке меньше 90. Добавь ещё день.",
+              "tooMany": "За 6 дней уже будет 90. Лишние дни не нужны."
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Телескоп стоит 160. Откладываем по 25 в день. Сколько дней нужно?",
+            "hint": "Считай по 25: 25, 50, 75…",
+            "target": 160,
+            "counters": [
+              {
+                "id": "days",
+                "label": "Дней",
+                "iconId": "icon_counter_days",
+                "step": 1,
+                "unitValue": 25,
+                "min": 0,
+                "max": 12
+              }
+            ],
+            "preview": "{days} {day} по 25 = {daysTotal} {coin}",
+            "rules": [
+              {
+                "type": "atLeast",
+                "counter": "days",
+                "value": 7,
+                "failCode": "tooFew"
+              },
+              {
+                "type": "atMost",
+                "counter": "days",
+                "value": 7,
+                "failCode": "tooMany"
+              }
+            ],
+            "explanationCorrect": "Верно! За 7 дней будет 175 — хватит на телескоп.",
+            "explanationWrong": "Давай посчитаем по дням вместе.",
+            "explanationsByReason": {
+              "tooFew": "За 6 дней будет 150, а нужно 160. Нужен ещё день.",
+              "tooMany": "За 7 дней уже 175 — этого хватает, больше дней не нужно."
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Велосипед стоит 250. Откладываем по 35 в день. Сколько дней нужно?",
+          "hint": "Считай по 35 и сравнивай с 250.",
+          "target": 250,
+          "counters": [
+            {
+              "id": "days",
+              "label": "Дней",
+              "iconId": "icon_counter_days",
+              "step": 1,
+              "unitValue": 35,
+              "min": 0,
+              "max": 12
+            }
+          ],
+          "preview": "{days} {day} по 35 = {daysTotal} {coin}",
+          "rules": [
+            {
+              "type": "atLeast",
+              "counter": "days",
+              "value": 8,
+              "failCode": "tooFew"
+            },
+            {
+              "type": "atMost",
+              "counter": "days",
+              "value": 8,
+              "failCode": "tooMany"
+            }
+          ],
+          "explanationCorrect": "Верно! За 8 дней будет 280 — велосипед наш.",
+          "explanationWrong": "Давай посчитаем по дням вместе.",
+          "explanationsByReason": {
+            "tooFew": "За 7 дней будет 245, а нужно 250. Не хватит 5 — нужен ещё день.",
+            "tooMany": "За 8 дней уже 280. Лишние дни не нужны."
+          }
+        }
+      ]
     },
     {
       "id": "planning_order_priority",
@@ -1198,7 +2705,185 @@
             "wrongOrder": "{why}"
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "В кошельке мало монет. Что купим сначала? Поставь это наверх.",
+            "hint": "Без чего не обойтись сегодня?",
+            "items": [
+              {
+                "id": "soap",
+                "label": "Мыло для уборки",
+                "iconId": "icon_card_soap",
+                "rank": 1,
+                "why": "Уборка нужна каждый день — мыло первым."
+              },
+              {
+                "id": "milk",
+                "label": "Молоко на завтрак",
+                "iconId": "icon_card_milk",
+                "rank": 1,
+                "why": "Завтрак нужен — это еда."
+              },
+              {
+                "id": "toy_car",
+                "label": "Машинка",
+                "iconId": "icon_card_toy_car",
+                "rank": 2,
+                "why": "Машинка радует, но может подождать."
+              },
+              {
+                "id": "candy",
+                "label": "Конфеты",
+                "iconId": "icon_card_candy",
+                "rank": 2,
+                "why": "Конфеты — приятное желание."
+              }
+            ],
+            "rules": [
+              {
+                "type": "nonDecreasingRank",
+                "failCode": "wrongOrder"
+              }
+            ],
+            "explanationCorrect": "Верно! Сначала нужное, а желаемое — если останутся монеты.",
+            "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+            "explanationsByReason": {
+              "wrongOrder": "{why}"
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Сейчас май. Расставь сверху вниз: что нужно сегодня, что потом, а что просто хочется.",
+            "hint": "Что нужно прямо сейчас? А что — только осенью или зимой?",
+            "items": [
+              {
+                "id": "food",
+                "label": "Еда на сегодня",
+                "iconId": "icon_shop_food",
+                "rank": 1,
+                "why": "Есть нужно сегодня — это срочно."
+              },
+              {
+                "id": "medicine",
+                "label": "Лекарство, пока болеешь",
+                "iconId": "icon_card_medicine",
+                "rank": 1,
+                "why": "Лекарство нужно, чтобы поправиться."
+              },
+              {
+                "id": "notebooks",
+                "label": "Тетради к сентябрю",
+                "iconId": "icon_card_notebooks",
+                "rank": 2,
+                "why": "Тетради нужны, но до сентября ещё есть время."
+              },
+              {
+                "id": "jacket",
+                "label": "Зимняя куртка",
+                "iconId": "icon_card_jacket",
+                "rank": 2,
+                "why": "Куртка нужна, но только зимой."
+              },
+              {
+                "id": "robot",
+                "label": "Робот",
+                "iconId": "icon_card_robot",
+                "rank": 3,
+                "why": "Робот — желание. Купим, если останутся монеты."
+              },
+              {
+                "id": "cake",
+                "label": "Торт без праздника",
+                "iconId": "icon_card_cake",
+                "rank": 3,
+                "why": "Торт — угощение, не необходимость."
+              }
+            ],
+            "rules": [
+              {
+                "type": "nonDecreasingRank",
+                "failCode": "wrongOrder"
+              }
+            ],
+            "explanationCorrect": "Отлично! Сначала срочное, потом то, что понадобится позже, а желания — в конце.",
+            "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+            "explanationsByReason": {
+              "wrongOrder": "{why}"
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Сейчас июль. Семь покупок! Что нужно сегодня, что потом, а что — желание?",
+          "hint": "Разбей на три группы: сегодня, потом, желание.",
+          "items": [
+            {
+              "id": "bread",
+              "label": "Хлеб к ужину",
+              "iconId": "icon_card_bread",
+              "rank": 1,
+              "why": "Ужин сегодня — хлеб нужен сейчас."
+            },
+            {
+              "id": "soap",
+              "label": "Мыло, если закончилось",
+              "iconId": "icon_card_soap",
+              "rank": 1,
+              "why": "Без мыла не помыть руки — это срочно."
+            },
+            {
+              "id": "sneakers",
+              "label": "Кроссовки к сентябрю",
+              "iconId": "icon_card_sneakers",
+              "rank": 2,
+              "why": "Кроссовки нужны к школе, до сентября есть время."
+            },
+            {
+              "id": "jacket",
+              "label": "Зимняя куртка",
+              "iconId": "icon_card_jacket",
+              "rank": 2,
+              "why": "Куртка понадобится только зимой."
+            },
+            {
+              "id": "game",
+              "label": "Новая игра",
+              "iconId": "icon_card_phone_game",
+              "rank": 3,
+              "why": "Игра — желание."
+            },
+            {
+              "id": "ice_cream",
+              "label": "Мороженое",
+              "iconId": "icon_card_ice_cream",
+              "rank": 3,
+              "why": "Мороженое — лакомство."
+            },
+            {
+              "id": "stickers",
+              "label": "Наклейки",
+              "iconId": "icon_card_stickers",
+              "rank": 3,
+              "why": "Наклейки — для радости."
+            }
+          ],
+          "rules": [
+            {
+              "type": "nonDecreasingRank",
+              "failCode": "wrongOrder"
+            }
+          ],
+          "explanationCorrect": "Всё по порядку! Ты умеешь решать, что купить первым.",
+          "explanationWrong": "Почти! Посмотри на карточку без галочки.",
+          "explanationsByReason": {
+            "wrongOrder": "{why}"
+          }
+        }
+      ]
     },
     {
       "id": "savings_choice_now_or_later",
@@ -1276,7 +2961,90 @@
           "explanationCorrect": "Любой выбор можно. Важно видеть, как он меняет путь к цели.",
           "explanationWrong": "Любой выбор можно. Важно видеть, как он меняет путь к цели."
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "В копилке 40 из 90 на мячик. Откладываем по 10 в день. Сегодня есть 20. Хочется наклейки за 20.",
+            "question": "Что сделаем?",
+            "hint": "Тут можно выбрать любой вариант. Посмотрим, что будет дальше.",
+            "options": [
+              {
+                "id": "save",
+                "label": "Отложить в копилку",
+                "isCorrect": true,
+                "explanation": "Станет 60 из 90. Мячик через 3 дня!"
+              },
+              {
+                "id": "spend",
+                "label": "Купить наклейки",
+                "isCorrect": true,
+                "explanation": "Наклейки уже твои! А мячик приедет на 2 дня позже."
+              }
+            ],
+            "explanationCorrect": "Любой выбор можно. Главное — знать, что будет дальше.",
+            "explanationWrong": "Любой выбор можно. Главное — знать, что будет дальше."
+          }
+        ],
+        "hard": [
+          {
+            "intro": "В копилке 80 из 160 на телескоп. Откладываем по 20 в день. Сегодня есть 40. Кино стоит 40, а попкорн для мультфильма дома — 20.",
+            "question": "Что сделаем?",
+            "hint": "Посчитай для каждого варианта, сколько дней останется до телескопа.",
+            "options": [
+              {
+                "id": "save",
+                "label": "Всё отложить",
+                "isCorrect": true,
+                "explanation": "Станет 120 из 160. До телескопа всего 2 дня!"
+              },
+              {
+                "id": "half",
+                "label": "Мультфильм дома с попкорном, 20 — в копилку",
+                "isCorrect": true,
+                "explanation": "И весело, и копилка растёт! Телескоп будет на 1 день позже."
+              },
+              {
+                "id": "spend",
+                "label": "Пойти в кино",
+                "isCorrect": true,
+                "explanation": "Настоящее приключение! Телескоп приедет на 2 дня позже."
+              }
+            ],
+            "explanationCorrect": "Любой выбор можно. Главное — знать, что будет дальше.",
+            "explanationWrong": "Любой выбор можно. Главное — знать, что будет дальше."
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "В копилке 150 из 250 на велосипед. Откладываем по 25 в день. Сегодня есть 50. Друзья зовут в аквапарк за 50, а бассейн во дворе стоит 20.",
+          "question": "Что сделаем?",
+          "hint": "Посчитай, насколько каждый вариант отодвинет велосипед.",
+          "options": [
+            {
+              "id": "save",
+              "label": "Всё отложить",
+              "isCorrect": true,
+              "explanation": "Станет 200 из 250. До велосипеда всего 2 дня!"
+            },
+            {
+              "id": "half",
+              "label": "Бассейн во дворе, 30 — в копилку",
+              "isCorrect": true,
+              "explanation": "И поплаваешь, и копилка растёт! Велосипед будет на 1 день позже."
+            },
+            {
+              "id": "spend",
+              "label": "Аквапарк с друзьями",
+              "isCorrect": true,
+              "explanation": "Вот это день! А велосипед приедет на 2 дня позже."
+            }
+          ],
+          "explanationCorrect": "Любой выбор можно. Главное — знать, что будет дальше.",
+          "explanationWrong": "Любой выбор можно. Главное — знать, что будет дальше."
+        }
+      ]
     },
     {
       "id": "savings_week_plan",
@@ -1379,7 +3147,129 @@
             "goalShort": "Все траты оплачены! До 50 в копилке не хватает {gap}. Где ещё можно отложить?"
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Каждый день приходит 20 монет. В день 2 — мороженое для друга за 15. К концу недели в копилке нужно 60.",
+            "hint": "Оставь монеты в кошельке ко второму дню, а потом копи больше.",
+            "days": 5,
+            "dailyIncome": 20,
+            "step": 5,
+            "maxSavePerDay": 20,
+            "events": [
+              {
+                "day": 2,
+                "label": "Мороженое для друга",
+                "iconId": "icon_card_ice_cream",
+                "cost": 15
+              }
+            ],
+            "target": 60,
+            "rules": [
+              {
+                "type": "neverNegative",
+                "failCode": "notEnoughOnEventDay"
+              },
+              {
+                "type": "savingsAtLeast",
+                "value": 60,
+                "failCode": "goalShort"
+              }
+            ],
+            "explanationCorrect": "Получилось! И друга угостили, и 60 в копилке.",
+            "explanationWrong": "Давай посмотрим на неделю вместе.",
+            "explanationsByReason": {
+              "notEnoughOnEventDay": "В день {day} на «{label}» не хватит {gap}. Отложи чуть меньше до этого дня.",
+              "goalShort": "Всё оплачено! До 60 в копилке не хватает {gap}. Где ещё можно отложить?"
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Каждый день приходит 20 монет. В день 2 — подарок за 20, в день 4 — кино за 15. Цель — 55 в копилке.",
+            "hint": "Перед днями трат оставляй монеты в кошельке.",
+            "days": 5,
+            "dailyIncome": 20,
+            "step": 5,
+            "maxSavePerDay": 20,
+            "events": [
+              {
+                "day": 2,
+                "label": "Подарок",
+                "iconId": "icon_event_gift",
+                "cost": 20
+              },
+              {
+                "day": 4,
+                "label": "Кино",
+                "iconId": "icon_event_cinema",
+                "cost": 15
+              }
+            ],
+            "target": 55,
+            "rules": [
+              {
+                "type": "neverNegative",
+                "failCode": "notEnoughOnEventDay"
+              },
+              {
+                "type": "savingsAtLeast",
+                "value": 55,
+                "failCode": "goalShort"
+              }
+            ],
+            "explanationCorrect": "Отлично! Все траты оплачены, и 55 в копилке. Вот это план!",
+            "explanationWrong": "Давай посмотрим на неделю вместе.",
+            "explanationsByReason": {
+              "notEnoughOnEventDay": "В день {day} на «{label}» не хватит {gap}. Отложи чуть меньше до этого дня.",
+              "goalShort": "Траты оплачены! До 55 не хватает {gap}. Где ещё можно отложить?"
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Шесть дней, каждый день 20 монет. В день 2 — подарок за 25, в день 5 — кино за 30. Цель — 60 в копилке.",
+          "hint": "Монет почти впритык. Считай кошелёк перед каждым днём трат.",
+          "days": 6,
+          "dailyIncome": 20,
+          "step": 5,
+          "maxSavePerDay": 20,
+          "events": [
+            {
+              "day": 2,
+              "label": "Подарок",
+              "iconId": "icon_event_gift",
+              "cost": 25
+            },
+            {
+              "day": 5,
+              "label": "Кино",
+              "iconId": "icon_event_cinema",
+              "cost": 30
+            }
+          ],
+          "target": 60,
+          "rules": [
+            {
+              "type": "neverNegative",
+              "failCode": "notEnoughOnEventDay"
+            },
+            {
+              "type": "savingsAtLeast",
+              "value": 60,
+              "failCode": "goalShort"
+            }
+          ],
+          "explanationCorrect": "Идеально! Всё оплатили и накопили 60. Сложная неделя — и ты справился!",
+          "explanationWrong": "Давай посмотрим на неделю вместе.",
+          "explanationsByReason": {
+            "notEnoughOnEventDay": "В день {day} на «{label}» не хватит {gap}. Отложи чуть меньше до этого дня.",
+            "goalShort": "Траты оплачены! До 60 не хватает {gap}. Посмотри на дни без трат."
+          }
+        }
+      ]
     },
     {
       "id": "savings_board_dream",
@@ -1699,7 +3589,415 @@
             "goalShort": "До цели не хватило {gap}. Большая игрушка стоит 15 — это три шага к мечте."
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Новая дорога! Дойди до финиша с 20 монетами в копилке.",
+            "hint": "Смотри вперёд: где обед и вода, там нужны монеты.",
+            "startCoins": 10,
+            "step": 5,
+            "target": 20,
+            "dice": [
+              1,
+              1,
+              2,
+              1,
+              1,
+              2,
+              1,
+              3,
+              1,
+              2,
+              2
+            ],
+            "cells": [
+              {
+                "kind": "start",
+                "label": "Старт",
+                "iconId": "icon_board_start"
+              },
+              {
+                "kind": "income",
+                "label": "Помог донести сумку",
+                "iconId": "icon_board_help",
+                "amount": 10
+              },
+              {
+                "kind": "piggy",
+                "label": "Копилка",
+                "iconId": "icon_board_piggy"
+              },
+              {
+                "kind": "temptation",
+                "label": "Мороженое",
+                "iconId": "icon_card_ice_cream",
+                "amount": 5
+              },
+              {
+                "kind": "expense",
+                "label": "Обед для питомца",
+                "iconId": "icon_plan_mandatory",
+                "amount": 5
+              },
+              {
+                "kind": "income",
+                "label": "Нашлась монетка",
+                "iconId": "icon_board_coin",
+                "amount": 5
+              },
+              {
+                "kind": "piggy",
+                "label": "Копилка",
+                "iconId": "icon_board_piggy"
+              },
+              {
+                "kind": "temptation",
+                "label": "Наклейки",
+                "iconId": "icon_card_stickers",
+                "amount": 5
+              },
+              {
+                "kind": "expense",
+                "label": "Вода и свет",
+                "iconId": "icon_board_light",
+                "amount": 5
+              },
+              {
+                "kind": "income",
+                "label": "Бабушка подарила",
+                "iconId": "icon_board_gift",
+                "amount": 10
+              },
+              {
+                "kind": "rest",
+                "label": "Полянка",
+                "iconId": "icon_board_rest"
+              },
+              {
+                "kind": "piggy",
+                "label": "Копилка",
+                "iconId": "icon_board_piggy"
+              },
+              {
+                "kind": "income",
+                "label": "Полил цветы соседке",
+                "iconId": "icon_board_flowers",
+                "amount": 5
+              },
+              {
+                "kind": "piggy",
+                "label": "Копилка",
+                "iconId": "icon_board_piggy"
+              },
+              {
+                "kind": "finish",
+                "label": "Финиш",
+                "iconId": "icon_board_finish"
+              }
+            ],
+            "rules": [
+              {
+                "type": "neverNegative",
+                "failCode": "mandatoryShort"
+              },
+              {
+                "type": "savingsAtLeast",
+                "value": 20,
+                "failCode": "goalShort"
+              }
+            ],
+            "explanationCorrect": "Дошли! В копилке {savings}. Понемногу на каждом шаге — и цель достигнута.",
+            "explanationWrong": "Давай посмотрим на дорогу ещё раз.",
+            "explanationsByReason": {
+              "mandatoryShort": "На «{label}» не хватило {gap}. Обязательное впереди — часть монет лучше оставить в кошельке.",
+              "goalShort": "До цели не хватило {gap}. Можно отложить чуть больше или пройти мимо соблазна."
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Длинная дорога с соблазнами. Дойди до финиша с 25 монетами в копилке.",
+            "hint": "Не трать всё на копилку сразу: впереди обязательные траты.",
+            "startCoins": 10,
+            "step": 5,
+            "target": 25,
+            "dice": [
+              1,
+              2,
+              1,
+              1,
+              2,
+              1,
+              2,
+              1,
+              1,
+              2,
+              1,
+              2,
+              1
+            ],
+            "cells": [
+              {
+                "kind": "start",
+                "label": "Старт",
+                "iconId": "icon_board_start"
+              },
+              {
+                "kind": "income",
+                "label": "Помог маме",
+                "iconId": "icon_board_help",
+                "amount": 10
+              },
+              {
+                "kind": "temptation",
+                "label": "Шарик",
+                "iconId": "icon_board_balloon",
+                "amount": 5
+              },
+              {
+                "kind": "piggy",
+                "label": "Копилка",
+                "iconId": "icon_board_piggy"
+              },
+              {
+                "kind": "expense",
+                "label": "Обед для питомца",
+                "iconId": "icon_plan_mandatory",
+                "amount": 5
+              },
+              {
+                "kind": "income",
+                "label": "Продали старые книжки",
+                "iconId": "icon_card_book",
+                "amount": 10
+              },
+              {
+                "kind": "temptation",
+                "label": "Новая игрушка",
+                "iconId": "icon_card_toy",
+                "amount": 15
+              },
+              {
+                "kind": "piggy",
+                "label": "Копилка",
+                "iconId": "icon_board_piggy"
+              },
+              {
+                "kind": "expense",
+                "label": "Сломался зонтик",
+                "iconId": "icon_board_umbrella",
+                "amount": 10
+              },
+              {
+                "kind": "income",
+                "label": "Помог соседке",
+                "iconId": "icon_board_help",
+                "amount": 10
+              },
+              {
+                "kind": "rest",
+                "label": "Полянка",
+                "iconId": "icon_board_rest"
+              },
+              {
+                "kind": "temptation",
+                "label": "Мороженое",
+                "iconId": "icon_card_ice_cream",
+                "amount": 5
+              },
+              {
+                "kind": "piggy",
+                "label": "Копилка",
+                "iconId": "icon_board_piggy"
+              },
+              {
+                "kind": "expense",
+                "label": "Вода и свет",
+                "iconId": "icon_board_light",
+                "amount": 5
+              },
+              {
+                "kind": "income",
+                "label": "Бабушка подарила",
+                "iconId": "icon_board_gift",
+                "amount": 10
+              },
+              {
+                "kind": "piggy",
+                "label": "Копилка",
+                "iconId": "icon_board_piggy"
+              },
+              {
+                "kind": "finish",
+                "label": "Финиш",
+                "iconId": "icon_board_finish"
+              }
+            ],
+            "rules": [
+              {
+                "type": "neverNegative",
+                "failCode": "mandatoryShort"
+              },
+              {
+                "type": "savingsAtLeast",
+                "value": 25,
+                "failCode": "goalShort"
+              }
+            ],
+            "explanationCorrect": "Вот это путь! В копилке {savings}. Ты не поддался соблазнам и всё оплатил.",
+            "explanationWrong": "Давай посмотрим на дорогу ещё раз.",
+            "explanationsByReason": {
+              "mandatoryShort": "На «{label}» не хватило {gap}. Обязательное впереди — часть монет лучше оставить в кошельке.",
+              "goalShort": "До цели не хватило {gap}. Один соблазн можно пропустить — и цель ближе."
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Самая хитрая дорога: неожиданные траты и много соблазнов. Дойди с 30 монетами в копилке.",
+          "hint": "Держи в кошельке 10 монет на неожиданности.",
+          "startCoins": 10,
+          "step": 5,
+          "target": 30,
+          "dice": [
+            1,
+            1,
+            2,
+            1,
+            2,
+            1,
+            1,
+            2,
+            1,
+            1,
+            1,
+            2,
+            1
+          ],
+          "cells": [
+            {
+              "kind": "start",
+              "label": "Старт",
+              "iconId": "icon_board_start"
+            },
+            {
+              "kind": "income",
+              "label": "Помог донести сумку",
+              "iconId": "icon_board_help",
+              "amount": 10
+            },
+            {
+              "kind": "piggy",
+              "label": "Копилка",
+              "iconId": "icon_board_piggy"
+            },
+            {
+              "kind": "temptation",
+              "label": "Наклейки",
+              "iconId": "icon_card_stickers",
+              "amount": 5
+            },
+            {
+              "kind": "expense",
+              "label": "Обед для питомца",
+              "iconId": "icon_plan_mandatory",
+              "amount": 5
+            },
+            {
+              "kind": "income",
+              "label": "Полил цветы",
+              "iconId": "icon_board_flowers",
+              "amount": 10
+            },
+            {
+              "kind": "temptation",
+              "label": "Новая игра",
+              "iconId": "icon_card_phone_game",
+              "amount": 15
+            },
+            {
+              "kind": "expense",
+              "label": "Сломался зонтик",
+              "iconId": "icon_board_umbrella",
+              "amount": 10
+            },
+            {
+              "kind": "piggy",
+              "label": "Копилка",
+              "iconId": "icon_board_piggy"
+            },
+            {
+              "kind": "income",
+              "label": "Бабушка подарила",
+              "iconId": "icon_board_gift",
+              "amount": 15
+            },
+            {
+              "kind": "rest",
+              "label": "Полянка",
+              "iconId": "icon_board_rest"
+            },
+            {
+              "kind": "temptation",
+              "label": "Мороженое",
+              "iconId": "icon_card_ice_cream",
+              "amount": 5
+            },
+            {
+              "kind": "expense",
+              "label": "Вода и свет",
+              "iconId": "icon_board_light",
+              "amount": 5
+            },
+            {
+              "kind": "piggy",
+              "label": "Копилка",
+              "iconId": "icon_board_piggy"
+            },
+            {
+              "kind": "income",
+              "label": "Нашлась монетка",
+              "iconId": "icon_board_coin",
+              "amount": 10
+            },
+            {
+              "kind": "temptation",
+              "label": "Шарик",
+              "iconId": "icon_board_balloon",
+              "amount": 5
+            },
+            {
+              "kind": "piggy",
+              "label": "Копилка",
+              "iconId": "icon_board_piggy"
+            },
+            {
+              "kind": "finish",
+              "label": "Финиш",
+              "iconId": "icon_board_finish"
+            }
+          ],
+          "rules": [
+            {
+              "type": "neverNegative",
+              "failCode": "mandatoryShort"
+            },
+            {
+              "type": "savingsAtLeast",
+              "value": 30,
+              "failCode": "goalShort"
+            }
+          ],
+          "explanationCorrect": "Ты прошёл самую хитрую дорогу! В копилке {savings}.",
+          "explanationWrong": "Давай посмотрим на дорогу ещё раз.",
+          "explanationsByReason": {
+            "mandatoryShort": "На «{label}» не хватило {gap}. Обязательное впереди — часть монет лучше оставить в кошельке.",
+            "goalShort": "До цели не хватило {gap}. Соблазнов много — выбирай, мимо каких пройти."
+          }
+        }
+      ]
     },
     {
       "id": "planning_stall_icecream",
@@ -1836,7 +4134,195 @@
             "goalShort": "До цели не хватило {gap}. В дождь лучше купить совсем немного, а в жару — больше."
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Два дня торговли. Порция стоит 2 монеты. Смотри на погоду и заработай, чтобы в кассе стало 45.",
+            "hint": "В солнце бери больше порций, в дождь — меньше.",
+            "startCoins": 20,
+            "costPerPortion": 2,
+            "portionStep": 2,
+            "maxPortions": 14,
+            "prices": [
+              3,
+              5
+            ],
+            "target": 45,
+            "days": [
+              {
+                "id": "sun",
+                "label": "Солнечно",
+                "iconId": "icon_weather_sun",
+                "forecast": "Солнце! Мороженое захотят многие.",
+                "demand": {
+                  "3": 14,
+                  "5": 9
+                }
+              },
+              {
+                "id": "rain",
+                "label": "Дождь",
+                "iconId": "icon_weather_rain",
+                "forecast": "Дождик. Покупателей почти не будет.",
+                "demand": {
+                  "3": 4,
+                  "5": 2
+                }
+              }
+            ],
+            "rules": [
+              {
+                "type": "coinsAtLeast",
+                "value": 45,
+                "failCode": "goalShort"
+              }
+            ],
+            "explanationCorrect": "Получилось! В кассе {coins}. Ты купил столько, сколько смог продать.",
+            "explanationWrong": "Давай посмотрим на каждый день.",
+            "explanationsByReason": {
+              "goalShort": "До цели не хватило {gap}. В дождь лишние порции не продать."
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Три дня торговли! Порция — 2 монеты. Цены: 3, 5 или 7. Цель — 65 в кассе.",
+            "hint": "Высокая цена — меньше покупателей. Найди золотую середину.",
+            "startCoins": 20,
+            "costPerPortion": 2,
+            "portionStep": 2,
+            "maxPortions": 14,
+            "prices": [
+              3,
+              5,
+              7
+            ],
+            "target": 65,
+            "days": [
+              {
+                "id": "cloud",
+                "label": "Пасмурно",
+                "iconId": "icon_weather_cloud",
+                "forecast": "Прохладно. Покупателей немного.",
+                "demand": {
+                  "3": 6,
+                  "5": 4,
+                  "7": 1
+                }
+              },
+              {
+                "id": "sun",
+                "label": "Солнечно",
+                "iconId": "icon_weather_sun",
+                "forecast": "Солнце! Мороженое захотят многие.",
+                "demand": {
+                  "3": 12,
+                  "5": 9,
+                  "7": 5
+                }
+              },
+              {
+                "id": "hot",
+                "label": "Жара",
+                "iconId": "icon_weather_hot",
+                "forecast": "Жара! Покупателей очень много.",
+                "demand": {
+                  "3": 14,
+                  "5": 12,
+                  "7": 8
+                }
+              }
+            ],
+            "rules": [
+              {
+                "type": "coinsAtLeast",
+                "value": 65,
+                "failCode": "goalShort"
+              }
+            ],
+            "explanationCorrect": "Отлично! В кассе {coins}. Ты угадал и с погодой, и с ценой.",
+            "explanationWrong": "Давай посмотрим на каждый день.",
+            "explanationsByReason": {
+              "goalShort": "До цели не хватило {gap}. В жару можно поставить цену повыше и купить больше."
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Четыре дня торговли! Порция — 2 монеты. Цены: 3, 5 или 8. Цель — 90 в кассе.",
+          "hint": "Смотри прогноз на каждый день: не покупай лишнего в дождь.",
+          "startCoins": 20,
+          "costPerPortion": 2,
+          "portionStep": 2,
+          "maxPortions": 16,
+          "prices": [
+            3,
+            5,
+            8
+          ],
+          "target": 90,
+          "days": [
+            {
+              "id": "sun",
+              "label": "Солнечно",
+              "iconId": "icon_weather_sun",
+              "forecast": "Солнце! Мороженое захотят многие.",
+              "demand": {
+                "3": 12,
+                "5": 9,
+                "8": 4
+              }
+            },
+            {
+              "id": "rain",
+              "label": "Дождь",
+              "iconId": "icon_weather_rain",
+              "forecast": "Дождик. Почти все сидят дома.",
+              "demand": {
+                "3": 4,
+                "5": 2,
+                "8": 0
+              }
+            },
+            {
+              "id": "cloud",
+              "label": "Пасмурно",
+              "iconId": "icon_weather_cloud",
+              "forecast": "Прохладно. Покупателей немного.",
+              "demand": {
+                "3": 8,
+                "5": 5,
+                "8": 1
+              }
+            },
+            {
+              "id": "hot",
+              "label": "Жара",
+              "iconId": "icon_weather_hot",
+              "forecast": "Жара! Покупателей будет очень много.",
+              "demand": {
+                "3": 16,
+                "5": 14,
+                "8": 9
+              }
+            }
+          ],
+          "rules": [
+            {
+              "type": "coinsAtLeast",
+              "value": 90,
+              "failCode": "goalShort"
+            }
+          ],
+          "explanationCorrect": "Вот это торговля! В кассе {coins}. Четыре дня — и ни одного лишнего мороженого.",
+          "explanationWrong": "Давай посмотрим на каждый день.",
+          "explanationsByReason": {
+            "goalShort": "До цели не хватило {gap}. В дождь купи совсем мало, а в жару — побольше."
+          }
+        }
+      ]
     },
     {
       "id": "payments_cashier_shift",
@@ -2034,7 +4520,321 @@
             "wrongChange": "{name} купил на {total}, дал {paid}. {paid} минус {total} — это {change}."
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Утренняя смена в лавке. Покупатели уже идут — отдай каждому сдачу.",
+            "hint": "Считай от суммы покупки вверх до денег покупателя.",
+            "showTotal": true,
+            "denominations": [
+              1,
+              2,
+              5,
+              10
+            ],
+            "customers": [
+              {
+                "id": "bunny",
+                "name": "Зайчик",
+                "iconId": "icon_customer_bunny",
+                "items": [
+                  {
+                    "label": "Сок",
+                    "iconId": "icon_card_juice",
+                    "price": 7
+                  }
+                ],
+                "paid": 10
+              },
+              {
+                "id": "cat",
+                "name": "Котик",
+                "iconId": "icon_customer_cat",
+                "items": [
+                  {
+                    "label": "Печенье",
+                    "iconId": "icon_card_cookie",
+                    "price": 5
+                  },
+                  {
+                    "label": "Яблоко",
+                    "iconId": "icon_card_apple",
+                    "price": 8
+                  }
+                ],
+                "paid": 20
+              },
+              {
+                "id": "bear",
+                "name": "Мишка",
+                "iconId": "icon_customer_bear",
+                "items": [
+                  {
+                    "label": "Хлеб",
+                    "iconId": "icon_card_bread",
+                    "price": 12
+                  }
+                ],
+                "paid": 15
+              },
+              {
+                "id": "frog",
+                "name": "Лягушонок",
+                "iconId": "icon_customer_frog",
+                "items": [
+                  {
+                    "label": "Мороженое",
+                    "iconId": "icon_card_ice_cream",
+                    "price": 6
+                  }
+                ],
+                "paid": 10
+              }
+            ],
+            "rules": [
+              {
+                "type": "exactChange",
+                "failCode": "wrongChange"
+              }
+            ],
+            "explanationCorrect": "Все покупатели ушли довольные! Сдача была точной.",
+            "explanationWrong": "Давай пересчитаем сдачу вместе.",
+            "explanationsByReason": {
+              "wrongChange": "{name} купил на {total}, дал {paid}. Считаем от {total} до {paid}: сдача {change}."
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Вечерняя смена! Сумму покупки считаешь сам, а потом отдаёшь сдачу.",
+            "hint": "Сначала сложи покупки, потом считай сдачу.",
+            "showTotal": false,
+            "denominations": [
+              1,
+              2,
+              5,
+              10
+            ],
+            "customers": [
+              {
+                "id": "owl",
+                "name": "Совёнок",
+                "iconId": "icon_customer_owl",
+                "items": [
+                  {
+                    "label": "Молоко",
+                    "iconId": "icon_card_milk",
+                    "price": 9
+                  },
+                  {
+                    "label": "Хлеб",
+                    "iconId": "icon_card_bread",
+                    "price": 12
+                  }
+                ],
+                "paid": 30
+              },
+              {
+                "id": "panda",
+                "name": "Панда",
+                "iconId": "icon_customer_panda",
+                "items": [
+                  {
+                    "label": "Торт",
+                    "iconId": "icon_card_cake",
+                    "price": 15
+                  },
+                  {
+                    "label": "Свечи",
+                    "iconId": "icon_card_candle",
+                    "price": 7
+                  }
+                ],
+                "paid": 25
+              },
+              {
+                "id": "hedgehog",
+                "name": "Ёжик",
+                "iconId": "icon_customer_hedgehog",
+                "items": [
+                  {
+                    "label": "Яблоко",
+                    "iconId": "icon_card_apple",
+                    "price": 8
+                  },
+                  {
+                    "label": "Сок",
+                    "iconId": "icon_card_juice",
+                    "price": 9
+                  },
+                  {
+                    "label": "Печенье",
+                    "iconId": "icon_card_cookie",
+                    "price": 4
+                  }
+                ],
+                "paid": 30
+              },
+              {
+                "id": "bunny",
+                "name": "Зайчик",
+                "iconId": "icon_customer_bunny",
+                "items": [
+                  {
+                    "label": "Мороженое",
+                    "iconId": "icon_card_ice_cream",
+                    "price": 6
+                  },
+                  {
+                    "label": "Конфета",
+                    "iconId": "icon_card_candy",
+                    "price": 4
+                  }
+                ],
+                "paid": 20
+              }
+            ],
+            "rules": [
+              {
+                "type": "exactChange",
+                "failCode": "wrongChange"
+              }
+            ],
+            "explanationCorrect": "Все посчитано верно! Ты настоящий кассир.",
+            "explanationWrong": "Давай пересчитаем сдачу вместе.",
+            "explanationsByReason": {
+              "wrongChange": "{name} купил на {total}, дал {paid}. {paid} минус {total} — это {change}."
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Праздничная распродажа! Пять покупателей, большие покупки. Считай сумму сам.",
+          "hint": "Складывай по две цены, а потом считай сдачу.",
+          "showTotal": false,
+          "denominations": [
+            1,
+            2,
+            5,
+            10
+          ],
+          "customers": [
+            {
+              "id": "bear",
+              "name": "Мишка",
+              "iconId": "icon_customer_bear",
+              "items": [
+                {
+                  "label": "Торт",
+                  "iconId": "icon_card_cake",
+                  "price": 15
+                },
+                {
+                  "label": "Сок",
+                  "iconId": "icon_card_juice",
+                  "price": 9
+                },
+                {
+                  "label": "Свечи",
+                  "iconId": "icon_card_candle",
+                  "price": 7
+                }
+              ],
+              "paid": 50
+            },
+            {
+              "id": "cat",
+              "name": "Котик",
+              "iconId": "icon_customer_cat",
+              "items": [
+                {
+                  "label": "Книжка",
+                  "iconId": "icon_card_book",
+                  "price": 18
+                },
+                {
+                  "label": "Ручка",
+                  "iconId": "icon_card_pen",
+                  "price": 4
+                }
+              ],
+              "paid": 30
+            },
+            {
+              "id": "owl",
+              "name": "Совёнок",
+              "iconId": "icon_customer_owl",
+              "items": [
+                {
+                  "label": "Хлеб",
+                  "iconId": "icon_card_bread",
+                  "price": 12
+                },
+                {
+                  "label": "Молоко",
+                  "iconId": "icon_card_milk",
+                  "price": 9
+                },
+                {
+                  "label": "Яйца",
+                  "iconId": "icon_card_eggs",
+                  "price": 11
+                }
+              ],
+              "paid": 40
+            },
+            {
+              "id": "frog",
+              "name": "Лягушонок",
+              "iconId": "icon_customer_frog",
+              "items": [
+                {
+                  "label": "Мячик",
+                  "iconId": "icon_card_ball",
+                  "price": 16
+                },
+                {
+                  "label": "Конфета",
+                  "iconId": "icon_card_candy",
+                  "price": 4
+                }
+              ],
+              "paid": 25
+            },
+            {
+              "id": "panda",
+              "name": "Панда",
+              "iconId": "icon_customer_panda",
+              "items": [
+                {
+                  "label": "Пицца",
+                  "iconId": "icon_card_pizza",
+                  "price": 18
+                },
+                {
+                  "label": "Сок",
+                  "iconId": "icon_card_juice",
+                  "price": 9
+                }
+              ],
+              "paid": 50
+            }
+          ],
+          "rules": [
+            {
+              "type": "exactChange",
+              "failCode": "wrongChange"
+            }
+          ],
+          "explanationCorrect": "Смена закрыта без единой лишней монетки! Отличная работа.",
+          "explanationWrong": "Давай пересчитаем сдачу вместе.",
+          "explanationsByReason": {
+            "wrongChange": "{name} купил на {total}, дал {paid}. {paid} минус {total} — это {change}."
+          }
+        }
+      ]
     },
     {
       "id": "payments_pricetag_hunt",
@@ -2284,162 +5084,565 @@
             "notBest": "{why}"
           }
         }
-      }
+      },
+      "levelVariants": {
+        "easy": [
+          {
+            "intro": "Новые ценники в магазине! Найди, где выгодно на самом деле.",
+            "hint": "Смотри, сколько заплатишь всего.",
+            "rounds": [
+              {
+                "id": "milk",
+                "need": "Нужна одна бутылка молока.",
+                "offers": [
+                  {
+                    "id": "one",
+                    "label": "1 бутылка молока",
+                    "iconId": "icon_card_milk",
+                    "detail": "9 монет",
+                    "pay": 9,
+                    "fits": true,
+                    "why": "Одна бутылка за 9 — ровно то, что нужно."
+                  },
+                  {
+                    "id": "two",
+                    "label": "2 бутылки молока",
+                    "iconId": "icon_card_milk",
+                    "detail": "16 монет за две",
+                    "pay": 16,
+                    "fits": true,
+                    "why": "Две выгодны, только если нужны две. А нужна одна.",
+                    "tag": "Две дешевле!"
+                  }
+                ]
+              },
+              {
+                "id": "pen",
+                "need": "Нужна одна ручка.",
+                "offers": [
+                  {
+                    "id": "sale",
+                    "label": "Ручка со скидкой",
+                    "iconId": "icon_card_pen",
+                    "detail": "Было 10, стало 8",
+                    "pay": 8,
+                    "fits": true,
+                    "why": "Скидка громкая, но 8 дороже, чем 6.",
+                    "tag": "Скидка!"
+                  },
+                  {
+                    "id": "plain",
+                    "label": "Обычная ручка",
+                    "iconId": "icon_card_pen",
+                    "detail": "6 монет",
+                    "pay": 6,
+                    "fits": true,
+                    "why": "Обычная ручка за 6 дешевле «скидки»."
+                  }
+                ]
+              },
+              {
+                "id": "cookies",
+                "need": "Нужно два печенья.",
+                "offers": [
+                  {
+                    "id": "single",
+                    "label": "Печенье",
+                    "iconId": "icon_card_cookie",
+                    "detail": "4 монеты за одно, нужно два",
+                    "pay": 8,
+                    "fits": true,
+                    "why": "Два по 4 — это 8. Набор выгоднее."
+                  },
+                  {
+                    "id": "pair",
+                    "label": "Два печенья вместе",
+                    "iconId": "icon_card_cookie",
+                    "detail": "6 монет за два",
+                    "pay": 6,
+                    "fits": true,
+                    "why": "Два печенья за 6 дешевле, чем 4 и 4.",
+                    "tag": "Два вместе!"
+                  }
+                ]
+              }
+            ],
+            "rules": [
+              {
+                "type": "bestDeal",
+                "failCode": "notBest"
+              }
+            ],
+            "explanationCorrect": "Ты нашёл все выгодные варианты!",
+            "explanationWrong": "Давай посмотрим на ценники ещё раз.",
+            "explanationsByReason": {
+              "notBest": "{why}"
+            }
+          }
+        ],
+        "hard": [
+          {
+            "intro": "Ценники хитрые, а реклама громкая. Найди, где выгодно на самом деле.",
+            "hint": "Сначала посмотри, сколько штук нужно.",
+            "rounds": [
+              {
+                "id": "juice",
+                "need": "Нужна одна бутылка сока.",
+                "offers": [
+                  {
+                    "id": "one",
+                    "label": "1 бутылка сока",
+                    "iconId": "icon_card_juice",
+                    "detail": "10 монет",
+                    "pay": 10,
+                    "fits": true,
+                    "why": "Одна бутылка за 10 — то, что нужно."
+                  },
+                  {
+                    "id": "three",
+                    "label": "Три по цене двух",
+                    "iconId": "icon_card_juice",
+                    "detail": "20 монет за три",
+                    "pay": 20,
+                    "fits": true,
+                    "why": "Три выгодны, только если нужны три.",
+                    "tag": "3 по цене 2!"
+                  }
+                ]
+              },
+              {
+                "id": "ball",
+                "need": "Нужен мячик.",
+                "offers": [
+                  {
+                    "id": "gift",
+                    "label": "Мячик с подарком",
+                    "iconId": "icon_card_ball",
+                    "detail": "17 монет, брелок в подарок",
+                    "pay": 17,
+                    "fits": true,
+                    "why": "Подарок спрятан в цене: мячик вышел дороже.",
+                    "tag": "Подарок!"
+                  },
+                  {
+                    "id": "plain",
+                    "label": "Мячик",
+                    "iconId": "icon_card_ball",
+                    "detail": "14 монет",
+                    "pay": 14,
+                    "fits": true,
+                    "why": "Тот же мячик за 14. Подарок не нужен."
+                  }
+                ]
+              },
+              {
+                "id": "pencils",
+                "need": "Нужно шесть карандашей.",
+                "offers": [
+                  {
+                    "id": "single",
+                    "label": "Карандаш",
+                    "iconId": "icon_card_pencils",
+                    "detail": "3 монеты за один, нужно шесть",
+                    "pay": 18,
+                    "fits": true,
+                    "why": "Шесть по 3 — это 18."
+                  },
+                  {
+                    "id": "box",
+                    "label": "Набор из 6",
+                    "iconId": "icon_card_pencils",
+                    "detail": "14 монет за набор",
+                    "pay": 14,
+                    "fits": true,
+                    "why": "Набор из шести за 14 дешевле, чем 18.",
+                    "tag": "Набор!"
+                  },
+                  {
+                    "id": "big",
+                    "label": "Набор из 12",
+                    "iconId": "icon_card_pencils",
+                    "detail": "20 монет за двенадцать",
+                    "pay": 20,
+                    "fits": true,
+                    "why": "Двенадцать не нужны — нужно шесть.",
+                    "tag": "Больше — дешевле!"
+                  }
+                ]
+              }
+            ],
+            "rules": [
+              {
+                "type": "bestDeal",
+                "failCode": "notBest"
+              }
+            ],
+            "explanationCorrect": "Хитрые ценники тебя не обманут!",
+            "explanationWrong": "Давай посмотрим на ценники ещё раз.",
+            "explanationsByReason": {
+              "notBest": "{why}"
+            }
+          }
+        ]
+      },
+      "dailyVariants": [
+        {
+          "intro": "Большая распродажа! Четыре покупки, и везде яркие ценники.",
+          "hint": "Считай, сколько заплатишь за то, что нужно. Лишнее не бери.",
+          "rounds": [
+            {
+              "id": "apples",
+              "need": "Нужно три яблока.",
+              "offers": [
+                {
+                  "id": "single",
+                  "label": "Яблоко",
+                  "iconId": "icon_card_apple",
+                  "detail": "7 монет за одно, нужно три",
+                  "pay": 21,
+                  "fits": true,
+                  "why": "Три по 7 — это 21."
+                },
+                {
+                  "id": "bag",
+                  "label": "Пакет из 3 яблок",
+                  "iconId": "icon_card_apple",
+                  "detail": "18 монет за три",
+                  "pay": 18,
+                  "fits": true,
+                  "why": "Три яблока за 18 дешевле, чем 21.",
+                  "tag": "Пакет!"
+                },
+                {
+                  "id": "big",
+                  "label": "Пакет из 6 яблок",
+                  "iconId": "icon_card_apple",
+                  "detail": "30 монет за шесть",
+                  "pay": 30,
+                  "fits": true,
+                  "why": "Шесть яблок не нужны, а платить больше.",
+                  "tag": "Вдвое больше!"
+                }
+              ]
+            },
+            {
+              "id": "notebook",
+              "need": "Нужна одна тетрадь.",
+              "offers": [
+                {
+                  "id": "sale",
+                  "label": "Тетрадь со скидкой",
+                  "iconId": "icon_card_notebooks",
+                  "detail": "Было 30, стало 22",
+                  "pay": 22,
+                  "fits": true,
+                  "why": "Скидка громкая, но 22 дороже, чем 18.",
+                  "tag": "−8 монет!"
+                },
+                {
+                  "id": "plain",
+                  "label": "Обычная тетрадь",
+                  "iconId": "icon_card_notebooks",
+                  "detail": "18 монет",
+                  "pay": 18,
+                  "fits": true,
+                  "why": "Обычная тетрадь за 18 выгоднее."
+                }
+              ]
+            },
+            {
+              "id": "robot",
+              "need": "Нужен один робот.",
+              "offers": [
+                {
+                  "id": "club",
+                  "label": "Робот по клубной карте",
+                  "iconId": "icon_card_robot",
+                  "detail": "25 монет + карта за 10",
+                  "pay": 35,
+                  "fits": true,
+                  "why": "Карта стоит 10 — вместе 35. Дороже.",
+                  "tag": "Для своих!"
+                },
+                {
+                  "id": "plain",
+                  "label": "Робот",
+                  "iconId": "icon_card_robot",
+                  "detail": "30 монет",
+                  "pay": 30,
+                  "fits": true,
+                  "why": "Робот за 30 без всяких карт — выгоднее."
+                }
+              ]
+            },
+            {
+              "id": "juice",
+              "need": "Нужно две бутылки сока.",
+              "offers": [
+                {
+                  "id": "two",
+                  "label": "2 бутылки",
+                  "iconId": "icon_card_juice",
+                  "detail": "10 монет за одну",
+                  "pay": 20,
+                  "fits": true,
+                  "why": "Две по 10 — это 20."
+                },
+                {
+                  "id": "three",
+                  "label": "Три по цене двух",
+                  "iconId": "icon_card_juice",
+                  "detail": "20 монет за три",
+                  "pay": 20,
+                  "fits": false,
+                  "why": "Та же цена, но третья бутылка не нужна.",
+                  "tag": "3 по цене 2!"
+                },
+                {
+                  "id": "pack",
+                  "label": "Две бутылки вместе",
+                  "iconId": "icon_card_juice",
+                  "detail": "17 монет за две",
+                  "pay": 17,
+                  "fits": true,
+                  "why": "Две бутылки за 17 — самое выгодное.",
+                  "tag": "Вместе дешевле!"
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "type": "bestDeal",
+              "failCode": "notBest"
+            }
+          ],
+          "explanationCorrect": "Ты разобрался во всех акциях! Такого покупателя не обманешь.",
+          "explanationWrong": "Давай посмотрим на ценники ещё раз.",
+          "explanationsByReason": {
+            "notBest": "{why}"
+          }
+        }
+      ]
     }
   ],
   "tutorials": {
     "SORT": [
       {
-        "emoji": "🍞 ➡️ 🧺",
-        "text": "Перетащи карточку в корзину. Можно и просто: нажми на карточку, а потом на корзину."
+        "emoji": "🃏",
+        "target": "sort.cards",
+        "text": "Это карточки с покупками. Каждую нужно положить в свою корзину."
       },
       {
-        "emoji": "🧺  🎁",
+        "emoji": "🧺",
+        "target": "sort.bins",
         "text": "В первую корзину — то, без чего никак. Во вторую — то, что просто хочется."
       },
       {
+        "emoji": "👆",
+        "target": "game.board",
+        "text": "Попробуй! Перетащи карточку в корзину. Или нажми на карточку, а потом на корзину.",
+        "action": "tap"
+      },
+      {
         "emoji": "✅",
-        "text": "Когда всё разложено, нажми «Проверить». Не получилось — попробуешь ещё раз!"
+        "target": "game.check",
+        "text": "Когда всё разложено, нажми «Проверить». Если не получится — попробуешь ещё раз!"
       }
     ],
     "COINS": [
       {
-        "emoji": "🪙 👆",
-        "text": "Нажимай на монеты в кошельке — они прыгнут на прилавок."
+        "emoji": "🏪",
+        "target": "coins.counter",
+        "text": "Это прилавок. Сюда кладут монеты, а сверху видна сумма."
       },
       {
-        "emoji": "🔢",
-        "text": "Следи за суммой на прилавке. Лишнюю монету можно убрать нажатием."
+        "emoji": "🪙",
+        "target": "coins.wallet",
+        "text": "Это кошелёк. Нажми на монету — она прыгнет на прилавок. Попробуй!",
+        "action": "tap"
+      },
+      {
+        "emoji": "🔙",
+        "target": "coins.counter",
+        "text": "Лишнюю монету можно вернуть: просто нажми на неё на прилавке."
       },
       {
         "emoji": "✅",
+        "target": "game.check",
         "text": "Набрал нужное — нажимай «Проверить»."
       }
     ],
     "DISTRIBUTE": [
       {
-        "emoji": "➕ ➖",
-        "text": "Кнопками плюс и минус раздай монеты."
+        "emoji": "🪙",
+        "target": "distribute.left",
+        "text": "Сверху главная подсказка: сколько монет уже набралось или сколько осталось разложить."
       },
       {
-        "emoji": "🍯",
-        "text": "Баночки наполняются — сразу видно, куда сколько ушло."
+        "emoji": "➕",
+        "target": "distribute.controls",
+        "text": "Плюс добавляет монеты, минус — убирает. Попробуй!",
+        "action": "tap"
       },
       {
         "emoji": "✅",
-        "text": "Когда план готов, нажми «Проверить»."
+        "target": "game.check",
+        "text": "Когда всё готово, нажми «Проверить»."
       }
     ],
     "ORDER": [
       {
-        "emoji": "👆 👆",
-        "text": "Нажми на одну карточку, потом на другую — они поменяются местами."
+        "emoji": "📋",
+        "target": "order.list",
+        "text": "Карточки стоят в очереди. Номер слева — место карточки."
       },
       {
-        "emoji": "⬆️ ⬇️",
-        "text": "Сверху — первое, внизу — последнее."
+        "emoji": "👆",
+        "target": "order.list",
+        "text": "Нажми на одну карточку, потом на другую — они поменяются местами. Попробуй!",
+        "action": "tap"
       },
       {
         "emoji": "✅",
+        "target": "game.check",
         "text": "Выстроил всё — нажимай «Проверить»."
       }
     ],
     "CHOICE": [
       {
-        "emoji": "📖",
-        "text": "Прочитай историю до конца."
+        "emoji": "🤔",
+        "target": "choice.options",
+        "text": "Здесь варианты. Подумай, что будет после каждого."
       },
       {
-        "emoji": "🤔 💬",
-        "text": "Выбери вариант — я сразу расскажу, что будет дальше."
+        "emoji": "👆",
+        "target": "choice.options",
+        "text": "Нажми на вариант — я сразу расскажу, что будет дальше.",
+        "action": "tap"
       }
     ],
     "BASKET": [
       {
-        "emoji": "🛒 👆",
-        "text": "Нажимай на товары — они попадут в корзину. Нажмёшь ещё раз — вернутся на полку."
-      },
-      {
         "emoji": "📝",
-        "text": "Сначала положи всё из списка, а потом можно что-то себе."
+        "target": "basket.list",
+        "text": "Это список покупок. Всё из него обязательно нужно купить."
       },
       {
         "emoji": "📊",
-        "text": "Следи за полоской бюджета: сколько осталось."
+        "target": "basket.budget",
+        "text": "А это бюджет: сколько монет можно потратить и сколько ещё осталось."
+      },
+      {
+        "emoji": "🛒",
+        "target": "basket.products",
+        "text": "Нажми на товар — он попадёт в корзину. Нажмёшь ещё раз — вернётся на полку. Попробуй!",
+        "action": "tap"
+      },
+      {
+        "emoji": "✅",
+        "target": "game.check",
+        "text": "Всё из списка в корзине? Нажимай «Проверить»."
       }
     ],
     "WEEK": [
       {
+        "emoji": "🎯",
+        "target": "week.goal",
+        "text": "Это цель: сколько монет должно быть в копилке к концу недели."
+      },
+      {
         "emoji": "📅",
-        "text": "У каждого дня есть плюс и минус: сколько монет отложить в копилку."
+        "target": "week.first",
+        "text": "Это один день. Каждый день приходят монеты. Нажми плюс — отложишь часть в копилку. Попробуй!",
+        "action": "tap"
       },
       {
         "emoji": "🎁",
+        "target": "game.board",
         "text": "В некоторые дни будут траты. Оставь на них монеты в кошельке."
       },
       {
-        "emoji": "🎯",
-        "text": "К концу недели в копилке должна набраться цель."
+        "emoji": "✅",
+        "target": "game.check",
+        "text": "Разложил всю неделю — нажимай «Проверить»."
       }
     ],
     "BOARD": [
       {
-        "emoji": "🎲 🦊",
-        "text": "Бросай кубик — лисёнок пойдёт вперёд по дорожке."
+        "emoji": "🗺️",
+        "target": "board.path",
+        "text": "Это дорожка. Лисёнок пойдёт по ней от старта до финиша."
       },
       {
-        "emoji": "🍦 🐷",
-        "text": "На соблазне реши: купить или пройти мимо. На копилке — сколько отложить."
+        "emoji": "🐷",
+        "target": "board.goal",
+        "text": "Вот цель: столько монет должно быть в копилке на финише."
       },
       {
-        "emoji": "🍲",
-        "text": "Впереди бывают обязательные траты. Оставляй на них монеты!"
+        "emoji": "🍦",
+        "target": "board.path",
+        "text": "Жёлтые клетки — соблазны: купить или пройти мимо. Голубые — обязательные траты. Оставляй на них монеты!"
       },
       {
-        "emoji": "🏁",
-        "text": "Дойди до финиша с нужной суммой в копилке."
+        "emoji": "🎲",
+        "target": "board.roll",
+        "text": "Нажми «Бросить кубик» — и в путь!",
+        "action": "tap"
       }
     ],
     "STALL": [
       {
-        "emoji": "☀️ 🌧️",
+        "emoji": "☀️",
+        "target": "stall.weather",
         "text": "Каждое утро смотри на погоду: в жару покупателей больше, в дождь — меньше."
       },
       {
-        "emoji": "🍦 🪙",
-        "text": "Выбери, сколько порций купить и почём их продавать."
+        "emoji": "🎯",
+        "target": "stall.goal",
+        "text": "Цель — столько монет должно быть в кассе в конце."
       },
       {
-        "emoji": "💰",
-        "text": "Открой ларёк и посмотри, сколько заработал за день."
+        "emoji": "🍦",
+        "target": "stall.planner",
+        "text": "Выбери, сколько порций купить и почём продавать. Потом нажми «Открыть ларёк». Попробуй!",
+        "action": "tap"
       }
     ],
     "CASHIER": [
       {
-        "emoji": "🐰 🛍️",
-        "text": "Покупатель показывает покупки и деньги, которые даёт."
+        "emoji": "🐰",
+        "target": "cashier.customer",
+        "text": "Это покупатель. Смотри, что он купил и сколько денег дал."
       },
       {
-        "emoji": "🪙 🪙",
-        "text": "Нажимай на монеты и собери сдачу: деньги покупателя минус покупка."
+        "emoji": "🪙",
+        "target": "cashier.coins",
+        "text": "Сдача — это деньги покупателя минус покупка. Нажимай на монеты, чтобы собрать сдачу. Попробуй!",
+        "action": "tap"
       },
       {
         "emoji": "🤝",
-        "text": "Нажми «Отдать сдачу» — покупатель сразу скажет, всё ли верно."
+        "target": "cashier.tray",
+        "text": "Сдача собирается здесь. Лишнюю монету можно убрать нажатием. Потом нажми «Отдать сдачу»."
       }
     ],
     "PRICETAG": [
       {
-        "emoji": "🏷️ ✨",
-        "text": "Яркий ценник не всегда самый выгодный!"
+        "emoji": "🎯",
+        "target": "pricetag.need",
+        "text": "Сначала прочитай, что нужно купить."
       },
       {
-        "emoji": "🔍",
-        "text": "Прочитай мелкий шрифт и посчитай, сколько заплатишь всего."
+        "emoji": "🏷️",
+        "target": "pricetag.offers",
+        "text": "Яркая надпись не всегда самая выгодная! Прочитай мелкий шрифт и посчитай, сколько заплатишь всего."
       },
       {
-        "emoji": "🙅",
-        "text": "Иногда самое выгодное — ничего не покупать."
+        "emoji": "👆",
+        "target": "pricetag.offers",
+        "text": "Нажми на ценник, который выгоднее всего.",
+        "action": "tap"
       }
     ]
   }

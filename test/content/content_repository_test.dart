@@ -35,6 +35,11 @@ List<Map<String, Object?>> _records(Map<String, Object?> json, String key) => [
 Map<String, Object?> _copy(Object? json) =>
     (jsonDecode(jsonEncode(json)) as Map).cast<String, Object?>();
 
+Map<dynamic, dynamic> _firstVariant(Map<String, Object?> task, String difficulty) {
+  final raw = (task['variants'] as Map)[difficulty];
+  return (raw is List ? raw.first : raw) as Map;
+}
+
 List<String> _childTexts(Object? node, [String key = '']) {
   if (key == 'forAdult' || key == 'rules') return const [];
   if (node is String) return [node];
@@ -71,6 +76,8 @@ void main() {
       expect(bundle.rooms.rooms, isNotEmpty);
       expect(bundle.phrases.phrases, isNotEmpty);
       expect(bundle.summaries.overall, isNotEmpty);
+      expect(bundle.levels.tiers, isNotEmpty);
+      expect(bundle.levels.unlocks, isNotEmpty);
     });
 
     test('в каждом файле id записей уникальны', () {
@@ -158,6 +165,8 @@ void main() {
         'rooms.json',
         'summaries.json',
         'titles.json',
+        'levels.json',
+        'coach.json',
       ]) {
         for (final text in _childTexts(_raw(file))) {
           expect(findStopWords(text), isEmpty, reason: '$file: $text');
@@ -216,7 +225,7 @@ void main() {
           clone['id'] = 'payments_sort_school';
           clone['title'] = 'Собираемся в школу';
           clone['order'] = 99;
-          final easy = (clone['variants'] as Map)['easy'] as Map;
+          final easy = _firstVariant(clone, 'easy');
           easy['cards'] = [
             {'id': 'pen', 'label': 'Ручка', 'iconId': 'icon_card_pen', 'bin': 'mandatory', 'why': 'Ручкой пишут на уроке.'},
             {'id': 'sticker', 'label': 'Наклейка', 'iconId': 'icon_card_stickers', 'bin': 'optional', 'why': 'Наклейка для радости.'},
@@ -249,7 +258,7 @@ void main() {
           'tasks.json': (json) {
             final tasks = _records(json, 'tasks');
             final broken = _copy(tasks.first);
-            ((broken['variants'] as Map)['easy'] as Map).remove('explanationCorrect');
+            _firstVariant(broken, 'easy').remove('explanationCorrect');
             return {...json, 'tasks': [broken, ...tasks.skip(1)]};
           },
         },
@@ -258,9 +267,14 @@ void main() {
       final all = _records(_raw('tasks.json'), 'tasks');
       expect(bundle.tasks.byId('${all.first['id']}'), isNull);
       expect(bundle.tasks.tasks.length, all.length - 1);
-      expect(bundle.issues.single.file, 'tasks.json');
-      expect(bundle.issues.single.recordId, all.first['id']);
-      expect(bundle.issues.single.fatal, isFalse);
+      final broken = bundle.issues.where((i) => i.file == 'tasks.json').single;
+      expect(broken.recordId, all.first['id']);
+      expect(broken.fatal, isFalse);
+      for (final other in bundle.issues.where((i) => i.file != 'tasks.json')) {
+        expect(other.file, 'levels.json');
+        expect(other.message, contains('${all.first['id']}'));
+        expect(other.fatal, isFalse);
+      }
       expect(issues, bundle.issues);
     });
 

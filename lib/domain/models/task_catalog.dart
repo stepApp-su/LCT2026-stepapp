@@ -23,6 +23,8 @@ enum TaskType {
 
 enum TaskDifficulty { easy, hard }
 
+enum TaskPool { practice, level, daily }
+
 enum CoinsMode { pay, change }
 
 enum TaskRuleType {
@@ -628,7 +630,9 @@ final class TaskDef {
     required this.reward,
     required this.allOptionsValid,
     required this.methodology,
-    required this.variants,
+    required this.variantSets,
+    this.levelSets = const {},
+    this.dailyVariants = const [],
   });
 
   final String id;
@@ -643,10 +647,65 @@ final class TaskDef {
   final bool allOptionsValid;
 
   final TaskMethodology methodology;
-  final Map<TaskDifficulty, TaskVariant> variants;
+  final Map<TaskDifficulty, List<TaskVariant>> variantSets;
+  final Map<TaskDifficulty, List<TaskVariant>> levelSets;
+  final List<TaskVariant> dailyVariants;
 
-  TaskVariant variant(TaskDifficulty difficulty) =>
-      variants[difficulty] ?? variants.values.first;
+  List<TaskVariant> get allVariants => [
+        for (final list in variantSets.values) ...list,
+        for (final list in levelSets.values) ...list,
+        ...dailyVariants,
+      ];
+
+  List<TaskVariant> variantsIn(TaskPool pool, TaskDifficulty difficulty) {
+    final own = switch (pool) {
+      TaskPool.practice => variantsOf(difficulty),
+      TaskPool.level => levelSets[difficulty] ?? const <TaskVariant>[],
+      TaskPool.daily => dailyVariants,
+    };
+    return own.isNotEmpty ? own : variantsOf(difficulty);
+  }
+
+  bool hasOwn(TaskPool pool, TaskDifficulty difficulty) => switch (pool) {
+        TaskPool.practice => true,
+        TaskPool.level => (levelSets[difficulty] ?? const []).isNotEmpty,
+        TaskPool.daily => dailyVariants.isNotEmpty,
+      };
+
+  String keyIn(TaskPool pool, TaskDifficulty difficulty, int index) {
+    final at = index % variantsIn(pool, difficulty).length;
+    if (!hasOwn(pool, difficulty)) return variantKey(difficulty, at);
+    return switch (pool) {
+      TaskPool.practice => variantKey(difficulty, at),
+      TaskPool.level => '$id/level/${difficulty.name}/$at',
+      TaskPool.daily => '$id/daily/$at',
+    };
+  }
+
+  Map<TaskDifficulty, TaskVariant> get variants => {
+        for (final entry in variantSets.entries)
+          if (entry.value.isNotEmpty) entry.key: entry.value.first
+      };
+
+  List<TaskVariant> variantsOf(TaskDifficulty difficulty) =>
+      variantSets[difficulty] ?? variantSets.values.first;
+
+  int get variantCount =>
+      variantSets.values.fold(0, (sum, list) => sum + list.length);
+
+  TaskVariant variant(TaskDifficulty difficulty, [int index = 0]) {
+    final list = variantsOf(difficulty);
+    return list[index % list.length];
+  }
+
+  String variantKey(TaskDifficulty difficulty, int index) =>
+      '$id/${difficulty.name}/${index % variantsOf(difficulty).length}';
+
+  List<String> get variantKeys => [
+        for (final entry in variantSets.entries)
+          for (var i = 0; i < entry.value.length; i++)
+            '$id/${entry.key.name}/$i'
+      ];
 
   factory TaskDef.fromJson(Map<String, Object?> json) {
     final type = TaskType.values.byName((json['type'] as String).toLowerCase());
@@ -655,7 +714,37 @@ final class TaskDef {
     ];
     final competences =
         ((json['competenceIds'] as Map?) ?? const {}).cast<String, Object?>();
-    final rawVariants = (json['variants'] as Map).cast<String, Object?>();
+
+    List<TaskVariant> parse(Object? raw, TaskDifficulty difficulty) =>
+        List<TaskVariant>.unmodifiable([
+          for (final item in switch (raw) {
+            null => const <Object?>[],
+            final List<Object?> list => list,
+            final other => [other],
+          })
+            _variantFromJson(
+              difficulty,
+              (item as Map).cast<String, Object?>(),
+              type: type,
+              mode: json['mode'] as String?,
+              bins: bins,
+              counterSource: json['counterSource'] as String?,
+              competenceIds: [
+                for (final id
+                    in (competences[difficulty.name] as List? ?? const []))
+                  id as String
+              ],
+            )
+        ]);
+
+    Map<TaskDifficulty, List<TaskVariant>> sets(Object? raw) {
+      final map = ((raw as Map?) ?? const {}).cast<String, Object?>();
+      return Map.unmodifiable({
+        for (final difficulty in TaskDifficulty.values)
+          if (map[difficulty.name] != null)
+            difficulty: parse(map[difficulty.name], difficulty)
+      });
+    }
 
     return TaskDef(
       id: json['id'] as String,
@@ -669,24 +758,12 @@ final class TaskDef {
       allOptionsValid: (json['allOptionsValid'] ?? false) as bool,
       methodology: TaskMethodology.fromJson(
           (json['methodology'] as Map).cast<String, Object?>()),
-      variants: Map.unmodifiable({
-        for (final difficulty in TaskDifficulty.values)
-          if (rawVariants[difficulty.name] != null)
-            difficulty: _variantFromJson(
-              difficulty,
-              (rawVariants[difficulty.name] as Map).cast<String, Object?>(),
-              type: type,
-              mode: json['mode'] as String?,
-              bins: bins,
-              counterSource: json['counterSource'] as String?,
-              competenceIds: [
-                for (final id in (competences[difficulty.name] as List? ?? const []))
-                  id as String
-              ],
-            )
-      }),
+      variantSets: sets(json['variants']),
+      levelSets: sets(json['levelVariants']),
+      dailyVariants: parse(json['dailyVariants'], TaskDifficulty.hard),
     );
   }
+
 }
 
 TaskVariant _variantFromJson(
@@ -858,11 +935,21 @@ final class TaskCatalog {
           'награда за попытку от 1 и не больше награды за верный ответ');
     }
     for (final difficulty in TaskDifficulty.values) {
-      final variant = task.variants[difficulty];
-      if (variant == null) {
+      final list = task.variantSets[difficulty];
+      if (list == null || list.isEmpty) {
         throw ArgumentError.value(
             task.id, 'variants', 'нет варианта «${difficulty.name}»');
       }
+      for (final variant in list) {
+        _validateVariant(task, variant, texts);
+      }
+    }
+    for (final list in task.levelSets.values) {
+      for (final variant in list) {
+        _validateVariant(task, variant, texts);
+      }
+    }
+    for (final variant in task.dailyVariants) {
       _validateVariant(task, variant, texts);
     }
   }
@@ -1125,6 +1212,6 @@ final class TaskCatalog {
 
   Set<String> competenceIds() => {
         for (final task in tasks)
-          for (final variant in task.variants.values) ...variant.competenceIds
+          for (final variant in task.allVariants) ...variant.competenceIds
       };
 }

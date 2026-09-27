@@ -1,8 +1,8 @@
 {
   "day": 1,
-  "balance": 60,
+  "balance": 40,
   "savings": 0,
-  "income": 60,
+  "income": 40,
   "mandatoryCost": 25,
   "goal": {
     "title": "Самокат",
@@ -15,9 +15,9 @@
     "savings": 0
   },
   "stats": {
-    "satiety": 80,
-    "care": 75,
-    "mood": 90,
+    "satiety": 55,
+    "care": 40,
+    "mood": 70,
     "cozy": 0
   },
   "question": {

@@ -47,6 +47,8 @@ final class ContentBundle {
     required this.rooms,
     required this.phrases,
     required this.summaries,
+    required this.levels,
+    this.coach = CoachCatalog.empty,
     required this.issues,
   });
 
@@ -61,6 +63,8 @@ final class ContentBundle {
   final RoomCatalog rooms;
   final PhraseCatalog phrases;
   final SummaryTexts summaries;
+  final LevelCatalog levels;
+  final CoachCatalog coach;
   final List<ContentIssue> issues;
 
   bool get isClean => issues.isEmpty;
@@ -83,6 +87,8 @@ final class ContentRepository {
   static const String roomsFile = 'rooms.json';
   static const String phrasesFile = 'phrases.json';
   static const String summariesFile = 'summaries.json';
+  static const String levelsFile = 'levels.json';
+  static const String coachFile = 'coach.json';
 
   static const List<String> files = [
     competencesFile,
@@ -96,6 +102,8 @@ final class ContentRepository {
     roomsFile,
     phrasesFile,
     summariesFile,
+    levelsFile,
+    coachFile,
   ];
 
   Future<ContentBundle> load() async {
@@ -287,6 +295,25 @@ final class ContentRepository {
       build: SummaryTexts.fromJson,
     );
 
+    final levels = await session.file(
+      levelsFile,
+      recordsPath: const ['unlocks'],
+      idKey: 'taskId',
+      check: (record, root) => LevelUnlock.fromJson(record),
+      references: (record) => [
+        if (tasks.byId('${record['taskId']}') == null)
+          'нет задания «${record['taskId']}»',
+      ],
+      build: LevelCatalog.fromJson,
+    );
+
+    final coach = await session.file(
+      coachFile,
+      recordsPath: const ['tours'],
+      check: (record, root) => CoachTour.fromJson(record),
+      build: CoachCatalog.fromJson,
+    );
+
     return ContentBundle(
       competences: competences,
       shop: shop,
@@ -299,6 +326,8 @@ final class ContentRepository {
       rooms: rooms,
       phrases: phrases,
       summaries: summaries,
+      levels: levels,
+      coach: coach,
       issues: List.unmodifiable(session.issues),
     );
   }
@@ -310,13 +339,17 @@ final class ContentRepository {
   }
 
   static Iterable<String> _taskCounterIds(Map<String, Object?> record) {
-    final variants = record['variants'];
-    if (variants is! Map) return const [];
+    final variants = [
+      if (record['variants'] case final Map map) ...map.values,
+      if (record['levelVariants'] case final Map map) ...map.values,
+      if (record['dailyVariants'] case final Object daily) daily,
+    ];
     return {
-      for (final variant in variants.values)
-        if (variant is Map)
-          for (final counter in _maps(variant['counters']))
-            if (counter['id'] is String) counter['id'] as String,
+      for (final entry in variants)
+        for (final variant in entry is List ? entry : [entry])
+          if (variant is Map)
+            for (final counter in _maps(variant['counters']))
+              if (counter['id'] is String) counter['id'] as String,
     };
   }
 }

@@ -195,15 +195,25 @@ void main() {
       final care = pet.state.care;
 
       final night = pet.closeDay(boughtItemIds: _boughtOn(wallet, 1));
-      expect(pet.state.satiety, satiety);
+      int nightly(PetStat stat) => [
+            for (final e in rules.nightlyEffects)
+              if (e.stat == stat) e.delta
+          ].fold(0, (a, b) => a + b);
+      expect(pet.state.satiety,
+          (satiety + nightly(PetStat.satiety)).clamp(PetState.satietyFloor, PetState.cap));
       final careLoss = [
         for (final need in rules.needs)
           if (need.itemId != 'food')
             for (final e in need.missedEffects)
               if (e.stat == PetStat.care) e.delta
       ].fold(0, (a, b) => a + b);
-      expect(pet.state.care, care + careLoss);
-      expect(night.changes.where((c) => c.stat == PetStat.satiety), isEmpty);
+      expect(pet.state.care,
+          (care + careLoss + nightly(PetStat.care)).clamp(PetState.careFloor, PetState.cap));
+      expect(
+          night.changes
+              .where((c) => c.stat == PetStat.satiety)
+              .map((c) => c.reasonText),
+          everyElement(rules.nightlyReason));
     });
 
     test('достигнутая цель добавляет уюта навсегда, с её собственным текстом',

@@ -169,12 +169,12 @@ class _StandAppState extends State<StandApp> {
     });
     if (good) {
       game.plan.setAmount(PlanDirection.mandatory, game.mandatoryCost);
-      game.plan.setAmount(PlanDirection.savings, 20);
+      game.plan.setAmount(PlanDirection.savings, 15);
       game.confirmPlan();
       for (final need in widget.content.economy.pet.needs) {
         game.buyNow(need.itemId);
       }
-      game.saveCoins(20);
+      game.saveCoins(15);
     }
     game.closeDay(game.day);
   }

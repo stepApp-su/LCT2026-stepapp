@@ -151,12 +151,18 @@ final class TaskEngine {
 
   bool isCompleted(String taskId) => _completed.contains(taskId);
 
-  TaskSession start(String taskId, TaskDifficulty difficulty) {
+  TaskSession start(String taskId, TaskDifficulty difficulty,
+      {int index = 0, TaskPool pool = TaskPool.practice}) {
     final task = catalog.byId(taskId);
     if (task == null) {
       throw ArgumentError.value(taskId, 'taskId', 'нет такого задания');
     }
-    return TaskSession._(this, task, task.variant(difficulty));
+    final list = task.variantsIn(pool, difficulty);
+    final at = index % list.length;
+    return TaskSession._(this, task, list[at],
+        index: at,
+        count: list.length,
+        variantKey: task.keyIn(pool, difficulty, at));
   }
 
   TaskCompletion _complete(TaskSession session) {
@@ -629,11 +635,15 @@ final class TaskEngine {
 }
 
 final class TaskSession {
-  TaskSession._(this._engine, this.task, this.variant);
+  TaskSession._(this._engine, this.task, this.variant,
+      {this.index = 0, this.count = 1, required this.variantKey});
 
   final TaskEngine _engine;
   final TaskDef task;
   final TaskVariant variant;
+  final int index;
+  final int count;
+  final String variantKey;
 
   int _attempts = 0;
   int _mistakes = 0;

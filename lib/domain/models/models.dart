@@ -3,6 +3,7 @@ library;
 
 export 'bedtime_texts.dart';
 export 'budget_plan.dart';
+export 'coach_catalog.dart';
 export 'competence_catalog.dart';
 export 'content_json.dart';
 export 'economy.dart';
@@ -13,6 +14,7 @@ export 'glossary_catalog.dart';
 export 'goal_catalog.dart';
 export 'growth.dart';
 export 'growth_rules.dart';
+export 'level_catalog.dart';
 export 'pet.dart';
 export 'pet_rules.dart';
 export 'phrase_catalog.dart';

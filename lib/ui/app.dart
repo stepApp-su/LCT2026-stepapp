@@ -3,6 +3,7 @@ import 'game_controller.dart';
 import 'screens/game_shell.dart';
 import 'screens/welcome_screen.dart';
 import 'theme/finni_theme.dart';
+import 'widgets/coach.dart';
 
 class FinniApp extends StatefulWidget {
   const FinniApp({super.key, this.controller});
@@ -33,6 +34,7 @@ class _FinniAppState extends State<FinniApp> {
         title: 'Питомец Финни',
         debugShowCheckedModeBanner: false,
         theme: finniTheme(),
+        builder: (context, child) => CoachHost(child: child ?? const SizedBox.shrink()),
         home: FutureBuilder<GameController>(
             future: loading,
             builder: (context, snapshot) {
