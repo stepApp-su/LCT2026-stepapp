@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
+import '../../domain/ru_words.dart';
 import '../game_controller.dart';
 import '../theme/finni_theme.dart';
+import '../widgets/coach.dart';
 import '../widgets/emoji_art.dart';
 import '../widgets/finni_ui.dart';
 import 'game_screen.dart';
+import 'level_screen.dart';
+import 'quests.dart';
 
 Future<void> openGame(BuildContext context, GameController state, String taskId) =>
     Navigator.of(context).push<GameReward>(MaterialPageRoute(
@@ -14,15 +18,21 @@ Future<void> openGame(BuildContext context, GameController state, String taskId)
     ));
 
 class GamesHub extends StatelessWidget {
-  const GamesHub({super.key, required this.state});
+  const GamesHub({
+    super.key,
+    required this.state,
+    required this.onLevel,
+    required this.onDaily,
+  });
 
   final GameController state;
+  final VoidCallback onLevel;
+  final VoidCallback onDaily;
 
   @override
   Widget build(BuildContext context) {
     final catalog = state.content.tasks;
-    final daily = state.dailyGame;
-    final dailyReward = state.rewardFor(daily);
+    final next = state.nextUnlock;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -30,40 +40,57 @@ class GamesHub extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 4),
         Text(
-          state.simpleMode ? 'Уровень: попроще' : 'Уровень: посложнее',
+          'Пройдено уровней: ${state.levelsDone}',
           style: const TextStyle(color: FinniColors.muted),
         ),
         const SizedBox(height: 16),
-        _DailyCard(
-          task: daily,
-          reward: dailyReward,
-          motion: state.motion,
-          onPlay: () => openGame(context, state, daily.id),
-        ),
+        CoachTarget(id: 'hub.level', child: LevelButton(state: state, onPlay: onLevel)),
         const SizedBox(height: 12),
-        if (!state.canEarnFromGames)
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12),
-            child: SoftNotice(
-              icon: Icons.bedtime_outlined,
-              text:
-                  'Монеты за игры сегодня уже получены. Играть можно сколько хочешь — объяснения и звёзды остаются!',
-            ),
+        CoachTarget(id: 'hub.daily', child: DailyCard(state: state, onPlay: onDaily)),
+        const SizedBox(height: 20),
+        CoachTarget(
+          id: 'hub.practice',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.fitness_center_rounded, color: FinniColors.primary),
+                  const SizedBox(width: 8),
+                  Text('Тренировка', style: Theme.of(context).textTheme.titleLarge),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Здесь монеты не начисляются — это разминка для ума. Звёзды копятся! Игра попадает сюда, когда ты сыграешь её в уровне.',
+                style: TextStyle(color: FinniColors.muted),
+              ),
+            ],
           ),
+        ),
+        if (next != null) ...[
+          const SizedBox(height: 12),
+          _NextUnlock(
+            task: next,
+            left: state.unlockLevelOf(next.id) - state.reachedLevel,
+            motion: state.motion,
+          ),
+        ],
         for (final theme in catalog.themes) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           _ThemeHeader(
             theme: theme,
             done: catalog
                 .byTheme(theme.id)
-                .where((t) => state.tasks.isCompleted(t.id))
-                .length,
-            total: catalog.byTheme(theme.id).length,
+                .fold(0, (sum, t) => sum + state.passedOf(t)),
+            total: catalog
+                .byTheme(theme.id)
+                .fold(0, (sum, t) => sum + t.variantCount),
           ),
           const SizedBox(height: 10),
           LayoutBuilder(builder: (context, constraints) {
             final columns = MediaQuery.textScalerOf(context).scale(16) > 24 ? 1 : 2;
-            final width = (constraints.maxWidth - (columns - 1) * 10) / columns;
+            final width = ((constraints.maxWidth - (columns - 1) * 10) / columns).clamp(0.0, double.infinity);
             return Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -74,21 +101,25 @@ class GamesHub extends StatelessWidget {
                     child: PopIn(
                       motion: state.motion,
                       delay: i * 60,
-                      child: _GameTile(
-                        task: task,
-                        stars: state.starsOf(task.id),
-                        reward: state.rewardFor(task),
-                        done: state.tasks.isCompleted(task.id),
-                        onTap: () => openGame(context, state, task.id),
-                      ),
+                      child: state.isGameUnlocked(task.id)
+                          ? _GameTile(
+                              task: task,
+                              stars: state.starsOf(task.id),
+                              passed: state.passedOf(task),
+                              onTap: () => openGame(context, state, task.id),
+                            )
+                          : _LockedTile(
+                              task: task,
+                              level: state.unlockLevelOf(task.id),
+                              left: state.unlockLevelOf(task.id) - state.reachedLevel,
+                            ),
                     ),
                   ),
               ],
             );
           }),
-          const SizedBox(height: 8),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         const SoftNotice(
           icon: Icons.favorite_border_rounded,
           text: 'Ошибаться можно: монеты за ошибку не отнимаются, а попробовать снова можно сразу.',
@@ -99,69 +130,125 @@ class GamesHub extends StatelessWidget {
   }
 }
 
-class _DailyCard extends StatelessWidget {
-  const _DailyCard({
-    required this.task,
-    required this.reward,
-    required this.motion,
-    required this.onPlay,
-  });
+String _levelsLeft(int left) => left <= 0
+    ? 'Ждёт тебя в уровне дня'
+    : left == 1
+        ? 'Откроется на следующем уровне'
+        : 'Откроется через $left ${ruPlural(left, 'уровень', 'уровня', 'уровней')}';
+
+class _NextUnlock extends StatelessWidget {
+  const _NextUnlock({required this.task, required this.left, required this.motion});
 
   final TaskDef task;
-  final int reward;
+  final int left;
   final bool motion;
-  final VoidCallback onPlay;
+
+  @override
+  Widget build(BuildContext context) => FinniCard(
+        color: FinniColors.lavender,
+        child: Row(
+          children: [
+            _Wobble(
+              motion: motion,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Opacity(
+                    opacity: .3,
+                    child: ColorFiltered(
+                      colorFilter: const ColorFilter.mode(
+                          FinniColors.purple, BlendMode.srcIn),
+                      child: EmojiBadge(task.iconId,
+                          size: 56, color: FinniColors.transparent),
+                    ),
+                  ),
+                  const Text('?',
+                      style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w900,
+                          color: FinniColors.purple)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Скоро новая игра!',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 2),
+                  Text(_levelsLeft(left)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _LockedTile extends StatelessWidget {
+  const _LockedTile({required this.task, required this.level, required this.left});
+
+  final TaskDef task;
+  final int level;
+  final int left;
 
   @override
   Widget build(BuildContext context) => Semantics(
-        button: true,
-        label: 'Игра дня: ${task.title}',
-        child: Squish(
-          onTap: onPlay,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [FinniColors.sky, FinniColors.lavender],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Row(
-              children: [
-                _Wobble(
-                  motion: motion,
-                  child: EmojiBadge(task.iconId, size: 76, color: FinniColors.paper),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        label: 'Игра закрыта. Откроется на уровне $level',
+        excludeSemantics: true,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: FinniColors.background,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: FinniColors.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
                     children: [
-                      const TagPill(
-                        icon: Icons.wb_sunny_outlined,
-                        label: 'Игра дня',
-                        color: FinniColors.honey,
+                      Opacity(
+                        opacity: .25,
+                        child: ColorFiltered(
+                          colorFilter: const ColorFilter.mode(
+                              FinniColors.muted, BlendMode.srcIn),
+                          child: EmojiBadge(task.iconId,
+                              size: 54, color: FinniColors.transparent),
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(task.title,
-                          style: const TextStyle(
-                              fontSize: 21, fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          if (reward > 0) CoinAmount(reward, prefix: '+', size: 20),
-                          const Spacer(),
-                          const Icon(Icons.play_circle_fill_rounded,
-                              size: 44, color: FinniColors.primary),
-                        ],
-                      ),
+                      const Icon(Icons.lock_rounded, color: FinniColors.muted),
                     ],
                   ),
-                ),
-              ],
-            ),
+                  const Spacer(),
+                  TagPill(
+                    icon: Icons.flag_outlined,
+                    label: '$level',
+                    color: FinniColors.paper,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _Reserve(
+                style: _titleStyle,
+                child: Text('???',
+                    style: _titleStyle.copyWith(color: FinniColors.muted)),
+              ),
+              const SizedBox(height: 6),
+              _Reserve(
+                style: _noteStyle,
+                child: Text(_levelsLeft(left),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: _noteStyle.copyWith(color: FinniColors.muted)),
+              ),
+            ],
           ),
         ),
       );
@@ -235,25 +322,50 @@ class _ThemeHeader extends StatelessWidget {
       );
 }
 
+const TextStyle _titleStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w800);
+const TextStyle _noteStyle = TextStyle(fontSize: 16);
+
+class _Reserve extends StatelessWidget {
+  const _Reserve({required this.style, required this.child});
+
+  final TextStyle style;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: double.infinity,
+        child: Stack(
+          children: [
+            ExcludeSemantics(
+              child: Opacity(
+                  opacity: 0, child: Text('A\nA', maxLines: 2, style: style)),
+            ),
+            Positioned.fill(child: child),
+          ],
+        ),
+      );
+}
+
 class _GameTile extends StatelessWidget {
   const _GameTile({
     required this.task,
     required this.stars,
-    required this.reward,
-    required this.done,
+    required this.passed,
     required this.onTap,
   });
 
   final TaskDef task;
   final int stars;
-  final int reward;
-  final bool done;
+  final int passed;
   final VoidCallback onTap;
+
+  int get total => task.variantCount;
+  bool get all => passed >= total;
 
   @override
   Widget build(BuildContext context) => Semantics(
         button: true,
-        label: '${task.title}. Звёзд: $stars из 3',
+        label: '${task.title}. Пройдено $passed из $total. Звёзд: $stars из 3',
         excludeSemantics: true,
         child: Squish(
           onTap: onTap,
@@ -275,17 +387,45 @@ class _GameTile extends StatelessWidget {
                   children: [
                     EmojiBadge(task.iconId, size: 54),
                     const Spacer(),
-                    if (reward > 0)
-                      CoinAmount(reward, prefix: '+', size: 16)
-                    else if (done)
-                      const Icon(Icons.check_circle_rounded, color: FinniColors.primary),
+                    if (all)
+                      const Icon(Icons.check_circle_rounded, color: FinniColors.primary)
+                    else
+                      StarRow(stars: stars, size: 16),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(task.title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                _Reserve(
+                  style: _titleStyle,
+                  child: Text(task.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: _titleStyle),
+                ),
                 const SizedBox(height: 6),
-                StarRow(stars: stars, size: 20),
+                _Reserve(
+                  style: _noteStyle,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(all ? 'Всё пройдено!' : 'Пройдено $passed из $total',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _noteStyle.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: all ? FinniColors.primary : FinniColors.ink)),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: total == 0 ? 0 : passed / total,
+                          minHeight: 8,
+                          backgroundColor: FinniColors.line,
+                          color: FinniColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

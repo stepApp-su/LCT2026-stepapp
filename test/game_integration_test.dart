@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:finni/content/content_repository.dart';
 import 'package:finni/data/game_repository.dart';
+import 'package:finni/domain/game_clock.dart';
+import 'package:finni/domain/models/models.dart';
 import 'package:finni/domain/services/plan_service.dart';
 import 'package:finni/domain/services/shop_service.dart';
 import 'package:finni/domain/services/task_engine.dart';
@@ -13,6 +15,7 @@ import 'package:finni/ui/app.dart';
 import 'package:finni/ui/game_controller.dart';
 import 'package:finni/ui/widgets/game_icon.dart';
 
+import 'support/answers.dart';
 import 'support/content.dart';
 
 void main() {
@@ -39,13 +42,13 @@ void main() {
     final restored = GameController(config,
         content: content,
         saved: await repository.load(), repository: repository);
-    expect(restored.wallet.wallet.balance, 45);
+    expect(restored.wallet.wallet.balance, 25);
     expect(restored.wallet.wallet.savings, 15);
     expect(restored.wallet.journal.length, 3);
     restored.saveCoins(5);
     await restored.flush();
     expect(restored.wallet.journal.map((t) => t.id).toSet().length, 4);
-    expect(restored.wallet.wallet.balance + restored.wallet.wallet.savings, 60);
+    expect(restored.wallet.wallet.balance + restored.wallet.wallet.savings, 40);
   });
   test('legacy progress migrates without touching original data', () async {
     final old = jsonEncode({
@@ -77,32 +80,112 @@ void main() {
             .getString(LocalGameRepository.key),
         'broken');
   });
-  test('game pays coins once in full, repeats pay less, then play is free',
-      () async {
+  test('practice games pay nothing but keep stars and progress', () async {
     final state = GameController(config, content: content);
     const id = 'planning_choice_enough';
-    final task = content.tasks.byId(id)!;
     final before = state.wallet.wallet.balance;
     final session = state.startGame(id);
     expect(session.submit(const ChoiceAnswer('no')).isCorrect, false);
-    expect(state.wallet.wallet.balance, before);
     expect(session.submit(const ChoiceAnswer('yes')).isCorrect, true);
-    final first = state.finishGame(session);
-    expect(first.coins, task.reward.wrong);
-    expect(state.wallet.wallet.balance, before + first.coins);
+    final reward = state.finishGame(session);
+    expect(reward.coins, 0);
+    expect(reward.stars, 2);
+    expect(state.wallet.wallet.balance, before);
+    expect(state.tasks.isCompleted(id), true);
+    expect(state.starsOf(id), 2);
+  });
+  test('level of the day pays once, survives restart, next level tomorrow',
+      () async {
+    final state = GameController(config, content: content);
+    expect(state.levelNumber, 1);
+    expect(state.isGameUnlocked('savings_week_plan'), false);
+    final run = state.startLevel()!;
+    expect(run.slots, hasLength(3));
+    expect(run.slots.every((slot) => !slot.isHard), true);
+    final before = state.wallet.wallet.balance;
+    final first = state.startLevelGame();
+    first.submit(rightAnswer(first.variant));
+    final firstStep = state.finishLevelGame(first);
+    expect(firstStep.finished, isNull);
+    expect(firstStep.reward.coins, run.shareOf(0));
+    expect(state.wallet.wallet.balance, before + run.shareOf(0));
+    expect(state.isGameUnlocked(run.slots.first.taskId), true);
+    expect(state.isGameUnlocked(run.slots.last.taskId), false);
+    await state.flush();
+    final resumed = GameController(config,
+        content: content, saved: await state.repository.load());
+    expect(resumed.levelRun?.done, 1);
+    LevelStep? step;
+    while (resumed.levelRun != null) {
+      final session = resumed.startLevelGame();
+      session.submit(rightAnswer(session.variant));
+      final index = resumed.levelRun!.done;
+      step = resumed.finishLevelGame(session);
+      expect(step.reward.coins, run.shareOf(index));
+    }
+    expect(step?.finished?.coins, run.coins);
+    expect(resumed.wallet.wallet.balance, before + run.coins);
+    expect(resumed.levelDoneToday, true);
+    expect(resumed.canEarnFromGames, false);
+    expect(resumed.startLevel(), isNull);
+    expect(resumed.dayFacts.tasksDone, 3);
+    await resumed.flush();
+    final restored = GameController(config,
+        content: content, saved: await resumed.repository.load());
+    expect(restored.levelsDone, 1);
+    expect(restored.todayLevel?.stars, [3, 3, 3]);
+    expect(restored.closeDay(restored.day), true);
+    expect(restored.levelDoneToday, false);
+    expect(restored.levelNumber, 2);
+    final next = restored.upcomingLevel;
+    expect(next.slots.where((slot) => slot.isNew).map((slot) => slot.taskId),
+        ['planning_choice_enough']);
+    expect(restored.isGameUnlocked('planning_choice_enough'), false);
+    expect(restored.practiceGames.map((task) => task.id).toSet(),
+        run.slots.map((slot) => slot.taskId).toSet());
+  });
+  test('daily challenge: once per real day, hard, safe from clock rollback',
+      () async {
+    final clock = _CalendarClock(DateTime(2026, 9, 28, 10));
+    final state = GameController(config, content: content, clock: clock);
+    expect(state.dailyTask, isNull);
+    expect(state.startDaily(), isNull);
+    state.startLevel();
+    while (state.levelRun != null) {
+      final session = state.startLevelGame();
+      session.submit(rightAnswer(session.variant));
+      state.finishLevelGame(session);
+    }
+    final task = state.startDaily()!;
+    expect(state.practiceGames, contains(task));
+    final session = state.startDailyGame();
+    expect(session.variant.difficulty, TaskDifficulty.hard);
+    final before = state.wallet.wallet.balance;
+    session.submit(rightAnswer(session.variant));
+    final reward = state.finishDaily(session);
+    final rules = content.levels.daily;
+    expect(reward.coins, rules.coins + rules.perfectBonus);
+    expect(state.wallet.wallet.balance, before + reward.coins);
+    expect(state.dailyDoneToday, true);
+    expect(state.dailyCoinsToday, reward.coins);
+    expect(state.startDaily(), isNull);
+    expect(state.closeDay(state.day), true);
+    expect(state.dailyDoneToday, true);
     await state.flush();
     final restored = GameController(config,
-        content: content, saved: await state.repository.load());
-    expect(restored.tasks.isCompleted(id), true);
-    final again = restored.startGame(id);
-    again.submit(const ChoiceAnswer('yes'));
-    final repeat = restored.finishGame(again);
-    expect(repeat.coins, content.economy.params.tasks.repeatReward);
-    final third = restored.startGame(id);
-    third.submit(const ChoiceAnswer('yes'));
-    expect(restored.finishGame(third).coins, 0);
-    expect(restored.wallet.wallet.balance,
-        before + first.coins + repeat.coins);
+        content: content, saved: await state.repository.load(), clock: clock);
+    expect(restored.dailyDoneToday, true);
+    expect(restored.dailyHistory, {'2026-09-28'});
+    clock.at = DateTime(2026, 9, 27, 12);
+    expect(restored.dailyDoneToday, true);
+    clock.at = DateTime(2026, 9, 29, 0, 5);
+    expect(restored.dailyDoneToday, false);
+    final tomorrow = restored.startDaily()!;
+    expect(tomorrow.id, isNot(task.id));
+    final again = restored.startDailyGame();
+    again.submit(rightAnswer(again.variant));
+    expect(restored.finishDaily(again).coins, rules.coins + rules.perfectBonus);
+    expect(restored.dailyHistory, {'2026-09-28', '2026-09-29'});
   });
   test('owned accessory cannot be charged twice', () async {
     final state = GameController(config, content: content);
@@ -260,4 +343,21 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     state.dispose();
   });
+}
+
+final class _CalendarClock implements GameClock {
+  _CalendarClock(this.at);
+
+  DateTime at;
+
+  @override
+  DateTime now() => at;
+
+  @override
+  int cooldownMs(String key) => 0;
+
+  @override
+  bool isNewCalendarDay(DateTime last) =>
+      DateTime(at.year, at.month, at.day)
+          .isAfter(DateTime(last.year, last.month, last.day));
 }

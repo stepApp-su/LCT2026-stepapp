@@ -15,7 +15,7 @@ import '../support/day.dart';
 late ContentBundle _content;
 
 final _plan =
-    BudgetPlan.create(mandatory: 25, optional: 10, savings: 25, income: 60);
+    BudgetPlan.create(mandatory: 25, optional: 10, savings: 5, income: 40);
 const _needs = ['food', 'water_light', 'cleaning'];
 const _sensibleBuy = [..._needs, 'treat', 'treat'];
 
@@ -49,7 +49,7 @@ Profile _sensibleDay(Profile profile, DemoClock clock, int index) => liveDay(
       at: clock.now(),
       plan: _plan,
       buy: _sensibleBuy,
-      deposit: 25,
+      deposit: 5,
       task: _payments[index % _payments.length],
     );
 
@@ -140,7 +140,7 @@ void main() {
       final profile = liveDay(await _start(s.controller), _content,
           at: s.clock.now(),
           plan: _plan,
-          buy: ['pouf', 'puzzle'],
+          buy: ['pouf'],
           task: 'x',
           taskReward: 4);
       expect(profile.wallet.balance, 4);
@@ -157,7 +157,7 @@ void main() {
       final five = liveDay(await _start(s.controller), _content,
           at: s.clock.now(),
           plan: _plan,
-          buy: ['pouf', 'puzzle'],
+          buy: ['pouf'],
           task: 'x',
           taskReward: 5);
       final enough = s.controller.checkBedtime(five);
@@ -200,8 +200,8 @@ void main() {
       expect(night.profile.currentDay.number, 2);
       expect(
           reasons, containsAll([for (final need in needs) need.missedReason]));
-      expect(night.profile.state.satiety, 50);
-      expect(night.profile.state.care, 60);
+      expect(night.profile.state.satiety, 20);
+      expect(night.profile.state.care, 20);
       for (final change in night.dayChanges) {
         expect(change.reasonText.trim(), isNotEmpty);
         expect(s.controller.describe(change), isNotEmpty);
@@ -231,9 +231,9 @@ void main() {
       expect(next.currentDay.transactions, [night.income]);
       expect(night.income.dayNumber, 2);
       expect(night.income.at, s.clock.now());
-      expect(next.currentDay.plan, BudgetPlan.empty(60));
+      expect(next.currentDay.plan, BudgetPlan.empty(40));
       expect(next.currentDay.planConfirmed, isFalse);
-      expect(next.wallet.balance, day1.wallet.balance + 60);
+      expect(next.wallet.balance, day1.wallet.balance + 40);
       expect(next.wallet.savings, day1.wallet.savings);
       expect(next.petActionsToday, isEmpty);
       expect(next.petChangesToday, isEmpty);
@@ -262,15 +262,15 @@ void main() {
               dayNumber: 1,
               plannedMandatory: 25,
               plannedOptional: 10,
-              plannedSavings: 25,
+              plannedSavings: 5,
               actualMandatory: 25,
               actualOptional: 10,
-              actualSavings: 25,
+              actualSavings: 5,
               growthPoints: 7));
       expect(
           night.summary.explainText,
           'Ты потратил ровно столько, сколько планировал. '
-          'Так держать — до мечты уже 25 монеток!');
+          'Так держать — до мечты уже 5 монеток!');
       expect([for (final line in night.growthLines) line.met],
           [true, true, true, true]);
       expect(night.growthStatus.stageLabel, 'Малыш');
@@ -320,8 +320,8 @@ void main() {
           containsAll([
             for (final need in _content.economy.pet.needs) need.missedReason
           ]));
-      expect(second.profile.state.satiety, first.profile.state.satiety - 30);
-      expect(second.profile.state.care, first.profile.state.care - 20);
+      expect(second.profile.state.satiety, first.profile.state.satiety - 50);
+      expect(second.profile.state.care, first.profile.state.care - 30);
     });
 
     test('итоги второго дня считают изменения от утра этого дня', () async {
@@ -337,7 +337,7 @@ void main() {
           if (evening.of(stat) != morning.of(stat))
             stat: evening.of(stat) - morning.of(stat)
       });
-      expect(night2.summary.stateChanges[PetStat.satiety], 40);
+      expect(night2.summary.stateChanges[PetStat.satiety], 20);
     });
 
     test('ночь не трогает цель, вещи, наряды и настройки', () async {
@@ -384,7 +384,7 @@ void main() {
               at: s.clock.now(),
               plan: _plan,
               buy: [..._needs, 'treat'],
-              deposit: 25,
+              deposit: 5,
               task: 'x')),
           'День прошёл! Ты заработал 10 и потратил 30 монеток. '
           'Завтра будет новый план.');
@@ -501,7 +501,7 @@ void main() {
       ]);
       expect(titles, [
         <String>[],
-        ['reserve_keeper'],
+        <String>[],
         ['planner'],
         <String>[],
         ['saver'],
@@ -512,7 +512,7 @@ void main() {
       expect(last.currentDay.number, 6);
       expect(last.history.map((h) => h.dayNumber), [1, 2, 3, 4, 5]);
       expect(last.progress.growthDays.map((d) => d.dayNumber), [1, 2, 3, 4, 5]);
-      expect(last.wallet.savings, 125);
+      expect(last.wallet.savings, 25);
       expect(last.completedTasks, _payments.take(5));
       expect(_payments.length, greaterThan(5));
       expect(last.progress.earnedTitles, isNot(contains('shopping_expert')));
@@ -539,12 +539,12 @@ void main() {
         expect(
             night.summary.explainText, _content.summaries.explain['emptyDay']);
       }
-      expect(satiety, [50, 20, 20, 20, 20]);
-      expect(care, [60, 40, 20, 20, 20]);
-      expect(mood, [70, 60, 50, 40, 30]);
+      expect(satiety, [20, 20, 20, 20, 20]);
+      expect(care, [20, 20, 20, 20, 20]);
+      expect(mood, [60, 50, 40, 30, 30]);
       expect(profile.progress.stage, PetStage.egg);
       expect(profile.progress.earnedTitles, ['novice']);
-      expect(profile.wallet.balance, 360);
+      expect(profile.wallet.balance, 240);
       expect(events, [null, 'found_coins', null, null, null]);
     });
 

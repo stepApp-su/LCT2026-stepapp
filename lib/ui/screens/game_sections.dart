@@ -157,10 +157,43 @@ extension _GameSections on _GameShellState {
     }
   }
 
+  bool requirePlan() {
+    if (!s.needsPlan) return false;
+    final income = s.plan.plan.income;
+    sheet(
+        'Сначала план на день',
+        Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Center(child: Text('📋', style: TextStyle(fontSize: 56))),
+          const SizedBox(height: 12),
+          Text(
+              'Прежде чем тратить и копить, разложим $income ${ruCoins(income)}: на обязательное, на желаемое и в копилку.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 17)),
+          const SizedBox(height: 8),
+          const Text('Так в начале дня делают и взрослые — это и есть план.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: FinniColors.muted)),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                go(1);
+              },
+              icon: const Icon(Icons.edit_note_rounded),
+              label: const Text('Составить план')),
+        ]));
+    return true;
+  }
+
   void transfer(bool withdrawal) {
+    if (requirePlan()) return;
     final step = s.content.economy.params.plan.step;
     final max = withdrawal ? s.wallet.wallet.savings : s.wallet.wallet.balance;
-    int amount = max < step ? max : step;
+    int amount = !withdrawal && s.savingsToDeposit > 0
+        ? s.savingsToDeposit
+        : max < step
+            ? max
+            : step;
     sheet(withdrawal ? 'Взять из копилки' : 'Пополнить копилку',
         StatefulBuilder(builder: (context, update) {
       final before = s.wallet.wallet.savings;
@@ -171,6 +204,41 @@ extension _GameSections on _GameShellState {
         Center(
             child: Text(withdrawal ? '🐷➡️🪙' : '🪙➡️🐷',
                 style: const TextStyle(fontSize: 44))),
+        const SizedBox(height: 12),
+        _Panel(
+            color: withdrawal ? FinniColors.lavender : FinniColors.honey,
+            padding: 12,
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(children: [
+                    Expanded(
+                        child: Text(
+                            withdrawal ? 'Сейчас в копилке' : 'Сейчас в кошельке',
+                            style: const TextStyle(
+                                fontSize: 17, fontWeight: FontWeight.w800))),
+                    _Coins(max),
+                  ]),
+                  if (!withdrawal && s.plan.isConfirmed) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                        s.planLeft(PlanDirection.savings) > 0
+                            ? 'По плану сегодня отложить ещё ${s.planLeft(PlanDirection.savings)}.'
+                            : 'По плану на сегодня уже отложено. Можно добавить ещё, если хочется.',
+                        style: const TextStyle(fontSize: 16)),
+                  ],
+                ])),
+        const SizedBox(height: 8),
+        Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
+          if (!withdrawal && s.savingsToDeposit > 0 && s.savingsToDeposit != max)
+            OutlinedButton(
+                onPressed: () => update(() => amount = s.savingsToDeposit),
+                child: Text('По плану: ${s.savingsToDeposit}')),
+          if (max > 0)
+            OutlinedButton(
+                onPressed: () => update(() => amount = max),
+                child: Text(withdrawal ? 'Всё: $max' : 'Все монеты: $max')),
+        ]),
         const SizedBox(height: 12),
         Row(children: [
           IconButton.filledTonal(
@@ -348,9 +416,35 @@ extension _GameSections on _GameShellState {
         ]));
   }
 
-  Widget tasksBody(BuildContext context) => GamesHub(state: s);
+  Widget tasksBody(BuildContext context) =>
+      GamesHub(state: s, onLevel: playLevel, onDaily: playDaily);
+
+  Future<void> playDaily() async {
+    if (requirePlan()) return;
+    final toPlan = await openDaily(context, s);
+    if (!mounted) return;
+    if (toPlan) {
+      go(1);
+    } else {
+      maybeCoach();
+    }
+  }
+
+  Future<void> playLevel() async {
+    if (requirePlan()) return;
+    final toPlan = await openLevel(context, s);
+    if (!mounted) return;
+    if (toPlan) {
+      go(1);
+    } else {
+      maybeCoach();
+    }
+  }
 
   Widget moreBody() => ListView(padding: const EdgeInsets.all(16), children: [
+        CoachTarget(
+            id: 'more.list',
+            child: Column(children: [
         _routeTile('Комната и гардероб', 'Вещи и наряды',
             Icons.checkroom_outlined, room),
         _routeTile(
@@ -363,6 +457,15 @@ extension _GameSections on _GameShellState {
             Icons.lightbulb_outline_rounded, glossary),
         _routeTile('Для взрослого', 'Настройки приложения',
             Icons.family_restroom_outlined, adults),
+            ])),
+        CoachTarget(
+            id: 'more.coach',
+            child: _routeTile('Обучение', 'Покажу, как всё устроено, ещё раз',
+                Icons.school_outlined, () {
+              s.resetCoach();
+              toast('Хорошо! Сейчас я всё покажу.');
+              go(0);
+            })),
       ]);
   Widget _routeTile(String title, String description, IconData icon,
           VoidCallback action) =>
@@ -385,6 +488,19 @@ extension _GameSections on _GameShellState {
             Text('День ${s.day}',
                 style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 16),
+            if (s.dayHistory.isNotEmpty) ...[
+              Text('Итоги прошлых дней',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              for (final (i, entry) in s.dayHistory.indexed)
+                Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _DayRecap(entry: entry, expanded: i == 0)),
+              const SizedBox(height: 8),
+              Text('Все движения монет',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+            ],
             if (s.wallet.journal.isEmpty)
               const _Notice(
                   icon: Icons.menu_book_outlined,
@@ -610,22 +726,7 @@ extension _GameSections on _GameShellState {
           ]));
   void daySummary() => section('Спокойной ночи', (context) {
         final summaryDay = s.day;
-        int actual(ExpenseCategory category) => s.wallet.journal
-            .where((t) =>
-                t.dayNumber == s.day &&
-                t.type == TransactionType.expense &&
-                t.category == category)
-            .fold(0, (sum, t) => sum + t.amount);
-        final savings =
-            s.wallet.journal.where((t) => t.dayNumber == s.day).fold(
-                0,
-                (sum, t) =>
-                    sum +
-                    (t.type == TransactionType.toSavings
-                        ? t.amount
-                        : t.type == TransactionType.fromSavings
-                            ? -t.amount
-                            : 0));
+        final todos = s.bedtimeTodos;
         return ListView(padding: const EdgeInsets.all(16), children: [
           const Icon(Icons.bedtime_outlined,
               size: 48, color: FinniColors.purple),
@@ -633,19 +734,7 @@ extension _GameSections on _GameShellState {
           Text('Как прошёл день',
               style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 20),
-          for (final row in [
-            (
-              'Обязательное',
-              s.plan.plan.mandatory,
-              actual(ExpenseCategory.mandatory)
-            ),
-            (
-              'Желаемое',
-              s.plan.plan.optional,
-              actual(ExpenseCategory.optional)
-            ),
-            ('Копилка', s.plan.plan.savings, savings)
-          ])
+          for (final row in s.planFactRows)
             Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _Panel(
@@ -659,24 +748,161 @@ extension _GameSections on _GameShellState {
                       Text('Разница: ${row.$3 - row.$2} монет')
                     ]))),
           _Notice(
+              icon: todos.isEmpty
+                  ? Icons.check_circle_outline_rounded
+                  : Icons.lightbulb_outline_rounded,
+              text: s.bedtimeHint),
+          const SizedBox(height: 12),
+          _Notice(
               icon: Icons.auto_awesome,
               text:
-                  'Сегодня можно получить ${s.growth.pointsFor(s.growth.factorsOf(s.dayFacts))} опыта. После завершения проверим новые звания и начнём следующий день.'),
+                  'Сегодня можно получить ${s.growth.pointsFor(s.growth.factorsOf(s.dayFacts))} опыта. После сна проверим новые звания и начнём следующий день.'),
           const SizedBox(height: 16),
-          FilledButton(
-              onPressed: () {
-                if (s.closeDay(summaryDay)) Navigator.of(context).pop();
-              },
-              child: const Text('Завершить день')),
+          FilledButton.icon(
+              onPressed: () => goToSleep(context, summaryDay),
+              icon: const Icon(Icons.nightlight_round),
+              label: const Text('Спокойной ночи')),
         ]);
       });
+
+  void goToSleep(BuildContext sheetContext, int summaryDay) {
+    final reminder = s.bedtimeReminder;
+    void sleep() {
+      if (s.closeDay(summaryDay)) Navigator.of(sheetContext).pop();
+    }
+
+    if (reminder == null) {
+      sleep();
+      return;
+    }
+    final texts = s.content.economy.bedtime;
+    showDialog<void>(
+        context: sheetContext,
+        builder: (dialogContext) => AlertDialog(
+              icon: const Text('🛒', style: TextStyle(fontSize: 40)),
+              title: Text(reminder, textAlign: TextAlign.center),
+              actionsAlignment: MainAxisAlignment.center,
+              actionsOverflowDirection: VerticalDirection.down,
+              actions: [
+                if (s.bedtimeCanShop)
+                  FilledButton.icon(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.of(sheetContext).pop();
+                        go(2);
+                      },
+                      icon: const Icon(Icons.storefront_outlined),
+                      label: Text(texts.goShopping)),
+                OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      sleep();
+                    },
+                    icon: const Icon(Icons.nightlight_round),
+                    label: Text(texts.sleepAnyway)),
+              ],
+            ));
+  }
+
+  void showEvent() {
+    final event = s.todayEvent;
+    if (event == null || requirePlan()) return;
+    s.openEvent();
+    EventOutcome? outcome;
+    sheet(
+        s.eventHeader,
+        StatefulBuilder(builder: (context, update) {
+          final current = outcome;
+          final done = current is EventResolved ? current : null;
+          final short = current is EventShort ? current : null;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                  child: PopIn(
+                      motion: s.motion,
+                      child: EmojiBadge(event.iconId, size: 96))),
+              const SizedBox(height: 12),
+              Text(event.title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              Text(event.situation,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 17)),
+              const SizedBox(height: 16),
+              if (done != null) ...[
+                _Notice(icon: Icons.check_circle_outline, text: done.text),
+                const SizedBox(height: 12),
+                if (done.shifts.isNotEmpty) _ShiftList(done.shifts),
+                const SizedBox(height: 8),
+                FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(s.eventText('done'))),
+              ] else ...[
+                if (event.options.length > 1)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(s.eventText('chooseHint'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: FinniColors.muted)),
+                  ),
+                if (short != null) ...[
+                  _Notice(icon: Icons.lightbulb_outline, text: short.text),
+                  const SizedBox(height: 12),
+                ],
+                for (final option in event.options)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: FilledButton.tonal(
+                      onPressed: () {
+                        final result = s.resolveEvent(option.id);
+                        if (result != null) update(() => outcome = result);
+                      },
+                      style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.all(16)),
+                      child: Row(
+                        children: [
+                          Expanded(
+                              child: Text(option.label,
+                                  style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800))),
+                          if (option.cost > 0)
+                            _Pill(
+                                icon: Icons.remove_rounded,
+                                label: '${option.cost}',
+                                color: FinniColors.lavender)
+                          else if (option.coins > 0)
+                            _Pill(
+                                icon: Icons.add_rounded,
+                                label: '${option.coins}',
+                                color: FinniColors.mint)
+                          else
+                            const _Pill(
+                                icon: Icons.favorite_border_rounded,
+                                label: 'Бесплатно',
+                                color: FinniColors.mint),
+                        ],
+                      ),
+                    ),
+                  ),
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(s.eventText('postpone'))),
+              ],
+            ],
+          );
+        }));
+  }
+
   void glossary() => section(
       'Словарик',
       (context) => ListView(padding: const EdgeInsets.all(16), children: [
             for (final entry in [
               (
                 'Бюджет',
-                'Все монеты, которыми ты можешь распорядиться. Например, сегодня у тебя 60 монет.'
+                'Все монеты, которыми ты можешь распорядиться. Например, утром у тебя 40 монет.'
               ),
               (
                 'Обязательное',
@@ -714,6 +940,10 @@ extension _GameSections on _GameShellState {
 
   void adults() {
     final answer = TextEditingController();
+    final random = math.Random();
+    final a = 6 + random.nextInt(4);
+    final b = 6 + random.nextInt(4);
+    final expected = '${a * b}';
     String? message;
     sheet(
         'Для взрослого',
@@ -721,8 +951,8 @@ extension _GameSections on _GameShellState {
             builder: (context, update) => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                          'Чтобы открыть настройки, решите пример: 7 × 8.'),
+                      Text(
+                          'Чтобы открыть настройки, решите пример: $a × $b.'),
                       const SizedBox(height: 16),
                       TextField(
                           controller: answer,
@@ -730,7 +960,7 @@ extension _GameSections on _GameShellState {
                           decoration: InputDecoration(
                               labelText: 'Ответ', errorText: message),
                           onSubmitted: (value) {
-                            if (value.trim() == '56') {
+                            if (value.trim() == expected) {
                               Navigator.pop(context);
                               adultSettings();
                             } else {
@@ -740,7 +970,7 @@ extension _GameSections on _GameShellState {
                       const SizedBox(height: 16),
                       FilledButton.icon(
                           onPressed: () {
-                            if (answer.text.trim() == '56') {
+                            if (answer.text.trim() == expected) {
                               Navigator.pop(context);
                               adultSettings();
                             } else {
@@ -815,16 +1045,14 @@ extension _GameSections on _GameShellState {
           ]));
   void renamePet() => sheet(
       'Имя питомца',
-      Wrap(spacing: 8, runSpacing: 8, children: [
-        for (final name in s.config['names'] as List)
-          ActionChip(
-              label: Text(name as String),
-              onPressed: () {
-                s.createPet(name, s.simpleMode);
-                Navigator.of(context).pop();
-              },
-              padding: const EdgeInsets.all(12))
-      ]));
+      NamePicker(
+          initial: s.petName,
+          names: [for (final name in s.config['names'] as List) '$name'],
+          buttonLabel: 'Сохранить имя',
+          onDone: (name) {
+            s.renamePet(name);
+            Navigator.of(context).pop();
+          }));
   void confirmProfileAction(bool delete) {
     bool busy = false;
     String? error;

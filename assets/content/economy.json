@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "day": {
-    "income": 60,
+    "income": 40,
     "incomeReason": "Монеты на новый день.",
     "tasksPerDay": 1
   },
@@ -50,7 +50,7 @@
     }
   },
   "pet": {
-    "initial": { "satiety": 80, "care": 80, "mood": 80, "cozy": 10 },
+    "initial": { "satiety": 55, "care": 40, "mood": 70, "cozy": 10 },
     "needs": [
       {
         "itemId": "food",
@@ -73,8 +73,12 @@
       "care": { "atOrBelow": 30, "text": "Мне бы умыться" }
     },
     "nightly": {
-      "effects": [{ "stat": "mood", "delta": -10 }],
-      "reason": "Ночью настроение немного снижается — игры его поднимут"
+      "effects": [
+        { "stat": "satiety", "delta": -20 },
+        { "stat": "care", "delta": -10 },
+        { "stat": "mood", "delta": -10 }
+      ],
+      "reason": "За ночь питомец проголодался и немного заскучал"
     },
     "actions": {
       "pet_tap": {

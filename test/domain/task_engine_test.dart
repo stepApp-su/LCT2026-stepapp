@@ -7,6 +7,8 @@ import 'package:finni/domain/services/wallet_service.dart';
 import 'package:finni/domain/stop_words.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/answers.dart';
+
 Map<String, Object?> _raw(String file) =>
     (jsonDecode(File('assets/content/$file').readAsStringSync()) as Map)
         .cast<String, Object?>();
@@ -17,129 +19,6 @@ final TaskRewardRules _rewards =
 
 TaskEngine _engine({Iterable<String> completed = const []}) =>
     TaskEngine(catalog: _catalog, rewards: _rewards, completedTaskIds: completed);
-
-int? _ruleValue(List<TaskRule> rules, TaskRuleType type, [String? counterId]) {
-  for (final rule in rules) {
-    if (rule.type == type && (counterId == null || rule.counterId == counterId)) {
-      return rule.value;
-    }
-  }
-  return null;
-}
-
-Map<int, int>? _solveCoins(CoinsPayload payload) {
-  final limit = _ruleValue(payload.rules, TaskRuleType.maxCoins);
-  final denominations = payload.wallet.keys.toList()..sort((a, b) => b.compareTo(a));
-
-  Map<int, int>? search(int index, int sum, int coins, Map<int, int> taken) {
-    if (limit != null && coins > limit) return null;
-    if (sum == payload.expected) return taken;
-    if (sum > payload.expected || index == denominations.length) return null;
-    final denomination = denominations[index];
-    for (var take = payload.wallet[denomination]!; take >= 0; take--) {
-      final found = search(index + 1, sum + denomination * take, coins + take,
-          {...taken, if (take > 0) denomination: take});
-      if (found != null) return found;
-    }
-    return null;
-  }
-
-  return search(0, 0, 0, const {});
-}
-
-List<int>? _solveWeek(WeekPayload payload) {
-  final options = [
-    for (var save = payload.maxSavePerDay; save >= 0; save -= payload.step) save,
-  ];
-
-  List<int>? search(int day, int wallet, int saved, List<int> plan) {
-    if (day > payload.days) return saved >= payload.target ? plan : null;
-    for (final save in options) {
-      var left = wallet + payload.dailyIncome - save;
-      final event = payload.eventOn(day);
-      if (event != null) left -= event.cost;
-      if (left < 0) continue;
-      final found = search(day + 1, left, saved + save, [...plan, save]);
-      if (found != null) return found;
-    }
-    return null;
-  }
-
-  return search(1, 0, 0, const []);
-}
-
-List<int>? _searchBoard(BoardPayload payload, bool Function(BoardRun run) wanted) {
-  List<int>? search(BoardRun run) {
-    if (run.isFinished) return wanted(run) ? run.decisions : null;
-    if (run.pending) {
-      for (final option in run.options().reversed) {
-        final found = search(run.decide(option));
-        if (found != null) return found;
-      }
-      return null;
-    }
-    return run.canRoll ? search(run.roll()) : null;
-  }
-
-  return search(BoardRun.start(payload));
-}
-
-List<StallChoice>? _solveStall(StallPayload payload) {
-  final goal = payload.goalOf(payload.rules);
-  List<StallChoice>? search(int day, int coins, List<StallChoice> plan) {
-    if (day == payload.days.length) return coins >= goal ? plan : null;
-    for (final portions in payload.portionOptions(coins).reversed) {
-      for (final price in payload.prices) {
-        final choice = StallChoice(portions: portions, price: price);
-        final result = payload.playDay(day, coins, choice);
-        final found = search(day + 1, result.coinsAfter, [...plan, choice]);
-        if (found != null) return found;
-      }
-    }
-    return null;
-  }
-
-  return search(0, payload.startCoins, const []);
-}
-
-Map<int, int> _changeCoins(CashierPayload payload, int amount) {
-  final coins = [...payload.denominations]..sort((a, b) => b.compareTo(a));
-  final result = <int, int>{};
-  var left = amount;
-  for (final coin in coins) {
-    final count = left ~/ coin;
-    if (count > 0) {
-      result[coin] = count;
-      left -= count * coin;
-    }
-  }
-  return result;
-}
-
-TaskAnswer _rightAnswer(TaskVariant variant) => switch (variant.payload) {
-      SortPayload(:final cards) => SortAnswer({for (final c in cards) c.id: c.bin}),
-      CoinsPayload payload => CoinsAnswer(_solveCoins(payload)!),
-      DistributePayload payload => DistributeAnswer({
-          for (final counter in payload.counters)
-            counter.id:
-                _ruleValue(payload.rules, TaskRuleType.atLeast, counter.id) ?? counter.min,
-        }),
-      OrderPayload(:final items) =>
-        OrderAnswer([for (final i in [...items]..sort((a, b) => a.rank.compareTo(b.rank))) i.id]),
-      ChoicePayload(:final options) =>
-        ChoiceAnswer(options.firstWhere((o) => o.isCorrect).id),
-      BasketPayload payload => BasketAnswer({for (final p in payload.fromList) p.id}),
-      WeekPayload payload => WeekAnswer(_solveWeek(payload)!),
-      BoardPayload payload =>
-        BoardAnswer(_searchBoard(payload, payload.passes)!),
-      StallPayload payload => StallAnswer(_solveStall(payload)!),
-      CashierPayload payload => CashierAnswer([
-          for (final customer in payload.customers)
-            _changeCoins(payload, customer.change),
-        ]),
-      PriceTagPayload(:final rounds) =>
-        PriceTagAnswer([for (final round in rounds) round.best.id]),
-    };
 
 TaskAnswer? _wrongAnswer(TaskDef task, TaskVariant variant) => switch (variant.payload) {
       SortPayload(:final bins, :final cards) => SortAnswer({
@@ -158,7 +37,7 @@ TaskAnswer? _wrongAnswer(TaskDef task, TaskVariant variant) => switch (variant.p
       BasketPayload() => const BasketAnswer({}),
       WeekPayload(:final days) => WeekAnswer(List.filled(days, 0)),
       BoardPayload payload => BoardAnswer(
-          _searchBoard(payload, (run) => run.savings == 0 && run.joy == 0)!),
+          searchBoard(payload, (run) => run.savings == 0 && run.joy == 0)!),
       StallPayload payload => StallAnswer(List.filled(
           payload.days.length, StallChoice(portions: 0, price: payload.prices.first))),
       CashierPayload payload => CashierAnswer(
@@ -176,6 +55,69 @@ void _expectKindText(String text, String where) {
 }
 
 void main() {
+  group('все варианты каждого задания', () {
+    for (final task in _catalog.tasks) {
+      for (final pool in TaskPool.values) {
+      for (final difficulty in TaskDifficulty.values) {
+        if (pool == TaskPool.daily && difficulty == TaskDifficulty.easy) continue;
+        for (var i = 0; i < task.variantsIn(pool, difficulty).length; i++) {
+          final where = '${task.id}/${pool.name}/${difficulty.name}/$i';
+          test('$where: решается, объясняется, помнит свой номер', () {
+            final session =
+                _engine().start(task.id, difficulty, index: i, pool: pool);
+            expect(session.index, i);
+            expect(session.variantKey, task.keyIn(pool, difficulty, i));
+            final feedback = session.submit(rightAnswer(session.variant));
+            expect(feedback.isCorrect, isTrue, reason: where);
+            _expectKindText(feedback.explanation, where);
+            final again =
+                _engine().start(task.id, difficulty, index: i, pool: pool);
+            final wrong = _wrongAnswer(task, again.variant);
+            if (wrong != null) {
+              final first = again.submit(wrong);
+              expect(first.isCorrect, isFalse, reason: where);
+              _expectKindText(first.explanation, where);
+            }
+          });
+        }
+      }
+      }
+    }
+
+    test('у каждой игры свои задания для уровня и задания дня', () {
+      for (final task in _catalog.tasks) {
+        for (final difficulty in TaskDifficulty.values) {
+          expect(task.hasOwn(TaskPool.level, difficulty), isTrue,
+              reason: '${task.id}/${difficulty.name}');
+        }
+        expect(task.hasOwn(TaskPool.daily, TaskDifficulty.hard), isTrue,
+            reason: task.id);
+        final practice = {
+          for (final list in task.variantSets.values)
+            for (final v in list) v.intro
+        };
+        final challenges = [
+          for (final list in task.levelSets.values)
+            for (final v in list) v.intro,
+          for (final v in task.dailyVariants) v.intro,
+        ];
+        for (final intro in challenges) {
+          expect(practice, isNot(contains(intro)), reason: task.id);
+        }
+      }
+    });
+
+    test('номер варианта по кругу, счётчик считает все варианты', () {
+      final task = _catalog.byId('payments_sort_needs')!;
+      final easy = task.variantsOf(TaskDifficulty.easy).length;
+      expect(easy, greaterThan(1));
+      expect(task.variantCount,
+          easy + task.variantsOf(TaskDifficulty.hard).length);
+      expect(task.variantKeys.toSet(), hasLength(task.variantCount));
+      expect(_engine().start(task.id, TaskDifficulty.easy, index: easy).index, 0);
+    });
+  });
+
   group('каждое задание из JSON', () {
     for (final task in _catalog.tasks) {
       for (final difficulty in TaskDifficulty.values) {
@@ -183,7 +125,7 @@ void main() {
 
         test('$where: верный ответ — объяснение и полная награда', () {
           final session = _engine().start(task.id, difficulty);
-          final feedback = session.submit(_rightAnswer(session.variant));
+          final feedback = session.submit(rightAnswer(session.variant));
           expect(feedback.isCorrect, isTrue, reason: where);
           _expectKindText(feedback.explanation, where);
           expect(feedback.completion!.coins, task.reward.correct);
@@ -203,7 +145,7 @@ void main() {
           expect(first.completion, isNull);
           expect(session.mistakes, 1);
 
-          final second = session.submit(_rightAnswer(session.variant));
+          final second = session.submit(rightAnswer(session.variant));
           expect(second.isCorrect, isTrue);
           expect(second.attempt, 2);
           expect(second.completion!.coins, task.reward.wrong);
@@ -220,12 +162,12 @@ void main() {
       final task = _catalog.tasks.first;
       final first = engine.start(task.id, TaskDifficulty.easy);
       final firstCoins =
-          first.submit(_rightAnswer(first.variant)).completion!.coins;
+          first.submit(rightAnswer(first.variant)).completion!.coins;
       expect(firstCoins, task.reward.correct);
       expect(engine.isCompleted(task.id), isTrue);
 
       final again = engine.start(task.id, TaskDifficulty.easy);
-      final repeat = again.submit(_rightAnswer(again.variant)).completion!;
+      final repeat = again.submit(rightAnswer(again.variant)).completion!;
       expect(repeat.firstTime, isFalse);
       expect(repeat.coins, greaterThan(0));
       expect(repeat.coins, lessThan(firstCoins));
@@ -235,7 +177,7 @@ void main() {
     test('задание, пройденное раньше, помнится между сессиями', () {
       final task = _catalog.tasks.first;
       final session = _engine(completed: [task.id]).start(task.id, TaskDifficulty.hard);
-      final completion = session.submit(_rightAnswer(session.variant)).completion!;
+      final completion = session.submit(rightAnswer(session.variant)).completion!;
       expect(completion.firstTime, isFalse);
       expect(completion.coins, greaterThan(0));
     });
@@ -262,7 +204,7 @@ void main() {
       final session = _engine().start(task.id, TaskDifficulty.easy);
       expect(() => session.collect(wallet, at: DateTime(2026, 9, 24), dayNumber: 1),
           throwsStateError);
-      session.submit(_rightAnswer(session.variant));
+      session.submit(rightAnswer(session.variant));
       final ok = session.collect(wallet, at: DateTime(2026, 9, 24), dayNumber: 1);
       expect(ok.wallet.balance, task.reward.correct);
       expect(ok.transaction.type, TransactionType.income);
@@ -301,7 +243,7 @@ void main() {
     test('COINS: лишняя монета — объяснение с суммой на прилавке', () {
       final session = start(TaskType.coins);
       final payload = session.variant.payload as CoinsPayload;
-      final right = _solveCoins(payload)!;
+      final right = solveCoins(payload)!;
       final extra = payload.wallet.keys.firstWhere(
           (d) => (right[d] ?? 0) < payload.wallet[d]!);
       final answer = {...right, extra: (right[extra] ?? 0) + 1};
@@ -481,7 +423,7 @@ void main() {
       final session = _engine().start(task.id, TaskDifficulty.easy);
       final payload = session.variant.payload as BoardPayload;
       final decisions =
-          _searchBoard(payload, (run) => run.shortages.isNotEmpty)!;
+          searchBoard(payload, (run) => run.shortages.isNotEmpty)!;
       final feedback = session.submit(BoardAnswer(decisions));
       expect(feedback.check.failCode, 'mandatoryShort');
       _expectKindText(feedback.explanation, task.id);
@@ -493,7 +435,7 @@ void main() {
       final session = _engine().start(task.id, TaskDifficulty.easy);
       final payload = session.variant.payload as BoardPayload;
       final decisions =
-          _searchBoard(payload, (run) => payload.passes(run) && run.joy >= 1);
+          searchBoard(payload, (run) => payload.passes(run) && run.joy >= 1);
       expect(decisions, isNotNull);
       expect(session.submit(BoardAnswer(decisions!)).isCorrect, isTrue);
     });
@@ -538,7 +480,7 @@ void main() {
       final payload = session.variant.payload as CashierPayload;
       final changes = [
         for (final customer in payload.customers)
-          _changeCoins(payload, customer.change),
+          changeCoins(payload, customer.change),
       ];
       changes[1] = {1: 1};
       final feedback = session.submit(CashierAnswer(changes));

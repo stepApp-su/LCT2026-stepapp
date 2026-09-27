@@ -539,16 +539,48 @@ final class CashierPayload extends TaskPayload {
   }
 }
 
-final class TutorialStep {
-  const TutorialStep({required this.emoji, required this.text});
+enum CoachAction { next, tap, wait }
 
-  factory TutorialStep.fromJson(Map<String, Object?> json) => TutorialStep(
-        emoji: jsonText(json['emoji'], 'tutorials.emoji'),
-        text: jsonText(json['text'], 'tutorials.text'),
-      );
+final class TutorialStep {
+  const TutorialStep({
+    required this.emoji,
+    required this.text,
+    this.target,
+    this.action = CoachAction.next,
+    this.until,
+    this.skipIf,
+  });
+
+  factory TutorialStep.fromJson(Map<String, Object?> json) {
+    final step = TutorialStep(
+      emoji: jsonText(json['emoji'], 'tutorials.emoji'),
+      text: jsonText(json['text'], 'tutorials.text'),
+      target: jsonTextOrNull(json['target'], 'tutorials.target'),
+      action: jsonEnum(CoachAction.values, json['action'] ?? CoachAction.next.name,
+          'tutorials.action'),
+      until: jsonTextOrNull(json['until'], 'tutorials.until'),
+      skipIf: jsonTextOrNull(json['skipIf'], 'tutorials.skipIf'),
+    );
+    if (step.action == CoachAction.tap && step.target == null) {
+      throw ArgumentError.value(step.text, 'tutorials.target', 'нажать можно только на что-то');
+    }
+    if (step.action == CoachAction.wait && step.until == null) {
+      throw ArgumentError.value(step.text, 'tutorials.until', 'не сказано, чего ждать');
+    }
+    return step;
+  }
 
   final String emoji;
   final String text;
+  final String? target;
+  final CoachAction action;
+  final String? until;
+  final String? skipIf;
+
+  Set<String> get conditions => {
+        if (until case final value?) value,
+        if (skipIf case final value?) value,
+      };
 }
 
 final class PriceOffer {

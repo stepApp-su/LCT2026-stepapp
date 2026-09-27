@@ -7,10 +7,15 @@ import '../content/content_repository.dart';
 import '../content/game_content.dart';
 import '../data/game_repository.dart';
 import '../domain/game_clock.dart';
+import '../domain/pet_name.dart';
+import '../domain/ru_words.dart';
+import '../domain/text_template.dart';
 import '../domain/models/models.dart';
 import '../domain/services/goal_service.dart';
+import '../domain/services/day_events.dart';
 import '../domain/services/day_summary_service.dart';
 import '../domain/services/growth_service.dart';
+import '../domain/services/level_service.dart';
 import '../domain/services/title_service.dart';
 import '../domain/services/pet_state_service.dart';
 import '../domain/services/phrase_service.dart';
@@ -31,6 +36,48 @@ final class GameReward {
   final bool firstTime;
   final bool withMistakes;
   final int stars;
+}
+
+final class StatShift {
+  const StatShift(this.stat, this.before, this.after);
+
+  final PetStat stat;
+  final int before;
+  final int after;
+
+  int get delta => after - before;
+
+  String get label => petStatLabel(stat);
+}
+
+sealed class EventOutcome {
+  const EventOutcome();
+}
+
+final class EventResolved extends EventOutcome {
+  const EventResolved({
+    required this.option,
+    required this.text,
+    required this.shifts,
+  });
+
+  final EventOption option;
+  final String text;
+  final List<StatShift> shifts;
+}
+
+final class EventShort extends EventOutcome {
+  const EventShort({required this.gap, required this.text});
+
+  final int gap;
+  final String text;
+}
+
+final class LevelStep {
+  const LevelStep({required this.reward, this.finished});
+
+  final GameReward reward;
+  final LevelRecord? finished;
 }
 
 class GameController extends ChangeNotifier {
@@ -61,16 +108,27 @@ class GameController extends ChangeNotifier {
   late PetProgress progress;
   late GrowthService growth;
   late TitleService titles;
+  late LevelService levels;
+  late List<LevelRecord> levelHistory;
+  LevelRun? levelRun;
+  DateTime? dailyDoneAt;
+  late DayEventPicker eventPicker;
+  late Map<int, String> eventChoices;
+  late Map<PlanDirection, int> planExtra;
+  late List<Map<String, dynamic>> dayHistory;
+  List<StatShift> lastShifts = const [];
+  late Set<String> dailyHistory;
+  Map<String, Object?>? dailyRun;
   late int _day;
   Map<String, dynamic>? celebration;
   PetStage get stage => progress.stage;
   late Set<String> wishlist;
   late Map<String, String> outfit;
   late List<String> legacyCompletedTasks;
-  late List<String> paidRepeatsToday;
-  late int paidRepeatsDay;
   late Map<String, int> bestStars;
   late Set<String> seenTutorials;
+  late Set<String> seenCoach;
+  late Set<String> passedVariants;
   late bool motion, simpleMode, onboarded;
   late String petName;
   PhraseLine? bubble;
@@ -115,10 +173,7 @@ class GameController extends ChangeNotifier {
             dayNumber: day);
       }
     }
-    plan = PlanService(
-        income: params.day.income,
-        step: params.plan.step,
-        mandatoryCost: mandatoryCost);
+    plan = _newPlan();
     final amounts = data['plan'] as Map;
     for (final d in PlanDirection.values) {
       plan.setAmount(d, amounts[d.name] as int);
@@ -186,12 +241,53 @@ class GameController extends ChangeNotifier {
       rewards: params.tasks,
       completedTaskIds: (data['completedTasks'] as List? ?? []).cast<String>(),
     );
-    paidRepeatsDay = data['paidRepeatsDay'] as int? ?? day;
-    paidRepeatsToday = paidRepeatsDay == day
-        ? (data['paidRepeatsToday'] as List? ?? []).cast<String>()
-        : <String>[];
     bestStars = (data['bestStars'] as Map? ?? {}).cast<String, int>();
     seenTutorials = {...(data['seenTutorials'] as List? ?? []).cast<String>()};
+    final coachSeen = data['seenCoach'] as List?;
+    seenCoach = coachSeen != null
+        ? {...coachSeen.cast<String>()}
+        : {if (onboarded) _allCoach};
+    final passed = data['passedVariants'] as List?;
+    passedVariants = passed != null
+        ? {...passed.cast<String>()}
+        : {
+            for (final id in tasks.completedTaskIds)
+              if (content.tasks.byId(id) case final task?)
+                task.variantKey(TaskDifficulty.easy, 0)
+          };
+    levels = LevelService(levels: content.levels, tasks: content.tasks);
+    levelHistory = [
+      for (final raw in data['levelHistory'] as List? ?? [])
+        LevelRecord.fromJson((raw as Map).cast<String, Object?>())
+    ];
+    final storedRun = data['levelRun'] as Map?;
+    final run = storedRun == null
+        ? null
+        : LevelRun.fromJson(storedRun.cast<String, Object?>());
+    levelRun = run != null &&
+            levels.fits(run) &&
+            !run.isFinished &&
+            run.number == levelHistory.length + 1
+        ? run
+        : null;
+    eventPicker = DayEventPicker(
+        schedule: params.events, catalog: content.events);
+    eventChoices = {
+      for (final e in (data['eventChoices'] as Map? ?? {}).entries)
+        int.parse('${e.key}'): '${e.value}'
+    };
+    final extra = (data['planExtra'] as Map? ?? {}).cast<String, Object?>();
+    planExtra = {
+      for (final d in PlanDirection.values) d: (extra[d.name] as int?) ?? 0
+    };
+    dayHistory = [
+      for (final raw in data['dayHistory'] as List? ?? [])
+        (raw as Map).cast<String, dynamic>()
+    ];
+    final doneAt = data['dailyDoneAt'] as String?;
+    dailyDoneAt = doneAt == null ? null : DateTime.tryParse(doneAt);
+    dailyHistory = {...(data['dailyHistory'] as List? ?? []).cast<String>()};
+    dailyRun = (data['dailyRun'] as Map?)?.cast<String, Object?>();
     phrases = PhraseService(
         catalog: content.phrases, clock: clock, character: character);
   }
@@ -203,8 +299,8 @@ class GameController extends ChangeNotifier {
   DayFacts get dayFacts => DayFacts.fromDay(
         GameDay.create(
             number: day,
-            income: plan.plan.income,
-            plan: plan.plan,
+            income: fullPlan.income,
+            plan: fullPlan,
             planConfirmed: plan.isConfirmed,
             transactions: wallet.journal),
         mandatoryItemIds: content.economy.pet.needs.map((need) => need.itemId),
@@ -247,8 +343,8 @@ class GameController extends ChangeNotifier {
         DaySummaryService(templates: content.summaries.explain).build(
       day: GameDay.create(
           number: day,
-          income: plan.plan.income,
-          plan: plan.plan,
+          income: fullPlan.income,
+          plan: fullPlan,
           planConfirmed: plan.isConfirmed,
           transactions: wallet.journal),
       before: stats,
@@ -257,6 +353,9 @@ class GameController extends ChangeNotifier {
       petName: petName,
       savedTotal: wallet.wallet.savings,
     );
+    final rows = [
+      for (final row in planFactRows) [row.$1, row.$2, row.$3]
+    ];
     progress = awarded.progress;
     stats = night.after;
     celebration = {
@@ -272,26 +371,295 @@ class GameController extends ChangeNotifier {
           .toList(),
       'titles': awarded.earned.map((title) => title.title.id).toList(),
     };
+    dayHistory = <Map<String, dynamic>>[
+      {
+        'day': day,
+        'rows': rows,
+        'explain': summary.explainText,
+        'points': result.day.points,
+        'lines': celebration!['lines'],
+        'changes': celebration!['changes'],
+        'stageUp': result.stageUp == null ? null : stageLabel,
+        'titles': [
+          for (final earned in awarded.earned) earned.title.title
+        ],
+        if (todayEvent case final event?)
+          'event': event.title,
+      },
+      ...dayHistory,
+    ].take(30).toList();
     _day++;
     shop.setStage(stage);
     shop.startDay(day);
     goals.startDay(day);
     final params = content.economy.params;
-    plan = PlanService(
-        income: params.day.income,
-        step: params.plan.step,
-        mandatoryCost: mandatoryCost);
+    plan = _newPlan();
+    planExtra = {for (final d in PlanDirection.values) d: 0};
     wallet.earn(
         amount: params.day.income,
         sourceId: 'day_income',
         reasonText: params.day.incomeReason,
         at: clock.now(),
         dayNumber: day);
-    paidRepeatsDay = day;
-    paidRepeatsToday = [];
     changed();
     return true;
   }
+
+  PlanService _newPlan() => PlanService(
+      income: content.economy.params.day.income,
+      step: content.economy.params.plan.step,
+      mandatoryCost: mandatoryCost);
+
+  int get earnedToday => wallet.journal
+      .where((t) =>
+          t.dayNumber == day &&
+          t.type == TransactionType.income &&
+          t.sourceId != 'day_income')
+      .fold(0, (sum, t) => sum + t.amount);
+
+  int get extraPlanned => planExtra.values.fold(0, (a, b) => a + b);
+
+  int get extraPending {
+    final left = earnedToday - extraPlanned;
+    return left < 0 ? 0 : left;
+  }
+
+  BudgetPlan get fullPlan {
+    final base = plan.plan;
+    return BudgetPlan.create(
+      mandatory: base.mandatory + planExtra[PlanDirection.mandatory]!,
+      optional: base.optional + planExtra[PlanDirection.optional]!,
+      savings: base.savings + planExtra[PlanDirection.savings]!,
+      income: base.income + extraPlanned,
+    );
+  }
+
+  bool planEarned(Map<PlanDirection, int> parts) {
+    final total = parts.values.fold(0, (a, b) => a + b);
+    if (total <= 0 ||
+        total > extraPending ||
+        parts.values.any((value) => value < 0)) {
+      return false;
+    }
+    planExtra = {
+      for (final d in PlanDirection.values) d: planExtra[d]! + (parts[d] ?? 0)
+    };
+    say('plan_confirmed');
+    changed();
+    return true;
+  }
+
+  int _spentToday(ExpenseCategory category) => wallet.journal
+      .where((t) =>
+          t.dayNumber == day &&
+          t.type == TransactionType.expense &&
+          t.category == category)
+      .fold(0, (sum, t) => sum + t.amount);
+
+  int get _savedToday => wallet.journal
+      .where((t) => t.dayNumber == day)
+      .fold(
+          0,
+          (sum, t) =>
+              sum +
+              (t.type == TransactionType.toSavings
+                  ? t.amount
+                  : t.type == TransactionType.fromSavings
+                      ? -t.amount
+                      : 0));
+
+  int planLeft(PlanDirection direction) {
+    final full = fullPlan;
+    return switch (direction) {
+      PlanDirection.mandatory =>
+        full.mandatory - _spentToday(ExpenseCategory.mandatory),
+      PlanDirection.optional =>
+        full.optional - _spentToday(ExpenseCategory.optional),
+      PlanDirection.savings => full.savings - _savedToday,
+    };
+  }
+
+  int get savingsToDeposit {
+    final left = planLeft(PlanDirection.savings);
+    final balance = wallet.wallet.balance;
+    if (left <= 0 || balance <= 0) return 0;
+    return left < balance ? left : balance;
+  }
+
+  bool saveByPlan() => saveCoins(savingsToDeposit);
+
+  int get savedToday => _savedToday;
+
+  bool get wantBought => _spentToday(ExpenseCategory.optional) > 0;
+
+  PlanCheck planCheck(ShopItem item) {
+    final direction = item.category == ExpenseCategory.mandatory
+        ? PlanDirection.mandatory
+        : PlanDirection.optional;
+    final raw = planLeft(direction);
+    final left = raw < 0 ? 0 : raw;
+    final gap = item.price > left ? item.price - left : 0;
+    var needsShort = 0;
+    if (direction == PlanDirection.optional) {
+      final needs = unpaidNeeds.fold(0, (sum, need) => sum + need.price);
+      final after = wallet.wallet.balance - item.price;
+      if (needs > after) needsShort = needs - after;
+    }
+    final perDay = fullPlan.savings;
+    final delay = direction == PlanDirection.optional && gap > 0 && perDay > 0
+        ? (gap + perDay - 1) ~/ perDay
+        : 0;
+    return PlanCheck(
+      direction: direction,
+      price: item.price,
+      left: left,
+      gap: gap,
+      needsShort: needsShort,
+      delayDays: delay,
+    );
+  }
+
+  List<(String, int, int)> get planFactRows {
+    final full = fullPlan;
+    return [
+      ('Обязательное', full.mandatory, _spentToday(ExpenseCategory.mandatory)),
+      ('Желаемое', full.optional, _spentToday(ExpenseCategory.optional)),
+      ('Копилка', full.savings, _savedToday),
+    ];
+  }
+
+  PetStage _stageOn(int dayNumber) {
+    var result = PetStage.baby;
+    for (final closed in progress.growthDays) {
+      if (closed.dayNumber >= dayNumber) break;
+      result = closed.stageAfter;
+    }
+    return result.index < PetStage.baby.index ? PetStage.baby : result;
+  }
+
+  GameEventDef? get todayEvent => eventPicker.pick(day, _stageOn);
+
+  bool get eventPending =>
+      todayEvent != null && !eventChoices.containsKey(day);
+
+  String get eventHeader => content.events.texts['header']!;
+
+  String eventText(String key, [Map<String, String> values = const {}]) =>
+      fillPlurals(fillTemplate(content.events.texts[key] ?? '', values));
+
+  void openEvent() {
+    final event = todayEvent;
+    if (event != null && eventPending) {
+      say('event_start', facts: {'eventId': event.id});
+    }
+  }
+
+  EventOutcome? resolveEvent(String optionId) {
+    final event = todayEvent;
+    if (event == null || !eventPending) return null;
+    final option = event.option(optionId);
+    if (option == null) return null;
+    final now = clock.now();
+    if (option.cost > 0) {
+      final paid = wallet.spend(
+          amount: option.cost,
+          itemId: 'event_${event.id}',
+          category: ExpenseCategory.optional,
+          reasonText: option.journalText,
+          at: now,
+          dayNumber: day);
+      if (paid is WalletNotEnough) {
+        return EventShort(
+            gap: paid.gap, text: eventText('notEnough', {'gap': '${paid.gap}'}));
+      }
+    } else if (option.coins > 0) {
+      wallet.earn(
+          amount: option.coins,
+          sourceId: 'event:${event.id}',
+          reasonText: option.journalText,
+          at: now,
+          dayNumber: day);
+    }
+    final shifts = _applyEffects(option.effects);
+    eventChoices = {...eventChoices, day: option.id};
+    say('event_resolved', facts: {'eventId': event.id});
+    changed();
+    return EventResolved(
+        option: option, text: fillPlurals(option.resultText), shifts: shifts);
+  }
+
+  List<StatShift> _applyEffects(Iterable<StateEffect> effects) {
+    final shifts = <StatShift>[];
+    for (final effect in effects) {
+      final before = stats.of(effect.stat);
+      stats = stats.apply(effect.stat, effect.delta);
+      final after = stats.of(effect.stat);
+      final index = shifts.indexWhere((s) => s.stat == effect.stat);
+      if (index >= 0) {
+        shifts[index] = StatShift(effect.stat, shifts[index].before, after);
+      } else {
+        shifts.add(StatShift(effect.stat, before, after));
+      }
+    }
+    return [
+      for (final shift in shifts)
+        if (shift.delta != 0) shift
+    ];
+  }
+
+  List<ShopItem> get unpaidNeeds {
+    final bought = {
+      for (final t in wallet.journal)
+        if (t.dayNumber == day &&
+            t.type == TransactionType.expense &&
+            t.sourceId.startsWith('shop:'))
+          t.sourceId.substring(5)
+    };
+    return [
+      for (final need in content.economy.pet.needs)
+        if (!bought.contains(need.itemId))
+          if (content.shop.byId(need.itemId) case final item?) item
+    ];
+  }
+
+  List<BedtimeTodo> get bedtimeTodos {
+    final affordable =
+        unpaidNeeds.any((item) => item.price <= wallet.wallet.balance);
+    return [
+      if (!plan.isConfirmed || extraPending > 0) BedtimeTodo.plan,
+      if (affordable) BedtimeTodo.needs,
+      if (!levelDoneToday || dailyAvailable) BedtimeTodo.task,
+      if (eventPending) BedtimeTodo.event,
+    ];
+  }
+
+  bool get bedtimeReady => bedtimeTodos.isEmpty;
+
+  String get bedtimeHint {
+    final todos = bedtimeTodos;
+    final texts = content.economy.bedtime;
+    if (todos.isEmpty) return texts.ready;
+    final first = todos.first;
+    if (first == BedtimeTodo.plan && plan.isConfirmed) {
+      return 'Разложим заработанные монеты по плану.';
+    }
+    return fillTemplate(texts.todos[first]!, {'items': _itemsText(unpaidNeeds)});
+  }
+
+  String? get bedtimeReminder {
+    final unpaid = unpaidNeeds;
+    if (unpaid.isEmpty) return null;
+    final texts = content.economy.bedtime;
+    final canShop = unpaid.any((item) => item.price <= wallet.wallet.balance);
+    return fillTemplate(canShop ? texts.reminder : texts.shortOfMoney,
+        {'items': _itemsText(unpaid)});
+  }
+
+  bool get bedtimeCanShop =>
+      unpaidNeeds.any((item) => item.price <= wallet.wallet.balance);
+
+  String _itemsText(List<ShopItem> items) =>
+      items.map((item) => item.titleAccusative).join(', ');
 
   int get mandatoryCost => content.shop.items
       .where((i) => i.category == ExpenseCategory.mandatory)
@@ -333,29 +701,189 @@ class GameController extends ChangeNotifier {
           if (content.goals.byId(id) != null) content.goals.byId(id)!
       ];
 
-  bool get canEarnFromGames =>
-      tasks.completedTaskIds.length < content.tasks.tasks.length ||
-      paidRepeatsToday.length < content.economy.params.day.tasksPerDay;
+  bool get needsPlan => !plan.isConfirmed;
 
-  bool get completed => !canEarnFromGames;
+  int get levelsDone => levelHistory.length;
 
-  TaskDef get dailyGame {
-    for (final task in content.tasks.tasks) {
-      if (!tasks.isCompleted(task.id)) return task;
-    }
-    return content.tasks.tasks.first;
+  int get levelNumber => levelRun?.number ?? levelsDone + 1;
+
+  bool get levelDoneToday =>
+      levelHistory.isNotEmpty && levelHistory.last.day == day;
+
+  int get reachedLevel => levelDoneToday ? levelsDone : levelNumber;
+
+  bool get canEarnFromGames => !levelDoneToday;
+
+  LevelRun get upcomingLevel =>
+      levelRun ??
+      levels.plan(levelNumber, simple: simpleMode, history: levelHistory);
+
+  LevelRecord? get todayLevel => levelDoneToday ? levelHistory.last : null;
+
+  bool isGameUnlocked(String taskId) =>
+      tasks.isCompleted(taskId) || levels.unlockLevelOf(taskId) <= levelsDone;
+
+  List<TaskDef> get practiceGames => [
+        for (final task in content.tasks.tasks)
+          if (isGameUnlocked(task.id)) task
+      ];
+
+  String get todayKey => LevelService.dateKey(clock.now());
+
+  DailyRules get dailyRules => content.levels.daily;
+
+  bool get dailyDoneToday {
+    final last = dailyDoneAt;
+    return last != null && !clock.isNewCalendarDay(last);
   }
 
-  int rewardFor(TaskDef task) {
-    if (!tasks.isCompleted(task.id)) return task.reward.correct;
-    if (paidRepeatsToday.length >= content.economy.params.day.tasksPerDay) {
-      return 0;
+  TaskDef? get dailyTask {
+    final pinned = dailyRun;
+    if (pinned != null && pinned['date'] == todayKey) {
+      final task = content.tasks.byId(pinned['taskId'] as String);
+      if (task != null) return task;
     }
-    final repeat = content.economy.params.tasks.repeatReward;
-    return repeat < task.reward.correct ? repeat : task.reward.correct;
+    return levels.dailyPick(clock.now(), practiceGames);
+  }
+
+  bool get dailyUnlocked => dailyTask != null;
+
+  int get dailyCoinsToday => wallet.journal
+      .where((t) => t.sourceId == 'task:daily_$todayKey')
+      .fold(0, (sum, t) => sum + t.amount);
+
+  bool get dailyAvailable => dailyUnlocked && !dailyDoneToday;
+
+  TaskDef? startDaily() {
+    if (!dailyAvailable) return null;
+    final task = dailyTask!;
+    final pinned = dailyRun;
+    if (pinned == null ||
+        pinned['date'] != todayKey ||
+        pinned['taskId'] != task.id) {
+      dailyRun = {'date': todayKey, 'taskId': task.id};
+      changed();
+    }
+    return task;
+  }
+
+  TaskSession startDailyGame() {
+    final pinned = dailyRun;
+    if (pinned == null || pinned['date'] != todayKey) {
+      throw StateError('задание дня не начато');
+    }
+    return _start(pinned['taskId'] as String, TaskDifficulty.hard, TaskPool.daily);
+  }
+
+  GameReward finishDaily(TaskSession session) {
+    if (dailyDoneToday) throw StateError('задание дня уже выполнено');
+    final played = _afterGame(session);
+    final coins = dailyRules.coins +
+        (played.withMistakes ? 0 : dailyRules.perfectBonus);
+    final now = clock.now();
+    wallet.earn(
+        amount: coins,
+        sourceId: 'task:daily_${LevelService.dateKey(now)}',
+        reasonText: levels.dailyReasonOf(session.task.title),
+        at: now,
+        dayNumber: day);
+    dailyDoneAt = now;
+    dailyHistory = {...dailyHistory, LevelService.dateKey(now)};
+    dailyRun = null;
+    say('task_done',
+        facts: {'firstTry': !played.withMistakes}, values: {'reward': coins});
+    changed();
+    return GameReward(
+      coins: coins,
+      firstTime: played.firstTime,
+      withMistakes: played.withMistakes,
+      stars: played.stars,
+    );
+  }
+
+  int unlockLevelOf(String taskId) => levels.unlockLevelOf(taskId);
+
+  TaskDef? get nextUnlock => levels.nextUnlock(reachedLevel);
+
+  LevelRun? startLevel() {
+    if (levelDoneToday) return null;
+    final run = levelRun;
+    if (run != null) return run;
+    levelRun = upcomingLevel;
+    changed();
+    return levelRun;
+  }
+
+  TaskSession startLevelGame() {
+    final slot = levelRun?.current;
+    if (slot == null) throw StateError('уровень не начат');
+    return _start(slot.taskId, slot.difficulty, TaskPool.level);
+  }
+
+  LevelStep finishLevelGame(TaskSession session) {
+    final run = levelRun;
+    if (run == null || run.current?.taskId != session.task.id) {
+      throw StateError('эта игра не из текущего уровня');
+    }
+    final played = _afterGame(session);
+    final share = run.shareOf(run.done);
+    wallet.earn(
+        amount: share,
+        sourceId: 'task:${session.task.id}',
+        reasonText: levels.rewardReasonOf(run.number, session.task.title),
+        at: clock.now(),
+        dayNumber: day);
+    final reward = GameReward(
+      coins: share,
+      firstTime: played.firstTime,
+      withMistakes: played.withMistakes,
+      stars: played.stars,
+    );
+    final next = run.withStars(reward.stars);
+    LevelRecord? finished;
+    if (next.isFinished) {
+      finished = LevelRecord(
+        number: next.number,
+        day: day,
+        taskIds: [for (final slot in next.slots) slot.taskId],
+        stars: next.stars,
+        coins: next.coins,
+      );
+      levelHistory = [...levelHistory, finished];
+      levelRun = null;
+      say('task_done',
+          facts: {'firstTry': next.stars.every((star) => star == 3)},
+          values: {'reward': next.coins});
+    } else {
+      levelRun = next;
+      say('task_done',
+          facts: {'firstTry': !reward.withMistakes},
+          values: {'reward': share});
+    }
+    changed();
+    return LevelStep(reward: reward, finished: finished);
   }
 
   int starsOf(String taskId) => bestStars[taskId] ?? 0;
+
+  int passedOf(TaskDef task) =>
+      task.variantKeys.where(passedVariants.contains).length;
+
+  int nextIndex(TaskDef task, TaskDifficulty level,
+      [TaskPool pool = TaskPool.practice]) {
+    final count = task.variantsIn(pool, level).length;
+    for (var i = 0; i < count; i++) {
+      if (!passedVariants.contains(task.keyIn(pool, level, i))) return i;
+    }
+    return (day + task.order) % count;
+  }
+
+  TaskSession _start(String taskId, TaskDifficulty level,
+      [TaskPool pool = TaskPool.practice]) {
+    final task = content.tasks.byId(taskId);
+    return tasks.start(taskId, level,
+        pool: pool, index: task == null ? 0 : nextIndex(task, level, pool));
+  }
 
   List<TutorialStep> tutorialFor(TaskDef task) =>
       content.tasks.tutorialFor(task);
@@ -364,6 +892,35 @@ class GameController extends ChangeNotifier {
 
   void markTutorialSeen(String taskId) {
     if (seenTutorials.add(taskId)) changed();
+  }
+
+  static const String _allCoach = '*';
+
+  CoachCatalog get coach => content.coach;
+
+  bool coachSeen(String id) => seenCoach.contains(_allCoach) || seenCoach.contains(id);
+
+  void markCoachSeen(Iterable<String> ids) {
+    var added = false;
+    for (final id in ids) {
+      added = seenCoach.add(id) || added;
+    }
+    if (added) changed();
+  }
+
+  void resetCoach() {
+    seenCoach.clear();
+    seenTutorials.clear();
+    changed();
+  }
+
+  List<TutorialStep> gameCoach(TaskDef task, {required bool first}) {
+    final intro = first && !coachSeen('game');
+    return [
+      if (intro) ...coach.gameFirst,
+      ...tutorialFor(task),
+      if (intro) ...coach.gameLast,
+    ];
   }
 
   void changePlan(PlanDirection d, int delta) {
@@ -389,9 +946,7 @@ class GameController extends ChangeNotifier {
         at: clock.now(), hasUnusedTasksToday: canEarnFromGames);
     switch (outcome) {
       case PurchaseDone(:final item, :final effects, wallet: final after):
-        for (final effect in effects) {
-          stats = stats.apply(effect.stat, effect.delta);
-        }
+        lastShifts = _applyEffects(effects);
         wishlist.remove(item.id);
         say('purchase_done', facts: {
           'itemId': item.id,
@@ -482,7 +1037,7 @@ class GameController extends ChangeNotifier {
     return outcome;
   }
 
-  TaskSession startGame(String taskId) => tasks.start(taskId, difficulty);
+  TaskSession startGame(String taskId) => _start(taskId, difficulty);
 
   PhraseLine? reactToAnswer(TaskSession session, TaskFeedback feedback) =>
       switch (feedback.verdict) {
@@ -496,19 +1051,15 @@ class GameController extends ChangeNotifier {
       facts: {'taskType': session.task.type.name.toUpperCase()});
 
   GameReward finishGame(TaskSession session) {
+    final reward = _afterGame(session);
+    changed();
+    return reward;
+  }
+
+  GameReward _afterGame(TaskSession session) {
+    final solved = session.isFinished;
     final completion = session.finish();
-    final limit = content.economy.params.day.tasksPerDay;
-    final pays = completion.firstTime || paidRepeatsToday.length < limit;
-    if (pays && !session.isCollected) {
-      session.collect(wallet, at: clock.now(), dayNumber: day);
-      if (!completion.firstTime) {
-        if (paidRepeatsDay != day) {
-          paidRepeatsDay = day;
-          paidRepeatsToday = [];
-        }
-        paidRepeatsToday = [...paidRepeatsToday, completion.taskId];
-      }
-    }
+    if (solved) passedVariants = {...passedVariants, session.variantKey};
     final stars =
         completion.withMistakes ? (completion.attempts > 2 ? 1 : 2) : 3;
     if (stars > starsOf(completion.taskId)) {
@@ -519,15 +1070,8 @@ class GameController extends ChangeNotifier {
             const <StateEffect>[]) {
       stats = stats.apply(effect.stat, effect.delta);
     }
-    final coins = pays ? completion.coins : 0;
-    if (coins > 0) {
-      say('task_done',
-          facts: {'firstTry': !completion.withMistakes},
-          values: {'reward': coins});
-    }
-    changed();
     return GameReward(
-      coins: coins,
+      coins: 0,
       firstTime: completion.firstTime,
       withMistakes: completion.withMistakes,
       stars: stars,
@@ -637,11 +1181,15 @@ class GameController extends ChangeNotifier {
     changed();
   }
 
+  void renamePet(String name) {
+    if (petNameProblem(name) != null) throw ArgumentError.value(name);
+    petName = normalizePetName(name);
+    changed();
+  }
+
   void createPet(String name, bool simple) {
-    if (!(config['names'] as List).contains(name)) {
-      throw ArgumentError.value(name);
-    }
-    petName = name;
+    if (petNameProblem(name) != null) throw ArgumentError.value(name);
+    petName = normalizePetName(name);
     simpleMode = simple;
     onboarded = true;
     progress =
@@ -700,10 +1248,20 @@ class GameController extends ChangeNotifier {
         'wishlist': wishlist.toList(),
         'outfit': outfit,
         'completedTasks': tasks.completedTaskIds.toList(),
-        'paidRepeatsDay': paidRepeatsDay,
-        'paidRepeatsToday': paidRepeatsToday,
         'bestStars': bestStars,
         'seenTutorials': seenTutorials.toList(),
+        'seenCoach': seenCoach.toList()..sort(),
+        'passedVariants': passedVariants.toList()..sort(),
+        'levelHistory': [for (final record in levelHistory) record.toJson()],
+        'levelRun': levelRun?.toJson(),
+        'dailyDoneAt': dailyDoneAt?.toIso8601String(),
+        'dailyHistory': dailyHistory.toList()..sort(),
+        'dailyRun': dailyRun,
+        'eventChoices': {
+          for (final e in eventChoices.entries) '${e.key}': e.value
+        },
+        'planExtra': {for (final e in planExtra.entries) e.key.name: e.value},
+        'dayHistory': dayHistory,
         'legacyCompletedTasks': legacyCompletedTasks,
       };
 
@@ -733,4 +1291,24 @@ class GameController extends ChangeNotifier {
     _bubbleTimer?.cancel();
     super.dispose();
   }
+}
+
+final class PlanCheck {
+  const PlanCheck({
+    required this.direction,
+    required this.price,
+    required this.left,
+    required this.gap,
+    required this.needsShort,
+    required this.delayDays,
+  });
+
+  final PlanDirection direction;
+  final int price;
+  final int left;
+  final int gap;
+  final int needsShort;
+  final int delayDays;
+
+  bool get fits => gap == 0;
 }

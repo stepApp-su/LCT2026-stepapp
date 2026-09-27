@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "texts": {
+    "title": "Уровень {level}",
+    "rewardReason": "Уровень {level}: игра «{taskTitle}» — часть зарплаты.",
+    "dailyReason": "Задание дня «{taskTitle}» выполнено."
+  },
+  "daily": { "coins": 8, "perfectBonus": 4 },
+  "simpleModeDelay": 6,
+  "tiers": [
+    { "fromLevel": 1, "games": 3, "hard": 0, "coins": 9 },
+    { "fromLevel": 4, "games": 4, "hard": 0, "coins": 12 },
+    { "fromLevel": 7, "games": 4, "hard": 1, "coins": 12 },
+    { "fromLevel": 10, "games": 5, "hard": 2, "coins": 15 },
+    { "fromLevel": 14, "games": 5, "hard": 3, "coins": 15 },
+    { "fromLevel": 18, "games": 6, "hard": 4, "coins": 18 }
+  ],
+  "unlocks": [
+    { "taskId": "payments_sort_needs", "level": 1 },
+    { "taskId": "payments_coins_pay", "level": 1 },
+    { "taskId": "planning_distribute_day", "level": 1 },
+    { "taskId": "planning_choice_enough", "level": 2 },
+    { "taskId": "savings_board_dream", "level": 3 },
+    { "taskId": "payments_order_prices", "level": 4 },
+    { "taskId": "payments_basket_shop", "level": 5 },
+    { "taskId": "payments_cashier_shift", "level": 6 },
+    { "taskId": "savings_distribute_days", "level": 7 },
+    { "taskId": "payments_coins_change", "level": 8 },
+    { "taskId": "planning_stall_icecream", "level": 9 },
+    { "taskId": "savings_choice_now_or_later", "level": 10 },
+    { "taskId": "planning_order_priority", "level": 11 },
+    { "taskId": "payments_pricetag_hunt", "level": 12 },
+    { "taskId": "savings_week_plan", "level": 13 }
+  ]
+}
