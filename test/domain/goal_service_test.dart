@@ -67,7 +67,7 @@ void main() {
     });
 
     test('новичку советуем цель поменьше', () {
-      expect(catalog.recommended?.id, 'ball_rope');
+      expect(catalog.recommended?.id, 'constructor');
       expect(catalog.recommended?.price, 90);
     });
 
@@ -212,15 +212,15 @@ void main() {
   group('выбор и смена цели', () {
     test('смена цели переносит накопленное полностью', () {
       final service = _goals(catalog, wallet: _wallet(savings: 75));
-      final confirm = service.askToSelect('telescope') as GoalSelectConfirm;
+      final confirm = service.askToSelect('smartwatch') as GoalSelectConfirm;
 
-      expect(confirm.question, 'Выбрать новую цель: телескоп?');
+      expect(confirm.question, 'Выбрать новую цель: умные часы?');
       expect(confirm.keepSavingsText, 'Все 75 монет останутся в копилке.');
       expect(confirm.confirmLabel, 'Да, выбираем');
 
       final done = service.confirmSelect(confirm) as GoalSelected;
       expect(done.savedCarriedOver, 75);
-      expect(service.current!.id, 'telescope');
+      expect(service.current!.id, 'smartwatch');
       expect(service.saved, 75);
       expect(done.view.price, 160);
       expect(done.view.left, 85);
@@ -228,26 +228,26 @@ void main() {
 
     test('окно ничего не меняет, пока не подтвердили', () {
       final service = _goals(catalog, wallet: _wallet(savings: 75));
-      service.askToSelect('telescope');
+      service.askToSelect('smartwatch');
       expect(service.current!.id, 'scooter');
     });
 
     test('закрытую цель не выбрать', () {
       final service = _goals(catalog);
-      expect((service.askToSelect('bicycle') as GoalRefused).textRu,
+      expect((service.askToSelect('robot_kit') as GoalRefused).textRu,
           'Эта цель откроется позже');
     });
 
     test('цель открывается, когда достигнуты предыдущие', () {
       final service = _goals(catalog,
-          reached: ['ball_rope', 'scooter', 'telescope'], goalId: null);
-      expect(service.available().map((g) => g.id), contains('bicycle'));
-      expect(service.askToSelect('bicycle'), isA<GoalSelectConfirm>());
+          reached: ['constructor', 'scooter', 'smartwatch'], goalId: null);
+      expect(service.available().map((g) => g.id), contains('robot_kit'));
+      expect(service.askToSelect('robot_kit'), isA<GoalSelectConfirm>());
     });
 
     test('достигнутую цель заново не выбрать', () {
-      final service = _goals(catalog, reached: ['telescope']);
-      expect((service.askToSelect('telescope') as GoalRefused).textRu,
+      final service = _goals(catalog, reached: ['smartwatch']);
+      expect((service.askToSelect('smartwatch') as GoalRefused).textRu,
           'Эта цель уже достигнута');
     });
 
@@ -257,10 +257,10 @@ void main() {
     });
 
     test('список целей: сначала маленькие, достигнутых нет', () {
-      final service = _goals(catalog, reached: ['ball_rope']);
+      final service = _goals(catalog, reached: ['constructor']);
       final ids = service.available().map((g) => g.id).toList();
-      expect(ids, isNot(contains('ball_rope')));
-      expect(ids.first, 'scooter');
+      expect(ids, isNot(contains('constructor')));
+      expect(service.available().first.price, 90);
       final prices = service.available().map((g) => g.price).toList();
       expect(prices, orderedEquals([...prices]..sort()));
     });
@@ -303,7 +303,7 @@ void main() {
 
     test('момент достижения цели виден отдельно', () {
       final service =
-          _goals(catalog, goalId: 'ball_rope', wallet: _wallet(balance: 90));
+          _goals(catalog, goalId: 'constructor', wallet: _wallet(balance: 90));
       expect((service.deposit(amount: 80, at: _at) as GoalDepositDone).justReached,
           isFalse);
       final done = service.deposit(amount: 10, at: _at) as GoalDepositDone;
@@ -406,7 +406,7 @@ void main() {
       expect(claimed.goal.id, 'scooter');
       expect(claimed.effects.single.stat, PetStat.cozy);
       expect(claimed.effects.single.delta, 24);
-      expect(claimed.reachedText, 'Самокат наш! Он встанет у стены.');
+      expect(claimed.reachedText, catalog.byId('scooter')!.reachedText);
       expect(wallet.wallet.savings, 0);
       expect(wallet.journal.last.reasonText,
           'Купили самокат на накопленные монеты!');
@@ -418,13 +418,13 @@ void main() {
       final service = _goals(
         catalog,
         wallet: _wallet(balance: 160, deposits: {1: 160}),
-        goalId: 'telescope',
-        reached: ['ball_rope', 'scooter'],
+        goalId: 'smartwatch',
+        reached: ['constructor', 'scooter'],
         day: 2,
       );
       final claimed = service.claim(at: _at) as GoalClaimed;
       expect(claimed.unlockedText, 'Появились новые большие цели!');
-      expect(service.available().map((g) => g.id), contains('bicycle'));
+      expect(service.available().map((g) => g.id), contains('robot_kit'));
     });
 
     test('пока не накоплено — забрать нельзя', () {

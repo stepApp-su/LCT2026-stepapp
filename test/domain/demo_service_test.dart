@@ -155,7 +155,7 @@ void main() {
 
     test('разумный: мечта достигнута, не меньше трёх званий', () {
       final p = prudent.profile;
-      expect(p.reachedGoalIds, contains('ball_rope'));
+      expect(p.reachedGoalIds, contains('constructor'));
       expect(p.progress.earnedTitles.length, greaterThanOrEqualTo(3));
     });
 

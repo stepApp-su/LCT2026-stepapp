@@ -1,17 +1,20 @@
 part of 'game_shell.dart';
 
 extension _GameSections on _GameShellState {
-  void section(String title, Widget Function(BuildContext) content) {
+  void section(String title, Widget Function(BuildContext) content,
+      {String? tour}) {
     Navigator.of(context).push<void>(MaterialPageRoute(
       settings: RouteSettings(name: title),
       builder: (context) => Scaffold(
         appBar: AppBar(
             toolbarHeight: MediaQuery.textScalerOf(context).scale(22) * 2.7 + 8,
             title: Text(title, maxLines: 2),
-            leading: IconButton(
-                tooltip: 'Назад',
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_rounded)),
+            leading: CoachTarget(
+                id: 'section.back',
+                child: IconButton(
+                    tooltip: 'Назад',
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back_rounded))),
             actions: [
               IconButton(
                   tooltip: 'Подсказка',
@@ -22,9 +25,12 @@ extension _GameSections on _GameShellState {
             child: Center(
                 child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 520),
-                    child: AnimatedBuilder(
-                        animation: s,
-                        builder: (context, _) => content(context))))),
+                    child: _TourStarter(
+                        state: s,
+                        tour: tour,
+                        child: AnimatedBuilder(
+                            animation: s,
+                            builder: (context, _) => content(context)))))),
       ),
     ));
   }
@@ -95,23 +101,28 @@ extension _GameSections on _GameShellState {
                 icon: const Icon(Icons.add_rounded),
                 label: const Text('Пополнить копилку')),
             const SizedBox(height: 8),
-            OutlinedButton.icon(
-                onPressed:
-                    s.wallet.wallet.savings > 0 ? () => transfer(true) : null,
-                icon: const Icon(Icons.arrow_upward_rounded),
-                label: const Text('Взять из копилки')),
+            CoachTarget(
+                id: 'savings.withdraw',
+                child: OutlinedButton.icon(
+                    onPressed: s.wallet.wallet.savings > 0
+                        ? () => transfer(true)
+                        : null,
+                    icon: const Icon(Icons.arrow_upward_rounded),
+                    label: const Text('Взять из копилки'))),
             const SizedBox(height: 8),
-            TextButton.icon(
-                onPressed: chooseGoal,
-                icon: const Icon(Icons.flag_outlined),
-                label: const Text('Выбрать другую мечту')),
+            CoachTarget(
+                id: 'savings.change',
+                child: TextButton.icon(
+                    onPressed: chooseGoal,
+                    icon: const Icon(Icons.flag_outlined),
+                    label: const Text('Выбрать другую мечту'))),
           ],
           if (reached.isNotEmpty) ...[
             const SizedBox(height: 20),
             Text('Сбывшиеся мечты',
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
-            Wrap(spacing: 12, runSpacing: 12, children: [
+            EqualGrid(columns: 3, spacing: 12, runSpacing: 12, children: [
               for (final goal in reached)
                 Column(mainAxisSize: MainAxisSize.min, children: [
                   ItemArt(goal.id, size: 76),
@@ -443,327 +454,168 @@ extension _GameSections on _GameShellState {
 
   Widget moreBody() => ListView(padding: const EdgeInsets.all(16), children: [
         CoachTarget(
-            id: 'more.list',
-            child: Column(children: [
-        _routeTile('Комната и гардероб', 'Вещи и наряды',
-            Icons.checkroom_outlined, room),
-        _routeTile(
-            'Дневник', 'Все движения монет', Icons.menu_book_outlined, history),
-        _routeTile('Звания и рост', 'Наши достижения',
-            Icons.workspace_premium_outlined, titles),
-        _routeTile('Спокойной ночи', 'Как прошёл день', Icons.bedtime_outlined,
-            daySummary),
-        _routeTile('Словарик', 'Что значат слова',
-            Icons.lightbulb_outline_rounded, glossary),
-        _routeTile('Для взрослого', 'Настройки приложения',
-            Icons.family_restroom_outlined, adults),
-            ])),
-        CoachTarget(
-            id: 'more.coach',
-            child: _routeTile('Обучение', 'Покажу, как всё устроено, ещё раз',
-                Icons.school_outlined, () {
-              s.resetCoach();
-              toast('Хорошо! Сейчас я всё покажу.');
-              go(0);
-            })),
-      ]);
-  Widget _routeTile(String title, String description, IconData icon,
-          VoidCallback action) =>
-      Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _Panel(
-              padding: 4,
-              child: ListTile(
-                  minVerticalPadding: 12,
-                  leading: Icon(icon, color: FinniColors.primary),
-                  title: Text(title,
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                  subtitle: Text(description),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: action)));
-
-  void history() => section(
-      'Дневник',
-      (context) => ListView(padding: const EdgeInsets.all(16), children: [
-            Text('День ${s.day}',
-                style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 16),
-            if (s.dayHistory.isNotEmpty) ...[
-              Text('Итоги прошлых дней',
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              for (final (i, entry) in s.dayHistory.indexed)
-                Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _DayRecap(entry: entry, expanded: i == 0)),
-              const SizedBox(height: 8),
-              Text('Все движения монет',
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
+          id: 'more.profile',
+          child: Column(children: [
+        Center(
+          child: SizedBox(
+            height: 150,
+            width: 180,
+            child: IgnorePointer(
+              child: MoniScene(
+                  stage: s.stage, motion: s.motion, outfit: s.outfit),
+            ),
+          ),
+        ),
+        Center(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(s.petName,
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.w900)),
+              TagChip(s.stageLabel, tone: TagTone.green),
+              TagChip('🏅 ${s.currentTitle?.title ?? 'Новичок'}',
+                  tone: TagTone.gold),
             ],
-            if (s.wallet.journal.isEmpty)
-              const _Notice(
-                  icon: Icons.menu_book_outlined,
-                  text:
-                      'Здесь появятся покупки и пополнения. Старый баланс сохранён.'),
-            for (final t in s.wallet.journal.reversed)
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _Panel(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Row(children: [
-                          Icon(switch (t.type) {
-                            TransactionType.income => Icons.add_circle_outline,
-                            TransactionType.expense =>
-                              Icons.shopping_bag_outlined,
-                            TransactionType.toSavings => Icons.savings_outlined,
-                            TransactionType.fromSavings =>
-                              Icons.arrow_upward_rounded
-                          }),
-                          const SizedBox(width: 12),
-                          Expanded(
-                              child: Text(t.reasonText,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700)))
-                        ]),
-                        const SizedBox(height: 8),
-                        Text('${t.amount} монет · ${switch (t.type) {
-                          TransactionType.income => "получено",
-                          TransactionType.expense => "потрачено",
-                          TransactionType.toSavings => "в копилку",
-                          TransactionType.fromSavings => "из копилки"
-                        }}'),
-                      ]))),
-            if (s.legacyCompletedTasks.isNotEmpty)
-              Text(
-                  'Сохранены задания прежней версии: ${s.legacyCompletedTasks.length}.'),
-          ]));
+          ),
+        ),
+          ]),
+        ),
+        const SizedBox(height: 16),
+        CoachTarget(
+          id: 'more.list',
+          child: LayoutBuilder(builder: (context, c) {
+            final columns =
+                MediaQuery.textScalerOf(context).scale(16) > 22 ? 2 : 3;
+            final width = (c.maxWidth - (columns - 1) * 10) / columns;
+            return EqualGrid(columns: columns, spacing: 10, runSpacing: 10, children: [
+              for (final (id, label, art, action, news) in [
+                ('more.wardrobe', 'Гардероб', const RoomArt('bow', size: 44), room, s.hasNewThings),
+                ('more.titles', 'Звания', const Text('🏅', style: TextStyle(fontSize: 34)), titles, false),
+                ('more.diary', 'Дневник', const Text('📒', style: TextStyle(fontSize: 34)), history, false),
+                ('more.summary', 'Итоги', const Text('🌙', style: TextStyle(fontSize: 34)), daySummary, false),
+                ('more.glossary', 'Словарик', const Text('💡', style: TextStyle(fontSize: 34)), glossary, false),
+              ])
+                SizedBox(
+                    width: width,
+                    child: CoachTarget(
+                        id: id,
+                        child: _MoreTile(
+                            label: label, art: art, news: news, onTap: action))),
+              SizedBox(
+                width: width,
+                child: CoachTarget(
+                  id: 'more.coach',
+                  child: _MoreTile(
+                    label: 'Обучение',
+                    art: const Text('🎓', style: TextStyle(fontSize: 34)),
+                    onTap: () {
+                      s.resetCoach();
+                      toast('Хорошо! Сейчас я всё покажу.');
+                      go(0);
+                    },
+                  ),
+                ),
+              ),
+            ]);
+          }),
+        ),
+        const SizedBox(height: 14),
+        Material(
+          color: FinniColors.sky,
+          borderRadius: BorderRadius.circular(18),
+          child: ListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            leading: const Icon(Icons.lock_outline_rounded, color: FinniColors.blue),
+            title: const Text('Для взрослого',
+                style: TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: const Text('Настройки и успехи ребёнка'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: adults,
+          ),
+        ),
+      ]);
 
-  void room() => section(
-      'Комната и гардероб',
-      (context) => ListView(padding: const EdgeInsets.all(16), children: [
-            SizedBox(
-                height: 250,
-                child: MoniScene(
-                    stage: s.stage,
-                    motion: s.motion,
-                    outfit: s.outfit,
-                    equipped: s.equipped)),
-            const SizedBox(height: 16),
-            Text('Гардероб', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 8),
-            const Text('Надевать и снимать вещи можно бесплатно.'),
-            const SizedBox(height: 16),
-            for (final slot in [
-              ('head', 'Голова'),
-              ('eyes', 'Глаза'),
-              ('neck', 'Шея'),
-              ('body', 'Тело'),
-              ('paw', 'Лапа'),
-              ('back', 'Спина')
-            ])
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _Panel(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                        Text(slot.$2,
-                            style: Theme.of(context).textTheme.titleLarge),
-                        const SizedBox(height: 12),
-                        if (!s.ownedItems.any((item) => item.slot == slot.$1))
-                          const Text('Пока нет вещей в этом слоте',
-                              style: TextStyle(color: FinniColors.muted)),
-                        for (final item in s.ownedItems
-                            .where((item) => item.slot == slot.$1))
-                          Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: OutlinedButton.icon(
-                                  onPressed: () => s.equip(item.id),
-                                  icon: ItemArt(item.id,
-                                      size: 36, background: false),
-                                  label: Text(
-                                      '${item.title} · ${s.outfit[slot.$1] == item.id ? 'снять' : 'надеть'}'))),
-                      ]))),
-            Text('В комнате', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
-            if (s.ownedItems.every((i) => i.slot.isNotEmpty) &&
-                s.reachedGoals.isEmpty)
-              const Text('Здесь появятся игрушки, мебель и сбывшиеся мечты.',
-                  style: TextStyle(color: FinniColors.muted)),
-            Wrap(spacing: 10, runSpacing: 10, children: [
-              for (final goal in s.reachedGoals)
-                Column(mainAxisSize: MainAxisSize.min, children: [
-                  ItemArt(goal.id, size: 72),
-                  Text(goal.title,
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
-                ]),
-              for (final item in s.ownedItems.where((i) => i.slot.isEmpty))
-                Column(mainAxisSize: MainAxisSize.min, children: [
-                  ItemArt(item.id, size: 64),
-                  Text(item.title, style: const TextStyle(fontSize: 14)),
-                ]),
-            ]),
-            const SizedBox(height: 16),
-            const _PendingFeature(
-                owner: 'Игорь',
-                text:
-                    'Расстановка мебели по местам комнаты и иллюстрации для всех вещей.'),
-            const SizedBox(height: 16),
-            Text('Отложенные желания',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
-            if (s.wishlist.isEmpty)
-              const Text('Если вещь пока не по карману, сохрани её здесь.'),
-            for (final item
-                in s.content.shop.items.where((i) => s.wishlist.contains(i.id)))
-              ListTile(
-                  leading: ItemArt(item.id, size: 44),
-                  title: Text(item.title),
-                  subtitle: Text('${item.price} монет'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => purchase(item)),
-          ]));
+  void history() =>
+      section('Дневник', (context) => _DiaryPage(state: s), tour: 'diary');
+
+  void room([int tab = 0]) => section(
+      'Гардероб и комната', (context) => _RoomPage(shell: this, tab: tab),
+      tour: 'room');
 
   void titles() => section(
       'Звания и рост',
-      (context) => ListView(padding: const EdgeInsets.all(16), children: [
-            SizedBox(
-                height: 220,
-                child: MoniScene(
-                    stage: s.stage, motion: s.motion, outfit: s.outfit)),
-            Text('${s.petName} растёт вместе с тобой',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 16),
-            _Panel(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                  Text('${s.stageLabel} · ${s.progress.growthPoints} опыта',
-                      style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 10),
-                  LinearProgressIndicator(
-                      value: s.growthStatus.next == null
-                          ? 1
-                          : ((s.progress.growthPoints -
-                                      (s.stage == PetStage.baby
-                                          ? 0
-                                          : s.growth.rules
-                                              .thresholds[s.stage]!)) /
-                                  (s.growth.rules
-                                          .thresholds[s.growthStatus.next]! -
-                                      (s.stage == PetStage.baby
-                                          ? 0
-                                          : s.growth.rules
-                                              .thresholds[s.stage]!)))
-                              .clamp(0.0, 1.0),
-                      minHeight: 10,
-                      borderRadius: BorderRadius.circular(8)),
-                  const SizedBox(height: 10),
-                  Text(s.growthStatus.next == null
-                      ? 'Взрослый друг! Впереди ещё новые звания.'
-                      : 'До стадии «${s.growthStatus.nextLabel}» — ${s.growthStatus.pointsToNext} опыта'),
-                  const SizedBox(height: 8),
-                  const Text(
-                      'Опыт получаем вечером: за нужные покупки, план, накопления и игры.'),
-                ])),
-            const SizedBox(height: 24),
-            Text('Твои звания', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 6),
-            const Text(
-                'Выбери полученное звание — оно появится рядом с именем. Новые звания открываются по итогам дня.'),
-            const SizedBox(height: 12),
+      (context) => _TitlesView(state: s, onChange: chooseTitle),
+      tour: 'titles');
+
+  void chooseTitle() => sheet(
+      'Сменить звание',
+      AnimatedBuilder(
+        animation: s,
+        builder: (context, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Выбери звание, оно появится рядом с именем.',
+                style: TextStyle(color: FinniColors.muted)),
+            const SizedBox(height: 10),
             for (final title in s.content.titles.titles)
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+              if (s.progress.earnedTitles.contains(title.id))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: _Panel(
-                      color: s.progress.currentTitleId == title.id
-                          ? FinniColors.honey
-                          : FinniColors.paper,
-                      child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                                s.progress.earnedTitles.contains(title.id)
-                                    ? Icons.workspace_premium_rounded
-                                    : Icons.lock_outline_rounded,
-                                color:
-                                    s.progress.earnedTitles.contains(title.id)
-                                        ? FinniColors.gold
-                                        : FinniColors.muted,
-                                size: 30),
-                            const SizedBox(width: 12),
-                            Expanded(
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                  Text(title.title,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium),
-                                  Text(s.titles.reasonOf(title)),
-                                  const SizedBox(height: 5),
-                                  if (s.progress.currentTitleId == title.id)
-                                    const Text('Выбрано',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w800))
-                                  else if (s.progress.earnedTitles
-                                      .contains(title.id))
-                                    TextButton(
-                                        onPressed: () =>
-                                            s.chooseTitle(title.id),
-                                        child: const Text('Выбрать'))
-                                  else
-                                    const Text('Ещё впереди',
-                                        style: TextStyle(
-                                            color: FinniColors.muted)),
-                                ])),
-                          ]))),
-          ]));
-  void daySummary() => section('Спокойной ночи', (context) {
-        final summaryDay = s.day;
-        final todos = s.bedtimeTodos;
-        return ListView(padding: const EdgeInsets.all(16), children: [
-          const Icon(Icons.bedtime_outlined,
-              size: 48, color: FinniColors.purple),
-          const SizedBox(height: 16),
-          Text('Как прошёл день',
-              style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 20),
-          for (final row in s.planFactRows)
-            Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _Panel(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                      Text(row.$1,
-                          style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      Text('План ${row.$2} · факт ${row.$3}'),
-                      Text('Разница: ${row.$3 - row.$2} монет')
-                    ]))),
-          _Notice(
-              icon: todos.isEmpty
-                  ? Icons.check_circle_outline_rounded
-                  : Icons.lightbulb_outline_rounded,
-              text: s.bedtimeHint),
-          const SizedBox(height: 12),
-          _Notice(
-              icon: Icons.auto_awesome,
-              text:
-                  'Сегодня можно получить ${s.growth.pointsFor(s.growth.factorsOf(s.dayFacts))} опыта. После сна проверим новые звания и начнём следующий день.'),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-              onPressed: () => goToSleep(context, summaryDay),
-              icon: const Icon(Icons.nightlight_round),
-              label: const Text('Спокойной ночи')),
-        ]);
-      });
+                    padding: 4,
+                    color: s.progress.currentTitleId == title.id
+                        ? FinniColors.honey
+                        : FinniColors.paper,
+                    child: ListTile(
+                      title: Text(title.title,
+                          style: const TextStyle(fontWeight: FontWeight.w900)),
+                      subtitle: Text(s.titles.reasonOf(title)),
+                      trailing: s.progress.currentTitleId == title.id
+                          ? const TagChip('✓ выбрано', tone: TagTone.green)
+                          : const TagChip('выбрать', tone: TagTone.gold),
+                      onTap: () => s.chooseTitle(title.id),
+                    ),
+                  ),
+                ),
+          ],
+        ),
+      ));
+
+  void daySummary() {
+    final summaryDay = s.day;
+    Navigator.of(context).push<void>(MaterialPageRoute(
+      settings: const RouteSettings(name: 'Спокойной ночи'),
+      builder: (_) => _TourStarter(
+        state: s,
+        tour: 'summary',
+        child: BedtimeScreen(
+        state: s,
+        onSleep: (screenContext) => goToSleep(screenContext, summaryDay),
+        onTodo: (screenContext, todo) {
+          Navigator.of(screenContext).pop();
+          switch (todo) {
+            case BedtimeTodo.plan:
+              go(1);
+            case BedtimeTodo.needs:
+              go(2);
+            case BedtimeTodo.task:
+              if (s.levelDoneToday) {
+                unawaited(playDaily());
+              } else {
+                unawaited(playLevel());
+              }
+            case BedtimeTodo.event:
+              showEvent();
+          }
+        },
+      ),
+      ),
+    ));
+  }
 
   void goToSleep(BuildContext sheetContext, int summaryDay) {
     final reminder = s.bedtimeReminder;
@@ -896,47 +748,9 @@ extension _GameSections on _GameShellState {
         }));
   }
 
-  void glossary() => section(
-      'Словарик',
-      (context) => ListView(padding: const EdgeInsets.all(16), children: [
-            for (final entry in [
-              (
-                'Бюджет',
-                'Все монеты, которыми ты можешь распорядиться. Например, утром у тебя 40 монет.'
-              ),
-              (
-                'Обязательное',
-                'То, без чего сейчас не обойтись. Например, еда для питомца.'
-              ),
-              (
-                'Желаемое',
-                'То, что радует, но может подождать. Например, новый бантик.'
-              ),
-              (
-                'Накопления',
-                'Монеты, которые ты сохранил на потом. Они лежат в копилке.'
-              ),
-              ('Цель', 'Вещь, на которую ты копишь. Например, самокат.'),
-              (
-                'План',
-                'Твой выбор заранее: сколько потратить и сколько отложить.'
-              ),
-            ])
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _Panel(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        const Icon(Icons.lightbulb_outline_rounded,
-                            color: FinniColors.gold),
-                        const SizedBox(height: 8),
-                        Text(entry.$1,
-                            style: Theme.of(context).textTheme.titleLarge),
-                        const SizedBox(height: 8),
-                        Text(entry.$2)
-                      ]))),
-          ]));
+  void glossary() =>
+      section('Словарик', (context) => _GlossaryPage(state: s),
+          tour: 'glossary');
 
   void adults() {
     final answer = TextEditingController();
@@ -982,67 +796,8 @@ extension _GameSections on _GameShellState {
                     ]))).whenComplete(answer.dispose);
   }
 
-  void adultSettings() => section(
-      'Настройки для взрослого',
-      (context) => ListView(padding: const EdgeInsets.all(16), children: [
-            const _Notice(
-                icon: Icons.school_outlined,
-                text:
-                    'Игра помогает различать нужное и желаемое, планировать расходы и копить на цель. Настоящие деньги не используются.'),
-            const SizedBox(height: 16),
-            SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Анимации питомца'),
-                subtitle: const Text(
-                    'Системное отключение движений тоже учитывается'),
-                value: s.motion,
-                onChanged: s.setMotion),
-            SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Попроще'),
-                subtitle:
-                    const Text('Игры станут проще: меньше карточек и чисел'),
-                value: s.simpleMode,
-                onChanged: s.setSimple),
-            const ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.volume_off_outlined),
-                title: Text('Звук пока не подключён'),
-                subtitle:
-                    Text('Игорь / команда. Все подсказки доступны текстом.')),
-            const SizedBox(height: 16),
-            const _PendingFeature(
-                owner: 'Матвей, Юля',
-                text:
-                    'Демонстрационный режим с отдельным профилем и пропуском ожидания. Основной профиль не должен изменяться.'),
-            const SizedBox(height: 20),
-            _routeTile(
-                'Учебный прогресс',
-                'Пройдено игр: ${s.tasks.completedTaskIds.length} из ${s.content.tasks.tasks.length}',
-                Icons.school_outlined,
-                titles),
-            for (final theme in s.content.tasks.themes)
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                      '${theme.title}: ${s.content.tasks.byTheme(theme.id).every((t) => s.tasks.isCompleted(t.id)) ? 'тема пройдена' : 'тема в процессе'}')),
-            Text('Питомец: ${s.petName}'),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-                onPressed: () => renamePet(),
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Изменить имя питомца')),
-            const SizedBox(height: 24),
-            OutlinedButton.icon(
-                onPressed: () => confirmProfileAction(false),
-                icon: const Icon(Icons.restart_alt_rounded),
-                label: const Text('Начать заново')),
-            const SizedBox(height: 8),
-            TextButton.icon(
-                onPressed: () => confirmProfileAction(true),
-                icon: const Icon(Icons.delete_outline_rounded),
-                label: const Text('Удалить локальный профиль')),
-          ]));
+  void adultSettings() =>
+      section('Для взрослого', (context) => _AdultView(shell: this));
   void renamePet() => sheet(
       'Имя питомца',
       NamePicker(
@@ -1105,26 +860,79 @@ extension _GameSections on _GameShellState {
   }
 }
 
-class _PendingFeature extends StatelessWidget {
-  const _PendingFeature({required this.owner, required this.text});
-  final String owner, text;
+class _MoreTile extends StatelessWidget {
+  const _MoreTile(
+      {required this.label,
+      required this.art,
+      required this.onTap,
+      this.news = false});
+  final String label;
+  final Widget art;
+  final VoidCallback onTap;
+  final bool news;
   @override
-  Widget build(BuildContext context) => Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: FinniColors.sky, borderRadius: BorderRadius.circular(16)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Row(children: [
-          Icon(Icons.construction_outlined, size: 24),
-          SizedBox(width: 8),
-          Expanded(
-              child: Text('В разработке',
-                  style: TextStyle(fontWeight: FontWeight.w800)))
-        ]),
-        const SizedBox(height: 8),
-        Text(text),
-        const SizedBox(height: 8),
-        Text('Ответственные: $owner',
-            style: const TextStyle(color: FinniColors.muted)),
-      ]));
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        child: Squish(
+          onTap: onTap,
+          child: _Panel(
+            padding: 10,
+            radius: 20,
+            child: Stack(clipBehavior: Clip.none, children: [
+              Column(children: [
+                SizedBox(height: 46, child: Center(child: art)),
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(label,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w900)),
+                ),
+              ]),
+              if (news) const Positioned(right: 0, top: 0, child: _NewDot()),
+            ]),
+          ),
+        ),
+      );
+}
+
+class _TourStarter extends StatefulWidget {
+  const _TourStarter({required this.state, required this.tour, required this.child});
+  final GameController state;
+  final String? tour;
+  final Widget child;
+  @override
+  State<_TourStarter> createState() => _TourStarterState();
+}
+
+class _TourStarterState extends State<_TourStarter> {
+  GameController get s => widget.state;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => Future.delayed(
+            const Duration(milliseconds: 350), _start));
+  }
+
+  Future<void> _start() async {
+    final id = widget.tour;
+    if (!mounted || id == null || s.coachSeen(id) || !s.onboarded) return;
+    if (Coach.busy(context)) return;
+    final tour = s.coach.tour(id);
+    if (tour == null) return;
+    final finished = await Coach.run(context,
+        steps: tour.steps,
+        texts: s.coach.texts,
+        title: tour.title,
+        values: {'name': s.petName},
+        motion: s.motion);
+    s.markCoachSeen(tour.seenAfter(finished: finished));
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "canvas": {
     "aspectRatio": 0.9,
-    "coordinates": "x и y от 0 до 1, от левого верхнего угла; точка привязки — середина нижнего края предмета",
+    "coordinates": "x и y от 0 до 1, от левого верхнего угла; точка привязки — середина нижнего края предмета; size — ширина предмета в долях ширины комнаты",
     "defaultScale": 1
   },
   "texts": {
@@ -10,7 +10,11 @@
     "roomLocked": "Откроется на уровне уюта {level}",
     "chooseForSpot": "Что поставим сюда?",
     "emptySpot": "Здесь пока пусто",
-    "goalLocked": "Это твоя цель. Она останется здесь навсегда."
+    "goalLocked": "Это твоя цель. Она останется здесь навсегда.",
+    "spotLocked": "Для этого места пока нет вещей. Загляни в магазин!",
+    "place": "Поставить",
+    "remove": "Убрать",
+    "wallpaperTitle": "Обои"
   },
   "rooms": [
     {
@@ -38,223 +42,235 @@
           "id": "window_out_left",
           "type": "goal",
           "layer": "windowView",
-          "x": 0.68,
-          "y": 0.34,
-          "scale": 0.5,
+          "x": 0.79,
+          "y": 0.4,
           "z": 1,
           "accepts": [
-            "treehouse"
-          ]
+            "instant_camera"
+          ],
+          "size": 0.06
         },
         {
           "id": "window_out_right",
           "type": "goal",
           "layer": "windowView",
-          "x": 0.82,
-          "y": 0.34,
-          "scale": 0.5,
+          "x": 0.89,
+          "y": 0.4,
           "z": 1,
           "accepts": [
-            "trampoline"
-          ]
+            "game_console"
+          ],
+          "size": 0.06
         },
         {
           "id": "wall_poster",
           "type": "item",
-          "x": 0.2,
-          "y": 0.36,
-          "scale": 1,
+          "x": 0.12,
+          "y": 0.6,
           "z": 10,
           "accepts": [
             "poster"
-          ]
+          ],
+          "size": 0.12
         },
         {
           "id": "wall_clock",
           "type": "item",
-          "x": 0.46,
-          "y": 0.2,
-          "scale": 1,
+          "x": 0.22,
+          "y": 0.34,
           "z": 10,
           "accepts": [
             "clock"
-          ]
+          ],
+          "size": 0.09
         },
         {
           "id": "wall_shelf",
           "type": "item",
-          "x": 0.46,
-          "y": 0.44,
-          "scale": 1,
+          "x": 0.88,
+          "y": 0.68,
           "z": 10,
           "accepts": [
             "shelf"
-          ]
+          ],
+          "size": 0.14
         },
         {
           "id": "sill_left",
           "type": "item",
-          "x": 0.68,
-          "y": 0.5,
-          "scale": 1,
+          "x": 0.76,
+          "y": 0.48,
           "z": 12,
           "accepts": [
             "flower_pot"
-          ]
+          ],
+          "size": 0.07
         },
         {
           "id": "sill_right",
           "type": "item",
-          "x": 0.84,
-          "y": 0.5,
-          "scale": 1,
+          "x": 0.92,
+          "y": 0.48,
           "z": 12,
           "accepts": [
             "night_light"
-          ]
+          ],
+          "size": 0.06
         },
         {
           "id": "goal_wall_left",
           "type": "goal",
-          "x": 0.07,
-          "y": 0.8,
-          "scale": 1,
+          "x": 0.06,
+          "y": 0.78,
           "z": 13,
           "accepts": [
-            "scooter"
-          ]
+            "scooter",
+            "roller_skates",
+            "skateboard",
+            "bike"
+          ],
+          "size": 0.1
         },
         {
           "id": "goal_wall_mid",
           "type": "goal",
-          "x": 0.38,
-          "y": 0.72,
-          "scale": 1,
-          "z": 13,
+          "x": 0.64,
+          "y": 0.97,
+          "z": 29,
           "accepts": [
-            "bicycle"
-          ]
+            "robot_kit",
+            "keyboard",
+            "drawing_tablet",
+            "karaoke",
+            "tent"
+          ],
+          "size": 0.08
         },
         {
           "id": "goal_window",
           "type": "goal",
-          "x": 0.58,
-          "y": 0.66,
-          "scale": 1,
-          "z": 14,
+          "x": 0.84,
+          "y": 0.48,
+          "z": 12,
           "accepts": [
-            "telescope"
-          ]
+            "smartwatch",
+            "headphones"
+          ],
+          "size": 0.055
         },
         {
           "id": "back_left",
           "type": "item",
-          "x": 0.18,
-          "y": 0.7,
-          "scale": 1,
+          "x": 0.15,
+          "y": 0.94,
           "z": 15,
           "accepts": [
             "bed"
-          ]
+          ],
+          "size": 0.26
         },
         {
           "id": "back_right",
           "type": "item",
-          "x": 0.8,
-          "y": 0.74,
-          "scale": 1,
+          "x": 0.86,
+          "y": 0.9,
           "z": 16,
           "accepts": [
             "aquarium"
-          ]
+          ],
+          "size": 0.12
         },
         {
           "id": "corner_right",
           "type": "item",
-          "x": 0.94,
-          "y": 0.72,
-          "scale": 1,
-          "z": 14,
+          "x": 0.4,
+          "y": 1.0,
+          "z": 26,
           "accepts": [
             "cactus"
-          ]
+          ],
+          "size": 0.06
         },
         {
           "id": "middle_right",
           "type": "item",
-          "x": 0.62,
-          "y": 0.82,
-          "scale": 1,
+          "x": 0.72,
+          "y": 0.95,
           "z": 20,
           "accepts": [
             "table"
-          ]
+          ],
+          "size": 0.12
         },
         {
           "id": "floor_rug",
           "type": "item",
           "x": 0.5,
-          "y": 0.97,
-          "scale": 1,
+          "y": 1.0,
           "z": 2,
           "accepts": [
             "rug"
-          ]
+          ],
+          "size": 0.3
         },
         {
           "id": "front_left",
           "type": "item",
-          "x": 0.28,
-          "y": 0.92,
-          "scale": 1,
+          "x": 0.08,
+          "y": 1.0,
           "z": 25,
           "accepts": [
             "pouf"
-          ]
+          ],
+          "size": 0.12
         },
         {
           "id": "front_right",
           "type": "item",
-          "x": 0.91,
-          "y": 0.97,
-          "scale": 1,
+          "x": 0.97,
+          "y": 1.0,
           "z": 28,
           "accepts": [
             "palm"
-          ]
+          ],
+          "size": 0.13
         },
         {
           "id": "toy_1",
           "type": "item",
-          "x": 0.4,
-          "y": 0.94,
-          "scale": 1,
+          "x": 0.25,
+          "y": 0.99,
           "z": 30,
           "accepts": [
             "bouncy_ball"
-          ]
+          ],
+          "size": 0.075
         },
         {
           "id": "toy_2",
           "type": "item",
-          "x": 0.56,
-          "y": 0.96,
-          "scale": 1,
+          "x": 0.6,
+          "y": 0.99,
           "z": 30,
           "accepts": [
             "puzzle"
-          ]
+          ],
+          "size": 0.075
         },
         {
           "id": "goal_floor",
           "type": "goal",
-          "x": 0.08,
-          "y": 0.97,
-          "scale": 1,
+          "x": 0.2,
+          "y": 1.0,
           "z": 29,
           "accepts": [
-            "ball_rope"
-          ]
+            "constructor",
+            "slime_kit",
+            "board_game",
+            "science_kit",
+            "giant_plush"
+          ],
+          "size": 0.08
         }
       ]
     },
@@ -284,36 +300,36 @@
           "type": "item",
           "x": 0.3,
           "y": 0.8,
-          "scale": 1,
           "z": 15,
-          "accepts": []
+          "accepts": [],
+          "size": 0.14
         },
         {
           "id": "nightstand",
           "type": "item",
           "x": 0.6,
           "y": 0.78,
-          "scale": 1,
           "z": 16,
-          "accepts": []
+          "accepts": [],
+          "size": 0.14
         },
         {
           "id": "wall",
           "type": "item",
           "x": 0.5,
           "y": 0.35,
-          "scale": 1,
           "z": 10,
-          "accepts": []
+          "accepts": [],
+          "size": 0.14
         },
         {
           "id": "floor",
           "type": "item",
           "x": 0.5,
           "y": 0.97,
-          "scale": 1,
           "z": 2,
-          "accepts": []
+          "accepts": [],
+          "size": 0.14
         }
       ]
     }

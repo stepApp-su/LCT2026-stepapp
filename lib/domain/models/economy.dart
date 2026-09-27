@@ -252,6 +252,7 @@ final class ShopItem {
     required this.diaryText,
     required this.showInShop,
     required this.ownedAtStart,
+    required this.dailyNeed,
   });
 
   factory ShopItem.create({
@@ -276,6 +277,7 @@ final class ShopItem {
     String diaryText = '',
     bool showInShop = true,
     bool ownedAtStart = false,
+    bool dailyNeed = false,
   }) {
     if (price < 0) {
       throw ArgumentError.value(price, 'price', 'Цена — целое ≥ 0');
@@ -311,6 +313,7 @@ final class ShopItem {
       diaryText: diaryText,
       showInShop: showInShop,
       ownedAtStart: ownedAtStart,
+      dailyNeed: dailyNeed,
     );
   }
 
@@ -355,6 +358,7 @@ final class ShopItem {
 
   final bool showInShop;
   final bool ownedAtStart;
+  final bool dailyNeed;
 
   Map<String, Object?> toJson() => {
         'id': id,
@@ -377,6 +381,7 @@ final class ShopItem {
         'diaryText': diaryText,
         'showInShop': showInShop,
         'ownedAtStart': ownedAtStart,
+        if (dailyNeed) 'dailyNeed': true,
       };
 
   factory ShopItem.fromJson(Map<String, Object?> json) {
@@ -406,6 +411,7 @@ final class ShopItem {
       diaryText: (json['diaryText'] ?? '') as String,
       showInShop: (json['showInShop'] ?? true) as bool,
       ownedAtStart: (json['ownedAtStart'] ?? false) as bool,
+      dailyNeed: (json['dailyNeed'] ?? false) as bool,
     );
   }
 

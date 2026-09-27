@@ -48,11 +48,12 @@ class LevelButton extends StatelessWidget {
       if (run.hardCount > 0) '${run.hardCount} посложнее',
       if (run.newCount > 0) 'новая игра!',
     ];
-    final subtitle = started
-        ? 'Пройдено ${run.done} из $games'
+    final parts = started
+        ? ['Пройдено ${run.done} из $games']
         : compact
-            ? '$games ${ruGames(games)} · +${run.coins} ${ruCoins(run.coins)}'
-            : ['$games ${ruGames(games)}', ...extras].join(' · ');
+            ? ['$games ${ruGames(games)}', '🪙 +${run.coins}']
+            : ['$games ${ruGames(games)}', ...extras];
+    final subtitle = parts.join(', ');
     final title = started
         ? 'Продолжить уровень ${run.number}'
         : 'Уровень дня: ${run.number}';
@@ -89,10 +90,14 @@ class LevelButton extends StatelessWidget {
                         style: TextStyle(
                             fontSize: compact ? 16 : 21,
                             fontWeight: FontWeight.w900)),
-                    Text(subtitle,
-                        maxLines: compact ? 1 : 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 16, color: FinniColors.ink)),
+                    const SizedBox(height: 3),
+                    TagRow([
+                      for (final part in parts)
+                        TagChip(part,
+                            tone: part.startsWith('🪙')
+                                ? TagTone.green
+                                : TagTone.white),
+                    ]),
                     if (!compact) ...[
                       const SizedBox(height: 6),
                       if (started)

@@ -63,7 +63,7 @@ final class DemoService {
 
   /// «Разумный игрок»: шесть дней по плану, мечта достигнута,
   /// комната обставлена, питомец вырос.
-  Future<DemoRun> prudentPlayer() => _play(goalId: 'ball_rope', days: const [
+  Future<DemoRun> prudentPlayer() => _play(goalId: 'constructor', days: const [
         _DayScript(plan: (25, 0, 15), buy: _needs, deposit: 15, task: 'payments_sort_needs', taps: 3),
         _DayScript(plan: (25, 0, 15), buy: _needs, deposit: 15, task: 'planning_distribute_day', taps: 3),
         _DayScript(plan: (25, 15, 0), buy: [..._needs, 'flower_pot'], deposit: 5, task: 'savings_distribute_days', taps: 3),
@@ -114,6 +114,38 @@ final class DemoService {
     return DemoRun(profile: profile, nights: nights);
   }
 
+  List<String> _shoppingList(List<String> buy, int day, PetStage stage) {
+    final list = [...buy];
+    final daily = _economy.pet.needs;
+    if (!daily.every((need) => list.contains(need.itemId))) return list;
+    for (final need in _economy.pet.needsOn(day, stage)) {
+      if (need.metBy(list)) continue;
+      final extra = _shop.byId(need.itemId);
+      if (extra == null) continue;
+      list.add(need.itemId);
+      var saved = 0;
+      for (final base in daily) {
+        if (saved >= extra.price) break;
+        final index = list.indexOf(base.itemId);
+        final current = _shop.byId(base.itemId);
+        if (index < 0 || current == null) continue;
+        ShopItem? cheaper;
+        for (final id in base.alternatives) {
+          final alternative = _shop.byId(id);
+          if (alternative != null &&
+              alternative.price < current.price &&
+              (cheaper == null || alternative.price < cheaper.price)) {
+            cheaper = alternative;
+          }
+        }
+        if (cheaper == null) continue;
+        list[index] = cheaper.id;
+        saved += current.price - cheaper.price;
+      }
+    }
+    return list;
+  }
+
   Profile _liveDay(Profile profile, _DayScript script, {required DateTime at}) {
     final day = profile.currentDay.number;
     final wallet = WalletService(
@@ -130,7 +162,7 @@ final class DemoService {
     var goalIdNow = profile.goalId;
     var reached = profile.reachedGoalIds;
 
-    for (final id in script.buy) {
+    for (final id in _shoppingList(script.buy, day, profile.progress.stage)) {
       final item = _shop.byId(id)!;
       final outcome = wallet.spend(
         amount: item.price,

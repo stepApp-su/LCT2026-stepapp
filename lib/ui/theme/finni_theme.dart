@@ -16,6 +16,37 @@ abstract final class FinniColors {
   static const line = Color(0xFFE0E5DC);
   static const shadow = Color(0x14293F36);
   static const transparent = Color(0x00000000);
+  static const nightTop = Color(0xFF141C30);
+  static const nightMid = Color(0xFF232B52);
+  static const nightLow = Color(0xFF3A3868);
+  static const dawnTop = Color(0xFF1E2240);
+  static const dawnMid = Color(0xFF3B3462);
+  static const dawnWarm = Color(0xFF7A5470);
+  static const dawnLow = Color(0xFFB8736A);
+  static const sheetNight = Color(0xFF1F2638);
+  static const nightInk = Color(0xFFF4F1EA);
+  static const nightSoft = Color(0xC7F4F1EA);
+  static const nightDim = Color(0x99F4F1EA);
+  static const glass = Color(0x1AFFFFFF);
+  static const glassStrong = Color(0x29FFFFFF);
+  static const glassLine = Color(0x24FFFFFF);
+  static const moon = Color(0xFFFFF1BF);
+  static const moonGlow = Color(0xB3FFECAA);
+  static const star = Color(0xCCFFFFFF);
+  static const sunGlow = Color(0xFFFFD58A);
+  static const nightMint = Color(0xFF9FD8B1);
+  static const nightPeach = Color(0xFFFFB99A);
+  static const nightSatiety = Color(0xFFFFC37A);
+  static const nightCare = Color(0xFF9CC9EE);
+  static const nightMood = Color(0xFFC9B8EE);
+  static const nightCozy = Color(0xFFFFE6A1);
+  static const honeyInk = Color(0xFF3A2C06);
+  static const scrim = Color(0x8C05080E);
+  static const groundShadow = Color(0x47000000);
+  static const morning = Color(0xFFFFF6DF);
+  static const peach = Color(0xFFFFE4D6);
+  static const alert = Color(0xFFA8432D);
+  static const warm = Color(0xFFFFF1D6);
 }
 
 ThemeData finniTheme() => ThemeData(

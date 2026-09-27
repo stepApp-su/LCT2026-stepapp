@@ -111,6 +111,7 @@ final class DayFacts {
   factory DayFacts.fromDay(
     GameDay day, {
     required Iterable<String> mandatoryItemIds,
+    Iterable<Iterable<String>> mandatoryOptions = const [],
   }) {
     var spentMandatory = 0;
     var spentOptional = 0;
@@ -146,7 +147,8 @@ final class DayFacts {
       spentMandatory: spentMandatory,
       spentOptional: spentOptional,
       deposited: deposited > withdrawn ? deposited - withdrawn : 0,
-      mandatoryPaid: mandatoryItemIds.every(bought.contains),
+      mandatoryPaid: mandatoryItemIds.every(bought.contains) &&
+          mandatoryOptions.every((options) => options.any(bought.contains)),
       tasksDone: tasks.length,
     );
   }

@@ -11,6 +11,7 @@ final class RoomSpot {
     required this.x,
     required this.y,
     required this.scale,
+    required this.size,
     required this.z,
     required this.accepts,
     required this.acceptsKind,
@@ -27,6 +28,7 @@ final class RoomSpot {
         x: null,
         y: null,
         scale: null,
+        size: null,
         z: null,
         accepts: const [],
         acceptsKind: jsonText(json['acceptsKind'], 'spots.acceptsKind'),
@@ -39,6 +41,7 @@ final class RoomSpot {
       x: jsonNum(json['x'], 'spots.x', min: 0, max: 1),
       y: jsonNum(json['y'], 'spots.y', min: 0, max: 1),
       scale: jsonNum(json['scale'] ?? 1, 'spots.scale', min: 0.01),
+      size: jsonNum(json['size'] ?? 0.14, 'spots.size', min: 0.01, max: 1),
       z: jsonInt(json['z'] ?? 0, 'spots.z'),
       accepts: jsonStrings(json['accepts'] ?? const [], 'spots.accepts'),
       acceptsKind: null,
@@ -51,6 +54,7 @@ final class RoomSpot {
   final double? x;
   final double? y;
   final double? scale;
+  final double? size;
   final int? z;
   final List<String> accepts;
   final String? acceptsKind;

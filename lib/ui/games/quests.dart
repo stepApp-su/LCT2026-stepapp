@@ -129,9 +129,13 @@ class HomeQuests extends StatelessWidget {
                 )
               : _QuestTile(
                   title: 'Уровень ${run.number}',
-                  subtitle: started
-                      ? 'Пройдено ${run.done} из ${run.slots.length}'
-                      : '+${run.coins} · ${run.slots.length} ${ruGames(run.slots.length)}',
+                  subtitle: 'Пройдено ${run.done} из ${run.slots.length}',
+                  tags: started
+                      ? const []
+                      : [
+                          '🪙 +${run.coins}',
+                          '${run.slots.length} ${ruGames(run.slots.length)}'
+                        ],
                   semantics: 'Уровень дня ${run.number}. Играть',
                   icon: Text('${run.number}',
                       textScaler: TextScaler.noScaling,
@@ -169,7 +173,8 @@ class HomeQuests extends StatelessWidget {
                     )
                   : _QuestTile(
                       title: 'Задание дня',
-                      subtitle: '+${state.dailyRules.coins} · сложное',
+                      subtitle: 'Сложное',
+                      tags: ['🪙 +${state.dailyRules.coins}', '💪 сложное'],
                       semantics: 'Задание дня: ${daily.title}. Играть',
                       icon: const Text('☀️',
                           textScaler: TextScaler.noScaling,
@@ -195,10 +200,12 @@ class _QuestTile extends StatelessWidget {
     this.color,
     this.gradient,
     this.onTap,
+    this.tags = const [],
   });
 
   final String title;
   final String subtitle;
+  final List<String> tags;
   final String semantics;
   final Widget icon;
   final IconData? trailing;
@@ -253,10 +260,19 @@ class _QuestTile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-              Text(subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, color: FinniColors.ink)),
+              if (tags.isEmpty)
+                Text(subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, color: FinniColors.ink))
+              else
+                TagRow([
+                  for (final tag in tags)
+                    TagChip(tag,
+                        tone: tag.startsWith('🪙')
+                            ? TagTone.green
+                            : TagTone.white),
+                ]),
             ],
           ),
         ),
@@ -278,6 +294,7 @@ class DailyCard extends StatelessWidget {
     final rules = state.dailyRules;
     final String title;
     final String subtitle;
+    var tags = const <String>[];
     if (task == null) {
       title = 'Задание дня';
       subtitle = 'Откроется, когда пройдёшь первый уровень.';
@@ -286,7 +303,13 @@ class DailyCard extends StatelessWidget {
       subtitle = 'Новое появится завтра. Приходи!';
     } else {
       title = 'Задание дня: ${task.title}';
-      subtitle = 'Сложный вариант · +${rules.coins}, а с первой попытки ещё +${rules.perfectBonus}';
+      subtitle =
+          'Сложный вариант, +${rules.coins}, а с первой попытки ещё +${rules.perfectBonus}';
+      tags = [
+        '💪 сложный вариант',
+        '🪙 +${rules.coins}',
+        '🎯 с первой попытки +${rules.perfectBonus}',
+      ];
     }
     return Semantics(
       button: task != null,
@@ -339,7 +362,16 @@ class DailyCard extends StatelessWidget {
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: const TextStyle(color: FinniColors.ink)),
+                    if (tags.isEmpty)
+                      Text(subtitle, style: const TextStyle(color: FinniColors.ink))
+                    else
+                      TagRow([
+                        for (final tag in tags)
+                          TagChip(tag,
+                              tone: tag.startsWith('🪙')
+                                  ? TagTone.green
+                                  : TagTone.white),
+                      ]),
                   ],
                 ),
               ),

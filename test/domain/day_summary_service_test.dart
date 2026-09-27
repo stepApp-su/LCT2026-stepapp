@@ -92,9 +92,9 @@ void main() {
     test('операции мечты не считаются ни тратой, ни копилкой', () {
       final r = build([
         _tx(TransactionType.toSavings, 10),
-        _tx(TransactionType.fromSavings, 90, source: 'goal:ball_rope'),
+        _tx(TransactionType.fromSavings, 90, source: 'goal:constructor'),
         _tx(TransactionType.expense, 90,
-            cat: ExpenseCategory.optional, source: 'goal:ball_rope'),
+            cat: ExpenseCategory.optional, source: 'goal:constructor'),
       ]);
       expect(r.summary.actualOptional, 0);
       expect(r.summary.actualSavings, 10);

@@ -163,6 +163,44 @@ final class TitleService {
         : progress.copyWith(currentTitleId: titleId);
   }
 
+  (int, int) progressOf(
+      TitleDef title, PetProgress progress, TitleFacts facts) {
+    if (progress.earnedTitles.contains(title.id)) return (1, 1);
+    final days = progress.growthDays;
+    (int, int) capped(int done, int total) =>
+        (done > total ? total : done, total < 1 ? 1 : total);
+    return switch (title.condition) {
+      StartCondition() => (1, 1),
+      DaysCondition rule => capped(
+          rule.inARow
+              ? _currentRun(days, rule)
+              : days.where((day) => _marked(day.facts, rule)).length,
+          rule.count),
+      ThemeCondition(:final themeId) => switch (_themes[themeId]) {
+          final theme? => capped(
+              theme.taskIds.where(facts.completedTaskIds.contains).length,
+              theme.taskIds.length),
+          null => (0, 1),
+        },
+      GoalsCondition(:final count) =>
+        capped(facts.reachedGoalIds.length, count),
+      ReserveCondition(days: final reserveDays) =>
+        capped(facts.savings, reserveDays * dailyNeedsCost),
+    };
+  }
+
+  int _currentRun(List<GrowthDay> days, DaysCondition condition) {
+    var run = 0;
+    int? next;
+    for (final day in days.reversed) {
+      if (!_marked(day.facts, condition)) break;
+      if (next != null && day.dayNumber != next - 1) break;
+      run++;
+      next = day.dayNumber;
+    }
+    return run;
+  }
+
   String headlineOf(TitleDef title) =>
       fillTemplate(catalog.texts.earned, {'title': title.title});
 

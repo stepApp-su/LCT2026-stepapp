@@ -66,16 +66,22 @@ final class TaskRule {
 }
 
 final class TaskTheme {
-  const TaskTheme({required this.id, required this.title, required this.iconId});
+  const TaskTheme(
+      {required this.id,
+      required this.title,
+      required this.iconId,
+      this.skill = ''});
 
   final String id;
   final String title;
   final String iconId;
+  final String skill;
 
   factory TaskTheme.fromJson(Map<String, Object?> json) => TaskTheme(
         id: json['id'] as String,
         title: json['title'] as String,
         iconId: (json['iconId'] ?? '') as String,
+        skill: (json['skill'] ?? '') as String,
       );
 }
 
@@ -238,6 +244,7 @@ final class TaskTexts {
     required this.stall,
     required this.cashier,
     required this.pricetag,
+    required this.hints,
   });
 
   final String check;
@@ -254,6 +261,7 @@ final class TaskTexts {
   final TextGroup stall;
   final TextGroup cashier;
   final TextGroup pricetag;
+  final TextGroup hints;
 
   static Map<String, Object?> _group(Map<String, Object?> json, String key) =>
       (json[key] as Map).cast<String, Object?>();
@@ -275,6 +283,7 @@ final class TaskTexts {
             json['cashier'], 'texts.cashier', TextGroup.cashierKeys),
         pricetag: TextGroup.fromJson(
             json['pricetag'], 'texts.pricetag', TextGroup.pricetagKeys),
+        hints: TextGroup.fromJson(json['hints'], 'texts.hints', TextGroup.hintKeys),
       );
 }
 

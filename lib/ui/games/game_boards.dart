@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
 import '../../domain/ru_words.dart';
+import '../../domain/services/hint_service.dart';
 import '../../domain/services/task_engine.dart';
 import '../../domain/text_template.dart';
 import '../theme/finni_theme.dart';
@@ -30,6 +31,7 @@ final class BoardContext {
     required this.motion,
     required this.onChanged,
     required this.onSubmit,
+    this.onSituation,
   });
 
   final TaskDef task;
@@ -42,6 +44,7 @@ final class BoardContext {
   final bool motion;
   final ValueChanged<TaskAnswer?> onChanged;
   final ValueChanged<TaskAnswer> onSubmit;
+  final void Function(HintSituation Function() read)? onSituation;
 
   bool get showMarks => check != null && check!.verdict != TaskVerdict.incomplete;
 }
@@ -100,6 +103,7 @@ class _CardChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Stack(
         clipBehavior: Clip.none,
+        fit: StackFit.passthrough,
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 180),
@@ -220,7 +224,9 @@ class _SortBoardState extends State<SortBoard> {
           duration: const Duration(milliseconds: 220),
           child: waiting.isEmpty
               ? const SizedBox(width: double.infinity)
-              : Wrap(
+              : EqualGrid(
+                  columns:
+                      MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2,
                   spacing: 10,
                   runSpacing: 10,
                   children: [
@@ -1278,7 +1284,8 @@ class _BasketBoardState extends State<BasketBoard> {
           final wide = MediaQuery.textScalerOf(context).scale(16) <= 22;
           final columns = wide ? 3 : 2;
           final width = ((constraints.maxWidth - (columns - 1) * 8) / columns).clamp(0.0, double.infinity);
-          return Wrap(
+          return EqualGrid(
+            columns: columns,
             spacing: 8,
             runSpacing: 8,
             children: [

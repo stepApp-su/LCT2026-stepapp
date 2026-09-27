@@ -91,7 +91,7 @@ void main() {
       expect(targets(lessons[0]).first, 'home.pet');
       expect(targets(lessons[0]), containsAll(['plan.mandatory', 'plan.optional', 'plan.savings', 'plan.confirm']));
       expect(targets(lessons[1]), containsAll(['shop.plan', 'shop.wants', 'shop.items']));
-      expect(targets(lessons[2]), contains('plan.save'));
+      expect(targets(lessons[2]), containsAll(['plan.save', 'savings.change', 'section.back']));
       expect(targets(lessons[3]).last, 'home.level');
       expect(lessons[3].steps.last.action, CoachAction.tap);
       for (final lesson in lessons.skip(1)) {
@@ -118,6 +118,16 @@ void main() {
   });
 
   group('обучение: что запоминает игра', () {
+    test('мечта из знакомства становится текущей', () {
+      final state = GameController(config, content: content);
+      state.createPet('Мони', true, goalId: 'smartwatch');
+      expect(state.goalId, 'smartwatch');
+      final same = GameController(config, content: content);
+      final before = same.goalId;
+      same.createPet('Мони', true, goalId: before);
+      expect(same.goalId, before);
+    });
+
     test('новичок видит обучение, старый профиль — нет', () {
       final fresh = GameController(config, content: content);
       expect(fresh.coachSeen('home'), isFalse);

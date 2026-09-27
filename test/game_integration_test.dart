@@ -11,6 +11,7 @@ import 'package:finni/domain/models/models.dart';
 import 'package:finni/domain/services/plan_service.dart';
 import 'package:finni/domain/services/shop_service.dart';
 import 'package:finni/domain/services/task_engine.dart';
+import 'package:finni/domain/services/title_service.dart';
 import 'package:finni/ui/app.dart';
 import 'package:finni/ui/game_controller.dart';
 import 'package:finni/ui/widgets/game_icon.dart';
@@ -203,7 +204,7 @@ void main() {
     state.equip('bow');
     state.postpone('glasses');
     state.saveCoins(10);
-    state.changeGoal('ball_rope');
+    state.changeGoal('constructor');
     state.changePlan(PlanDirection.savings, 5);
     await state.flush();
     final restored =
@@ -309,10 +310,10 @@ void main() {
       await tester.tap(find.text('Ещё').last);
       await tester.pumpAndSettle();
       for (final label in [
-        'Комната и гардероб',
+        'Гардероб',
         'Дневник',
-        'Звания и рост',
-        'Спокойной ночи',
+        'Звания',
+        'Итоги',
         'Словарик'
       ]) {
         await tester.ensureVisible(find.text(label));
@@ -326,18 +327,138 @@ void main() {
       state.dispose();
     });
   }
+  test('room: bought furniture waits for its spot and is saved', () async {
+    final state = GameController(config,
+        content: content, saved: {'onboarded': true, 'balance': 200});
+    expect(state.roomEmpty, isTrue);
+    expect(state.buyNow('rug'), isA<PurchaseDone>());
+    expect(state.hasNewThings, isTrue);
+    final spot = state.room.spotFor('rug')!;
+    expect(state.canFill(spot), isTrue);
+    expect(state.placedAt(spot), isNull);
+    state.place(spot, 'rug');
+    expect(state.placedAt(spot)?.id, 'rug');
+    expect(state.roomEmpty, isFalse);
+    state.place(spot, 'bow');
+    expect(state.placedAt(spot)?.id, 'rug');
+    state.markThingsSeen();
+    expect(state.hasNewThings, isFalse);
+    state.knowWord('budget', true);
+    state.setSound(false);
+    await state.flush();
+    final restored = GameController(config,
+        content: content, saved: await state.repository.load());
+    expect(restored.placedAt(spot)?.id, 'rug');
+    expect(restored.hasNewThings, isFalse);
+    expect(restored.knownWords, contains('budget'));
+    expect(restored.sound, isFalse);
+    final locked = restored.room.spotFor('aquarium')!;
+    expect(restored.canFill(locked), isFalse);
+    state.dispose();
+    restored.dispose();
+  });
+  test('old saves place owned furniture automatically', () {
+    final state = GameController(config,
+        content: content, saved: {'onboarded': true, 'owned': ['rug', 'bouncy_ball']});
+    expect(state.placedAt(state.room.spotFor('rug')!)?.id, 'rug');
+    expect(state.placedAt(state.room.spotFor('bouncy_ball')!)?.id, 'bouncy_ball');
+    expect(state.hasNewThings, isFalse);
+    state.dispose();
+  });
+  test('title progress counts what is already done', () {
+    final state = GameController(config, content: content, saved: {'onboarded': true});
+    final facts = TitleFacts.create(dayNumber: 1);
+    final planner = content.titles.titles.firstWhere((t) => t.id == 'planner');
+    expect(state.titles.progressOf(planner, state.progress, facts), (0, 3));
+    final novice = content.titles.titles.firstWhere((t) => t.id == 'novice');
+    expect(state.titles.progressOf(novice, state.progress, facts), (1, 1));
+    state.dispose();
+  });
+  test('needs: any option covers a need, cold day adds warmth', () {
+    final state = GameController(config,
+        content: content, saved: {'onboarded': true, 'day': 3, 'balance': 60});
+    expect(state.todayNeeds.map((n) => n.itemId),
+        ['food', 'water_light', 'cleaning', 'warm_socks']);
+    expect(state.mandatoryCost, 30);
+    final food = state.todayNeeds.first;
+    expect(state.needOptions(food).map((i) => i.id),
+        ['porridge', 'food', 'lunchbox']);
+    expect(state.buyNow('porridge'), isA<PurchaseDone>());
+    expect(state.boughtFor(food)?.id, 'porridge');
+    expect(state.missingNeeds.map((n) => n.itemId),
+        ['water_light', 'cleaning', 'warm_socks']);
+    for (final id in ['water_light', 'laundry', 'mittens']) {
+      expect(state.buyNow(id), isA<PurchaseDone>());
+    }
+    expect(state.unpaidNeeds, isEmpty);
+    expect(state.dayFacts.mandatoryPaid, isTrue);
+    state.dispose();
+  });
+  testWidgets('shop shows pet scales and lets choose a need option',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final state = GameController(config, content: content, saved: {
+      'onboarded': true,
+      'motion': false,
+      'confirmed': true,
+      'plan': {'mandatory': 25, 'optional': 10, 'savings': 5},
+    });
+    await tester.pumpWidget(FinniApp(controller: state));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Магазин').last);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    for (final label in ['Сытость', 'Уход', 'Радость', 'Уют']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    expect(find.text('Нужно ${state.petName} сегодня'), findsOneWidget);
+    expect(find.text('🍲 Еда'), findsOneWidget);
+    await tester.ensureVisible(find.text('Каша'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Каша'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('→'), findsWidgets);
+    await tester.ensureVisible(find.text('Купить за 10 монет'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Купить за 10 монет'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Ура!'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ура!'));
+    await tester.pumpAndSettle();
+    expect(find.text('✓ Каша'), findsOneWidget);
+    expect(state.boughtFor(state.todayNeeds.first)?.id, 'porridge');
+    await tester.scrollUntilVisible(find.text('Для радости'), 200,
+        scrollable: find.byType(Scrollable).first);
+    expect(find.text('Для радости'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    state.dispose();
+  });
   testWidgets('first launch creates guest pet without personal fields',
       (tester) async {
     final state = GameController(config, content: content)..motion = false;
     await tester.pumpWidget(FinniApp(controller: state));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Пропустить знакомство'));
+    expect(find.text('Пропустить знакомство'), findsNothing);
+    await tester.tap(find.text('Дальше'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Дальше'));
+    await tester.pumpAndSettle();
+    expect(find.text('О чём мечтаем?'), findsOneWidget);
+    await tester.ensureVisible(find.text('Умные часы'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Умные часы'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Выбрать: Умные часы'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Начать дружить'));
     await tester.pumpAndSettle();
     expect(state.onboarded, true);
+    expect(state.goalId, 'smartwatch');
     expect(find.text('Мони'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());

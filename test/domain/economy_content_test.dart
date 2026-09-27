@@ -155,6 +155,145 @@ void main() {
     });
   });
 
+  group('нужное на выбор', () {
+    test('у каждой нужды есть варианты в магазине, все обязательные', () {
+      for (final need in rules.allNeeds) {
+        expect(need.title, isNotEmpty, reason: need.itemId);
+        expect(need.emoji, isNotEmpty, reason: need.itemId);
+        for (final id in need.itemIds) {
+          final item = shop.byId(id);
+          expect(item, isNotNull, reason: id);
+          expect(item!.category, ExpenseCategory.mandatory, reason: id);
+          expect(item.maxPerDay, 1, reason: id);
+          expect(item.effects, isNotEmpty, reason: id);
+        }
+      }
+    });
+
+    test('ежедневное нужное открыто с первого дня, а без выбора — нет', () {
+      expect(rules.needs.where((n) => n.alternatives.isNotEmpty).length,
+          greaterThanOrEqualTo(2));
+      for (final need in rules.needs) {
+        for (final id in need.itemIds) {
+          expect(shop.byId(id)!.minStage, PetStage.egg, reason: id);
+        }
+      }
+      expect(shop.mandatoryCost,
+          rules.needs.fold(0, (sum, n) => sum + shop.byId(n.itemId)!.price));
+    });
+
+    test('особая нужда появляется, только когда её товары уже в магазине', () {
+      for (final need in rules.occasionalNeeds) {
+        final occasion = need.occasion!;
+        for (final id in need.itemIds) {
+          expect(shop.byId(id)!.minStage.index,
+              lessThanOrEqualTo(occasion.minStage.index),
+              reason: id);
+        }
+        final cheapest = need.itemIds
+            .map((id) => shop.byId(id)!.price)
+            .reduce((a, b) => a < b ? a : b);
+        expect(shop.byId(need.itemId)!.price, cheapest, reason: need.itemId);
+      }
+    });
+
+    test('любой вариант нужды закрывает её пропуск', () {
+      for (final need in rules.allNeeds) {
+        for (final id in need.itemIds) {
+          final item = shop.byId(id)!;
+          expect(need.metBy([id]), isTrue, reason: id);
+          for (final missed in need.missedEffects) {
+            expect(_gain(item, missed.stat), greaterThan(0),
+                reason: '$id: ${missed.stat.name}');
+          }
+        }
+      }
+    });
+
+    test('в один день не больше одной особой нужды, и нужное по карману', () {
+      final income = economy.params.day.income;
+      for (var day = 1; day <= 60; day++) {
+        final today = rules.needsOn(day, PetStage.adult);
+        expect(today.where((n) => n.occasion != null).length,
+            lessThanOrEqualTo(1),
+            reason: 'день $day');
+        final cheapest = today.fold(
+            0,
+            (sum, need) =>
+                sum +
+                need.itemIds
+                    .map((id) => shop.byId(id)!.price)
+                    .reduce((a, b) => a < b ? a : b));
+        expect(cheapest, lessThan(income), reason: 'день $day');
+      }
+      expect(rules.needsOn(3, PetStage.baby).map((n) => n.itemId),
+          contains('warm_socks'));
+      expect(rules.needsOn(3, PetStage.egg).map((n) => n.itemId),
+          isNot(contains('warm_socks')));
+      expect(rules.needsOn(2, PetStage.baby).map((n) => n.itemId),
+          isNot(contains('notebook')));
+      expect(rules.needsOn(2, PetStage.teen).map((n) => n.itemId),
+          contains('notebook'));
+    });
+
+    test('ночь: каша вместо обеда считается, пропуск особой нужды — нет', () {
+      final pet = PetStateService(rules: rules, dayNumber: 3);
+      final night = pet.closeDay(
+          boughtItemIds: ['porridge', 'water_light', 'toothbrush'],
+          stage: PetStage.baby);
+      final reasons = {for (final c in night.changes) c.reasonText};
+      for (final need in rules.needs) {
+        expect(reasons, isNot(contains(need.missedReason)));
+      }
+      final cold = rules.needFor('warm_socks')!;
+      expect(reasons, contains(cold.missedReason));
+
+      final warm = PetStateService(rules: rules, dayNumber: 3).closeDay(
+          boughtItemIds: ['porridge', 'water_light', 'toothbrush', 'mittens'],
+          stage: PetStage.baby);
+      expect({for (final c in warm.changes) c.reasonText},
+          isNot(contains(cold.missedReason)));
+    });
+
+    test('день засчитан, если из каждой нужды куплено что-то одно', () {
+      GameDay dayWith(List<String> ids) => GameDay.create(
+            number: 3,
+            income: 40,
+            plan: BudgetPlan.create(
+                mandatory: 25, optional: 0, savings: 15, income: 40),
+            planConfirmed: true,
+            transactions: [
+              for (final id in ids)
+                Transaction.create(
+                  id: 'tx-$id',
+                  type: TransactionType.expense,
+                  amount: shop.byId(id)!.price,
+                  sourceId: 'shop:$id',
+                  category: ExpenseCategory.mandatory,
+                  reasonText: 'Покупка',
+                  at: _at,
+                  dayNumber: 3,
+                ),
+            ],
+          );
+      final options = [
+        for (final need in rules.needsOn(3, PetStage.baby)) need.itemIds
+      ];
+      expect(
+          DayFacts.fromDay(
+                  dayWith(['lunchbox', 'water_light', 'laundry', 'warm_jacket']),
+                  mandatoryItemIds: const [],
+                  mandatoryOptions: options)
+              .mandatoryPaid,
+          isTrue);
+      expect(
+          DayFacts.fromDay(dayWith(['food', 'water_light', 'cleaning']),
+                  mandatoryItemIds: const [], mandatoryOptions: options)
+              .mandatoryPaid,
+          isFalse);
+    });
+  });
+
   group('вместе с кошельком, магазином и целями', () {
     test('покупка меняет баланс, журнал и шкалу с одной и той же причиной', () {
       final wallet = WalletService()
@@ -227,7 +366,7 @@ void main() {
             dayNumber: 1);
       final targets = GoalService(catalog: goals, wallet: wallet);
       final pet = PetStateService(rules: rules);
-      final goal = goals.byId('ball_rope')!;
+      final goal = goals.byId('constructor')!;
 
       targets.confirmSelect(targets.askToSelect(goal.id) as GoalSelectConfirm);
       targets.deposit(amount: goal.price, at: _at);
@@ -479,7 +618,7 @@ void main() {
     test('получение цели не отнимает очки за копилку, а снятие — отнимает', () {
       final wallet = WalletService();
       final targets = GoalService(catalog: goals, wallet: wallet);
-      final goal = goals.byId('ball_rope')!;
+      final goal = goals.byId('constructor')!;
       final plan = BudgetPlan.create(
           mandatory: 0, optional: 0, savings: goal.price, income: 200);
       DayFacts factsOf(int day) => DayFacts.fromDay(

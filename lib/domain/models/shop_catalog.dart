@@ -351,7 +351,9 @@ final class ShopCatalog {
   int get mandatoryCost {
     var sum = 0;
     for (final item in items) {
-      if (item.category == ExpenseCategory.mandatory) sum += item.price;
+      if (item.category == ExpenseCategory.mandatory && item.dailyNeed) {
+        sum += item.price;
+      }
     }
     return sum;
   }

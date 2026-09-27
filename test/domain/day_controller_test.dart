@@ -43,12 +43,22 @@ Future<Night> _sleep(DayController controller, Profile profile) async =>
 List<String> get _payments =>
     [for (final task in _content.tasks.byTheme('payments')) task.id];
 
+List<String> _sensibleBuyFor(Profile profile) {
+  final extra = [
+    for (final need in _content.economy.pet
+        .needsOn(profile.currentDay.number, profile.progress.stage))
+      if (need.occasion != null) need.itemId
+  ];
+  if (extra.isEmpty) return _sensibleBuy;
+  return ['porridge', 'water_light', 'cleaning', ...extra, 'treat', 'treat'];
+}
+
 Profile _sensibleDay(Profile profile, DemoClock clock, int index) => liveDay(
       profile,
       _content,
       at: clock.now(),
       plan: _plan,
-      buy: _sensibleBuy,
+      buy: _sensibleBuyFor(profile),
       deposit: 5,
       task: _payments[index % _payments.length],
     );
@@ -351,7 +361,7 @@ void main() {
         ownedItems: ['bouncy_ball', 'cap'],
         equipped: {'head': 'cap', 'neck': null},
         wishlist: ['glasses'],
-        reachedGoalIds: ['ball_rope'],
+        reachedGoalIds: ['constructor'],
         activeWallpaperId: 'wp_dots',
         settings: const ProfileSettings(sound: false, motion: true),
         completedTasks: ['payments_sort_needs'],

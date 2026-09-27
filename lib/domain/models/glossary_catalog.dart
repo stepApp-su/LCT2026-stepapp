@@ -8,6 +8,7 @@ final class GlossaryTerm {
     required this.competenceId,
     required this.definition,
     required this.inGame,
+    required this.topic,
   });
 
   factory GlossaryTerm.fromJson(Map<String, Object?> json) => GlossaryTerm._(
@@ -17,6 +18,7 @@ final class GlossaryTerm {
         competenceId: jsonText(json['competenceId'], 'competenceId'),
         definition: jsonText(json['definition'], 'definition'),
         inGame: jsonText(json['inGame'], 'inGame'),
+        topic: (json['topic'] ?? '') as String,
       );
 
   final String id;
@@ -25,6 +27,7 @@ final class GlossaryTerm {
   final String competenceId;
   final String definition;
   final String inGame;
+  final String topic;
 }
 
 final class GlossaryCatalog {

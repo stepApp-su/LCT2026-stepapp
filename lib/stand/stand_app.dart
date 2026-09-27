@@ -171,7 +171,7 @@ class _StandAppState extends State<StandApp> {
       game.plan.setAmount(PlanDirection.mandatory, game.mandatoryCost);
       game.plan.setAmount(PlanDirection.savings, 15);
       game.confirmPlan();
-      for (final need in widget.content.economy.pet.needs) {
+      for (final need in game.todayNeeds) {
         game.buyNow(need.itemId);
       }
       game.saveCoins(15);
