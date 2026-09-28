@@ -472,12 +472,14 @@ class _ChatEventState extends State<_ChatEvent> {
       await Future<void>.delayed(const Duration(milliseconds: 800));
       if (!mounted) return;
       setState(() => lines[lines.length - 1] = _ChatLine(from, text));
+      s.fx('bubble');
     } else {
       if (_animate) {
         await Future<void>.delayed(const Duration(milliseconds: 350));
       }
       if (!mounted) return;
       setState(() => lines.add(_ChatLine(from, text)));
+      s.fx('bubble');
     }
     _toEnd();
   }
@@ -729,6 +731,7 @@ class _BookEventState extends State<_BookEvent> {
       index++;
       forward = true;
     });
+    s.fx('page_turn');
   }
 
   void _back() {
@@ -737,6 +740,7 @@ class _BookEventState extends State<_BookEvent> {
       index--;
       forward = false;
     });
+    s.fx('page_turn');
   }
 
   void _pick(EventOption option) {
@@ -1128,6 +1132,7 @@ class _SwipeEventState extends State<_SwipeEvent> {
     if (index >= cards.length) return;
     final card = cards[index];
     final right = card.allowed == allowed;
+    s.fx(right ? 'round_win' : 'miss');
     setState(() {
       if (right) score++;
       last = card;
@@ -1355,6 +1360,7 @@ class _ChestEventState extends State<_ChestEvent> {
   void _knock() {
     if (open) return;
     setState(() => hits++);
+    s.fx(open ? 'coin' : 'knock');
   }
 
   void _pick(EventOption option) {

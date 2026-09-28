@@ -1611,6 +1611,7 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
 
   void _answer(bool known) {
     final term = deck[index];
+    s.fx('ui_tick');
     s.knowWord(term.id, known);
     setState(() {
       if (!known) repeat.add(term.id);

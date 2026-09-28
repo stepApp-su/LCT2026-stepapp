@@ -24,6 +24,13 @@ class _PetCelebrationState extends State<PetCelebration>
   void startWhenReady() {
     if (!mounted || started || !petReady || !eggReady) return;
     started = true;
+    final hatching = widget.event['from'] == PetStage.egg.name;
+    widget.state.fx(hatching ? 'egg_crack' : 'stage_up');
+    if (hatching) {
+      animation.addStatusListener((status) {
+        if (status == AnimationStatus.completed) widget.state.fx('stage_up');
+      });
+    }
     animation.forward();
   }
 
@@ -33,6 +40,7 @@ class _PetCelebrationState extends State<PetCelebration>
     final reduced =
         !widget.state.motion || MediaQuery.disableAnimationsOf(context);
     if (reduced) {
+      if (!started) widget.state.fx('stage_up');
       started = true;
       animation.value = 1;
     } else if (!loadingEgg) {

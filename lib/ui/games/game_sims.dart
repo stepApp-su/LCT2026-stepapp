@@ -155,6 +155,7 @@ class _BoardGameState extends State<BoardGame> {
 
   void _roll() {
     if (!run.canRoll || spinning) return;
+    board.sound?.call('dice');
     final value = run.nextRoll!;
     if (!motionAllowed(context, board.motion)) {
       _land(value);
@@ -183,11 +184,13 @@ class _BoardGameState extends State<BoardGame> {
     String? text;
     switch (cell.kind) {
       case BoardCellKind.income:
+        board.sound?.call('coin');
         text = fillText(texts['income'], {'amount': '${cell.amount}', 'label': cell.label});
       case BoardCellKind.expense:
         final short = next.shortages.length > run.shortages.length
             ? next.shortages.last
             : null;
+        board.sound?.call(short == null ? 'purchase' : 'not_enough');
         text = short == null
             ? fillText(texts['expense'], {'amount': '${cell.amount}', 'label': cell.label})
             : fillText(texts['short'], {'label': cell.label, 'gap': '${short.gap}'});
@@ -213,6 +216,10 @@ class _BoardGameState extends State<BoardGame> {
   }
 
   void _decide(int value) {
+    if (value > 0) {
+      board.sound
+          ?.call(run.cell.kind == BoardCellKind.piggy ? 'coin' : 'purchase');
+    }
     setState(() {
       run = run.decide(value);
       event = null;
@@ -227,12 +234,15 @@ class _BoardGameState extends State<BoardGame> {
     }
   }
 
-  void _restart() => setState(() {
-        run = BoardRun.start(payload);
-        face = null;
-        event = null;
-        submitted = false;
-      });
+  void _restart() {
+    board.sound?.call('retry');
+    setState(() {
+      run = BoardRun.start(payload);
+      face = null;
+      event = null;
+      submitted = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -554,6 +564,7 @@ class _StallGameState extends State<StallGame> {
       coins = result.coinsAfter;
     });
     if (result.profit > 0) {
+      board.sound?.call('round_win');
       Celebration.show(context, motion: board.motion, emoji: '🍦');
     }
   }
@@ -573,16 +584,19 @@ class _StallGameState extends State<StallGame> {
     });
   }
 
-  void _restart() => setState(() {
-        day = 0;
-        coins = payload.startCoins;
-        choices.clear();
-        results.clear();
-        shown = null;
-        portions = 0;
-        price = payload.prices.first;
-        submitted = false;
-      });
+  void _restart() {
+    board.sound?.call('retry');
+    setState(() {
+      day = 0;
+      coins = payload.startCoins;
+      choices.clear();
+      results.clear();
+      shown = null;
+      portions = 0;
+      price = payload.prices.first;
+      submitted = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -830,6 +844,7 @@ class _CashierGameState extends State<CashierGame> {
       changes.add(counts);
       lastRight = right;
     });
+    board.sound?.call(right ? 'round_win' : 'miss');
     if (right) Celebration.show(context, motion: board.motion, emoji: '😊');
   }
 
@@ -848,13 +863,16 @@ class _CashierGameState extends State<CashierGame> {
     });
   }
 
-  void _restart() => setState(() {
-        index = 0;
-        changes.clear();
-        tray.clear();
-        lastRight = null;
-        submitted = false;
-      });
+  void _restart() {
+    board.sound?.call('retry');
+    setState(() {
+      index = 0;
+      changes.clear();
+      tray.clear();
+      lastRight = null;
+      submitted = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1129,6 +1147,7 @@ class _PriceTagGameState extends State<PriceTagGame> {
       pick = offer.id;
       chosen.add(offer.id);
     });
+    board.sound?.call(offer.id == round.best.id ? 'round_win' : 'miss');
     if (offer.id == round.best.id) {
       Celebration.show(context, motion: board.motion, emoji: '🔍');
     }
@@ -1148,12 +1167,15 @@ class _PriceTagGameState extends State<PriceTagGame> {
     });
   }
 
-  void _restart() => setState(() {
-        index = 0;
-        chosen.clear();
-        pick = null;
-        submitted = false;
-      });
+  void _restart() {
+    board.sound?.call('retry');
+    setState(() {
+      index = 0;
+      chosen.clear();
+      pick = null;
+      submitted = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

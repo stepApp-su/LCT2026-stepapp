@@ -24,6 +24,18 @@ void main() {
       }
     });
 
+    test('игровые и экранные эффекты на месте', () {
+      const extra = [
+        'snap', 'round_win', 'miss', 'not_enough', 'dice', 'level_done',
+        'goal_select', 'equip', 'knock', 'page_turn', 'egg_crack',
+        'stat_up', 'stat_down', 'bubble', 'tally', 'cozy_up', 'ui_tick',
+        'retry',
+      ];
+      for (final event in extra) {
+        expect(scheme.events[event], isNotNull, reason: event);
+      }
+    });
+
     test('каждый файл схемы существует в assets', () {
       for (final file in scheme.allFiles) {
         expect(File('assets/audio/$file').existsSync(), isTrue, reason: file);

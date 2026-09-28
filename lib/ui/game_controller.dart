@@ -9,6 +9,7 @@ import '../content/content_loader.dart';
 import '../content/content_repository.dart';
 import '../content/game_content.dart';
 import '../data/game_repository.dart';
+import '../data/sound_player.dart';
 import '../domain/game_clock.dart';
 import '../domain/pet_name.dart';
 import '../domain/ru_words.dart';
@@ -25,6 +26,7 @@ import '../domain/services/pet_state_service.dart';
 import '../domain/services/phrase_service.dart';
 import '../domain/services/plan_service.dart';
 import '../domain/services/shop_service.dart';
+import '../domain/services/sound_service.dart';
 import '../domain/services/task_engine.dart';
 import '../domain/services/wallet_service.dart';
 
@@ -89,7 +91,9 @@ class GameController extends ChangeNotifier {
       {required this.content,
       Map<String, dynamic>? saved,
       GameRepository? repository,
-      GameClock? clock})
+      GameClock? clock,
+      this.sounds,
+      this.soundPlayer})
       : repository = repository ?? LocalGameRepository(),
         clock = clock ?? RealClock() {
     _restore(saved);
@@ -153,14 +157,21 @@ class GameController extends ChangeNotifier {
   Timer? _bubbleTimer;
   Future<void> _pending = Future.value();
 
+  // звук опционален: без схемы и плеера (в тестах) все точки молчат
+  final SoundService? sounds;
+  final SoundPlayer? soundPlayer;
+
   static Future<GameController> load() async {
+    const loader = ContentLoader();
     final config = await GameContent.load();
-    final content = await const ContentLoader().loadAll();
+    final content = await loader.loadAll();
     final repository = LocalGameRepository();
     return GameController(config,
         content: content,
         saved: await repository.load(),
-        repository: repository);
+        repository: repository,
+        sounds: SoundService(scheme: await loader.loadSoundScheme()),
+        soundPlayer: SoundPlayer());
   }
 
   void _restore(Map<String, dynamic>? saved) {
@@ -402,6 +413,7 @@ class GameController extends ChangeNotifier {
       if (!spot.accepts.contains(itemId) || !shop.isOwned(itemId)) return;
       placed[spot.id] = itemId;
     }
+    fx('equip');
     changed();
   }
 
@@ -413,7 +425,10 @@ class GameController extends ChangeNotifier {
   String get wallpaperId => shop.activeWallpaperId ?? room.defaultWallpaperId;
 
   void applyWallpaper(String id) {
-    if (shop.applyWallpaper(id)) changed();
+    if (shop.applyWallpaper(id)) {
+      fx('equip');
+      changed();
+    }
   }
 
   bool get roomEmpty =>
@@ -620,6 +635,7 @@ class GameController extends ChangeNotifier {
       },
       ...dayHistory,
     ].take(30).toList();
+    fx('sleep');
     _day++;
     shop.setStage(stage);
     shop.startDay(day);
@@ -711,6 +727,7 @@ class GameController extends ChangeNotifier {
     planExtra = {
       for (final d in PlanDirection.values) d: planExtra[d]! + (parts[d] ?? 0)
     };
+    fx('round_win');
     say('plan_confirmed');
     changed();
     return true;
@@ -830,6 +847,7 @@ class GameController extends ChangeNotifier {
     if (option.fromSavings) {
       final gap = option.cost - wallet.wallet.savings;
       if (gap > 0 || !withdraw(option.cost)) {
+        fx('not_enough');
         final shown = gap > 0 ? gap : option.cost;
         return EventShort(
             gap: shown, text: eventText('noSavings', {'gap': '$shown'}));
@@ -844,11 +862,14 @@ class GameController extends ChangeNotifier {
           at: now,
           dayNumber: day);
       if (paid is WalletNotEnough) {
+        fx('not_enough');
         return EventShort(
             gap: paid.gap,
             text: eventText('notEnough', {'gap': '${paid.gap}'}));
       }
+      fx('purchase');
     } else if (option.coins > 0) {
+      if (!option.toSavings) fx('coin');
       wallet.earn(
           amount: option.coins,
           sourceId: 'event:${event.id}',
@@ -1090,6 +1111,7 @@ class GameController extends ChangeNotifier {
     dailyDoneAt = now;
     dailyHistory = {...dailyHistory, LevelService.dateKey(now)};
     dailyRun = null;
+    fx('task_done');
     say('task_done',
         facts: {'firstTry': !played.withMistakes}, values: {'reward': coins});
     changed();
@@ -1151,11 +1173,13 @@ class GameController extends ChangeNotifier {
       );
       levelHistory = [...levelHistory, finished];
       levelRun = null;
+      fx('level_done');
       say('task_done',
           facts: {'firstTry': next.stars.every((star) => star == 3)},
           values: {'reward': next.coins});
     } else {
       levelRun = next;
+      fx('task_done');
       say('task_done',
           facts: {'firstTry': !reward.withMistakes}, values: {'reward': share});
     }
@@ -1232,7 +1256,8 @@ class GameController extends ChangeNotifier {
   void confirmPlan() {
     if (!plan.isConfirmed) {
       plan.confirm();
-      say('plan_confirmed');
+      fx('round_win');
+    say('plan_confirmed');
       changed();
     }
   }
@@ -1246,6 +1271,7 @@ class GameController extends ChangeNotifier {
         at: clock.now(), hasUnusedTasksToday: canEarnFromGames);
     switch (outcome) {
       case PurchaseDone(:final item, :final effects, wallet: final after):
+        fx('purchase');
         lastShifts = _applyEffects(effects);
         wishlist.remove(item.id);
         say('purchase_done', facts: {
@@ -1256,6 +1282,7 @@ class GameController extends ChangeNotifier {
         });
         changed();
       case PurchaseNotEnough(:final gap):
+        fx('not_enough');
         say('purchase_not_enough', values: {'gap': gap});
         _notify();
       case PurchaseConfirm() || PurchaseRefused():
@@ -1272,6 +1299,7 @@ class GameController extends ChangeNotifier {
   GoalOutcome deposit(int amount) {
     final outcome = goals.deposit(amount: amount, at: clock.now());
     if (outcome is GoalDepositDone) {
+      fx(outcome.justReached ? 'goal_reached' : 'coin');
       if (outcome.justReached) {
         say('goal_reached');
       } else if (outcome.milestoneText != null) {
@@ -1300,7 +1328,10 @@ class GameController extends ChangeNotifier {
 
   GoalOutcome confirmWithdraw(WithdrawPreview preview) {
     final outcome = goals.withdraw(preview, at: clock.now());
-    if (outcome is WithdrawDone) changed();
+    if (outcome is WithdrawDone) {
+      fx('coin');
+      changed();
+    }
     return outcome;
   }
 
@@ -1315,7 +1346,10 @@ class GameController extends ChangeNotifier {
 
   GoalOutcome confirmGoal(GoalSelectConfirm confirmation) {
     final outcome = goals.confirmSelect(confirmation);
-    if (outcome is GoalSelected) changed();
+    if (outcome is GoalSelected) {
+      fx('goal_select');
+      changed();
+    }
     return outcome;
   }
 
@@ -1328,6 +1362,7 @@ class GameController extends ChangeNotifier {
   GoalOutcome claimGoal() {
     final outcome = goals.claim(at: clock.now());
     if (outcome is GoalClaimed) {
+      fx('goal_reached');
       for (final effect in outcome.effects) {
         stats = stats.apply(effect.stat, effect.delta);
       }
@@ -1339,13 +1374,17 @@ class GameController extends ChangeNotifier {
 
   TaskSession startGame(String taskId) => _start(taskId, difficulty);
 
-  PhraseLine? reactToAnswer(TaskSession session, TaskFeedback feedback) =>
-      switch (feedback.verdict) {
-        TaskVerdict.correct => say('task_correct'),
-        TaskVerdict.wrong =>
-          say('task_wrong', facts: {'attempt': session.attempts}),
-        TaskVerdict.incomplete => null,
-      };
+  PhraseLine? reactToAnswer(TaskSession session, TaskFeedback feedback) {
+    switch (feedback.verdict) {
+      case TaskVerdict.correct:
+        return say('task_correct');
+      case TaskVerdict.wrong:
+        fx('miss');
+        return say('task_wrong', facts: {'attempt': session.attempts});
+      case TaskVerdict.incomplete:
+        return null;
+    }
+  }
 
   HintService get hints => HintService(content.tasks.texts.hints);
 
@@ -1353,7 +1392,9 @@ class GameController extends ChangeNotifier {
       facts: {'taskType': session.task.type.name.toUpperCase()});
 
   GameReward finishGame(TaskSession session) {
+    final solved = session.isFinished;
     final reward = _afterGame(session);
+    if (solved) fx('round_win');
     changed();
     return reward;
   }
@@ -1403,7 +1444,28 @@ class GameController extends ChangeNotifier {
       }
     });
     _notify();
+    _speak(line);
     return line;
+  }
+
+  /// Короткий эффект по id события из звуковой схемы.
+  void fx(String event) {
+    final path = sounds?.forEvent(event, soundOn: sound);
+    if (path != null) soundPlayer?.effect(path);
+  }
+
+  // реплика: записанный голос, а без записи — бормотание по слогам
+  void _speak(PhraseLine line) {
+    final scheme = sounds;
+    final player = soundPlayer;
+    if (scheme == null || player == null || !sound) return;
+    final voice =
+        scheme.voiceFor(line.id, species: character, soundOn: sound);
+    player.stopSpeech();
+    player.speak(voice != null
+        ? [voice]
+        : scheme.babbleFor(line.textRu,
+            species: character, seed: line.id.hashCode, soundOn: sound));
   }
 
   void greet() => say('app_open');
@@ -1417,6 +1479,7 @@ class GameController extends ChangeNotifier {
   void openGames() => say('tasks_screen_open');
 
   void dismissBubble() {
+    soundPlayer?.stopSpeech();
     bubble = null;
     _notify();
   }
@@ -1476,6 +1539,7 @@ class GameController extends ChangeNotifier {
     } else {
       outfit[item.slot] = id;
     }
+    fx('equip');
     changed();
   }
 
@@ -1677,6 +1741,7 @@ class GameController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _bubbleTimer?.cancel();
+    soundPlayer?.dispose();
     super.dispose();
   }
 }

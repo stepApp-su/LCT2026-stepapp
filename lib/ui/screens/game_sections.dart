@@ -733,6 +733,7 @@ extension _GameSections on _GameShellState {
                               Navigator.pop(context);
                               adultSettings();
                             } else {
+                              s.fx('not_enough');
                               update(() => message = 'Попробуйте ещё раз');
                             }
                           }),
@@ -743,6 +744,7 @@ extension _GameSections on _GameShellState {
                               Navigator.pop(context);
                               adultSettings();
                             } else {
+                              s.fx('not_enough');
                               update(() => message = 'Попробуйте ещё раз');
                             }
                           },
