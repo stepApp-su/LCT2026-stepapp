@@ -39,7 +39,7 @@ void main() {
       expect(titles.problems, isEmpty);
     });
 
-    test('восемь стартовых званий ТЗ с их условиями', () {
+    test('звания ТЗ и «Осторожный» с их условиями', () {
       String describe(TitleCondition condition) => switch (condition) {
             StartCondition() => 'старт',
             DaysCondition(
@@ -56,6 +56,7 @@ void main() {
             ThemeCondition(:final themeId) => 'тема $themeId',
             GoalsCondition(:final count) => 'целей $count',
             ReserveCondition(:final days) => 'запас $days',
+            CarefulCondition(:final count) => 'осторожно $count',
           };
 
       expect({
@@ -67,6 +68,7 @@ void main() {
         'Знаток покупок': 'тема payments',
         'Хранитель запаса': 'запас 2',
         'Мечтатель': 'целей 1',
+        'Осторожный': 'осторожно 3',
         'Мастер бюджета': 'дней 10 mandatoryPaid+onPlan 10% от 0 строго',
         'Наставник': 'дней 30 active',
       });
@@ -133,6 +135,7 @@ void main() {
         'shopping_expert': 'Прошли все задания темы «Платежи и покупки».',
         'reserve_keeper': 'Отложили запас на 2 дня вперёд.',
         'dreamer': 'Накопили и получили то, о чём мечтали.',
+        'careful': '3 раза уберегли деньги от обмана.',
         'budget_master': '10 дней покупали нужное и держались своего плана.',
         'mentor': '30 дней вместе учились обращаться с деньгами.',
       });
@@ -258,7 +261,7 @@ void main() {
       return earnedOn;
     }
 
-    test('разумный игрок получает все восемь званий, каждое — за своё дело',
+    test('разумный игрок получает все звания за дни и игры, каждое — за своё дело',
         () {
       final earnedOn = live(30,
           plan: BudgetPlan.create(
@@ -291,6 +294,31 @@ void main() {
         'budget_master': 10,
         'mentor': 30,
       });
+    });
+
+    test('«Осторожный» — за три решения, которые уберегли деньги', () {
+      final title = catalog.byId('careful')!;
+      var progress = titles.start(PetProgress.initial());
+      progress = growth
+          .closeDay(
+              progress,
+              DayFacts.fromDay(
+                  GameDay.create(
+                    number: 1,
+                    income: 60,
+                    plan: BudgetPlan.empty(60),
+                    transactions: const [],
+                    planConfirmed: false,
+                  ),
+                  mandatoryItemIds: needs))
+          .progress;
+      TitleFacts facts(int careful) =>
+          TitleFacts.create(dayNumber: 1, careful: careful);
+      expect(titles.progressOf(title, progress, facts(2)), (2, 3));
+      expect(titles.award(progress, facts(2)).earned, isEmpty);
+      final award = titles.award(progress, facts(3));
+      expect(award.earned.map((e) => e.title.id), ['careful']);
+      expect(award.progress.currentTitleId, 'careful');
     });
 
     test('тридцать пустых вечеров — только Новичок, даже с нажатым «готово»',

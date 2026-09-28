@@ -642,6 +642,10 @@ class _DiaryPageState extends State<_DiaryPage> {
     ];
     final onPlan = growthDay.isNotEmpty &&
         growthDay.first.factors.contains(GrowthFactor.followedPlan);
+    final purchases = [
+      for (final t in all)
+        if (t.type == TransactionType.expense) t
+    ];
     return ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 24), children: [
       CoachTarget(
         id: 'diary.days',
@@ -750,6 +754,11 @@ class _DiaryPageState extends State<_DiaryPage> {
                   id: 'diary.list', child: _DiaryRow(state: s, transaction: t))
               : _DiaryRow(state: s, transaction: t),
         ),
+      if ((filter == 0 || filter == 2) && purchases.isNotEmpty) ...[
+        const SizedBox(height: 4),
+        _DayReceipt(state: s, day: day, items: purchases),
+        const SizedBox(height: 8),
+      ],
       if (recap.isNotEmpty) ...[
         const SizedBox(height: 4),
         _Notice(
@@ -874,7 +883,10 @@ class _DiaryRow extends StatelessWidget {
               Text(t.reasonText,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               const SizedBox(height: 3),
-              TagChip(tag, tone: tone),
+              if (t.type == TransactionType.expense)
+                TagRow([TagChip(tag, tone: tone), const TagChip('🧾 чек')])
+              else
+                TagChip(tag, tone: tone),
             ]),
           ),
           const SizedBox(width: 8),
@@ -882,6 +894,209 @@ class _DiaryRow extends StatelessWidget {
               style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.w900, color: ink)),
         ]),
+      ),
+    );
+  }
+}
+
+class _ReserveCard extends StatelessWidget {
+  const _ReserveCard({required this.state});
+
+  final GameController state;
+
+  @override
+  Widget build(BuildContext context) {
+    final perDay = state.titles.dailyNeedsCost;
+    if (perDay <= 0) return const SizedBox.shrink();
+    final saved = state.wallet.wallet.savings;
+    final days = saved ~/ perDay;
+    final keeper = [
+      for (final title in state.content.titles.titles)
+        if (title.condition is ReserveCondition) title
+    ].firstOrNull;
+    final target = switch (keeper?.condition) {
+      ReserveCondition(days: final need) => need,
+      _ => 3,
+    };
+    final earned =
+        keeper != null && state.progress.earnedTitles.contains(keeper.id);
+    final text = days == 0
+        ? 'Запаса пока нет. Один день нужного — это $perDay ${ruCoins(perDay)}.'
+        : 'В копилке запас на $days ${ruDays(days)} нужного.';
+    return Semantics(
+      container: true,
+      label: 'Подушка безопасности. $text',
+      child: ExcludeSemantics(
+        child: _Panel(
+          padding: 14,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Text('🛡️', style: TextStyle(fontSize: 30)),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text('Подушка безопасности',
+                        style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+                  ),
+                  TagChip('${math.min(days, target)} из $target', tone: TagTone.green),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(text,
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: (days / target).clamp(0.0, 1.0),
+                  minHeight: 10,
+                  color: FinniColors.primary,
+                  backgroundColor: FinniColors.line,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (keeper != null)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TagChip(
+                      earned
+                          ? '🏅 «${keeper.title}» получено'
+                          : '🏅 «${keeper.title}» — запас на $target ${ruDays(target)}',
+                      tone: TagTone.gold),
+                ),
+              const SizedBox(height: 8),
+              Text(
+                  'Это монеты на неожиданный случай: сломался зонтик, подорожала еда. '
+                  'Один день нужного = $perDay ${ruCoins(perDay)}.',
+                  style: const TextStyle(fontSize: 15, color: FinniColors.muted)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashLine extends StatelessWidget {
+  const _DashLine();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: CustomPaint(
+            painter: _DashPainter(), size: Size(double.infinity, 2)),
+      );
+}
+
+class _DashPainter extends CustomPainter {
+  const _DashPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = FinniColors.storyPageNo
+      ..strokeWidth = 2;
+    for (var x = 0.0; x < size.width; x += 10) {
+      canvas.drawLine(Offset(x, 1), Offset(math.min(x + 5, size.width), 1), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashPainter old) => false;
+}
+
+class _DayReceipt extends StatelessWidget {
+  const _DayReceipt({required this.state, required this.day, required this.items});
+
+  final GameController state;
+  final int day;
+  final List<Transaction> items;
+
+  String _name(Transaction t) {
+    final source = t.sourceId;
+    if (source.startsWith('shop:')) {
+      if (state.content.shop.byId(source.substring(5)) case final item?) {
+        return item.title;
+      }
+    }
+    return t.reasonText;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final total = items.fold(0, (sum, t) => sum + t.amount);
+    const figures = [FontFeature.tabularFigures()];
+    return Semantics(
+      container: true,
+      label: 'Чек дня $day. Покупок: ${items.length}. Итого $total ${ruCoins(total)}',
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        decoration: BoxDecoration(
+          color: FinniColors.storyPaper,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: FinniColors.storyEdge, width: 1.5),
+          boxShadow: const [
+            BoxShadow(color: FinniColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
+          ],
+        ),
+        child: ExcludeSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Text('🧾', style: TextStyle(fontSize: 24)),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text('Чек дня',
+                        style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+                  ),
+                  Text('День $day',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.muted)),
+                ],
+              ),
+              const _DashLine(),
+              for (final t in items)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(_name(t),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('${t.amount}',
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              fontFeatures: figures)),
+                    ],
+                  ),
+                ),
+              const _DashLine(),
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text('Итого',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  ),
+                  Text('$total ${ruCoins(total)}',
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w900, fontFeatures: figures)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                  'Чек помогает проверить покупки. С ним можно вернуть сломанную вещь.',
+                  style: TextStyle(fontSize: 15, color: FinniColors.muted)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -910,6 +1125,7 @@ class _TitlesView extends StatelessWidget {
         ThemeCondition() => '🛍️',
         GoalsCondition() => '🌟',
         ReserveCondition() => '🛡️',
+        CarefulCondition() => '🔒',
       };
 
   @override
@@ -925,7 +1141,8 @@ class _TitlesView extends StatelessWidget {
         dayNumber: s.day,
         completedTaskIds: s.tasks.completedTaskIds,
         reachedGoalIds: s.goals.reachedGoalIds,
-        savings: s.wallet.wallet.savings);
+        savings: s.wallet.wallet.savings,
+        careful: s.carefulCount);
     final current = s.currentTitle;
     final next = [
       for (final title in s.content.titles.titles)
@@ -1180,7 +1397,7 @@ class _GlossaryPageState extends State<_GlossaryPage> {
 
   GameController get s => widget.state;
 
-  static const List<String> _topics = ['money', 'shop', 'save'];
+  static const List<String> _topics = ['money', 'shop', 'save', 'safe'];
 
   void _learn([String? startId]) {
     Navigator.of(context).push<void>(MaterialPageRoute(

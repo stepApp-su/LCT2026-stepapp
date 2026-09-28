@@ -1,231 +1,1758 @@
 {
   "schemaVersion": 1,
-
   "settings": {
     "payFrom": "balance",
     "neverTouchSavings": true,
     "cooldownDays": 6,
-    "sequence": ["doctor", "friend_birthday", "ad", "found_coins", "rain", "broken_bulb", "help_neighbor", "holiday", "price_up"]
+    "sequence": [
+      "debt",
+      "found_coins",
+      "bank_code",
+      "umbrella",
+      "safe_secrets",
+      "friend_birthday",
+      "prize",
+      "rain",
+      "yard_sale",
+      "safe_online",
+      "receipt",
+      "doctor",
+      "ad",
+      "grandma_euro",
+      "holiday",
+      "smart_shopper",
+      "park",
+      "help_neighbor",
+      "broken_bulb",
+      "insurance",
+      "price_up"
+    ]
   },
-
   "texts": {
     "header": "Событие дня",
     "chooseHint": "Выбирай сам: тут подходит любой вариант",
     "notEnough": "Не хватает {gap} {coin}",
     "postpone": "Пока подумаю",
-    "done": "Готово"
+    "done": "Готово",
+    "noSavings": "В копилке не хватает {gap} {coin}",
+    "typing": "печатает…",
+    "yourMove": "Что ответишь?",
+    "askPet": "Что ответит {pet}?",
+    "tapChest": "Постучи по сундуку {taps} раза!",
+    "next": "Дальше",
+    "other": "Другая концовка",
+    "lessonOf": "{pet} понял",
+    "swipeHint": "Смахни вправо или влево",
+    "score": "Верно: {score} из {total}",
+    "readAgain": "уже прочитано",
+    "advice": "Что посоветуешь?"
   },
-
   "events": [
     {
-      "id": "doctor",
-      "title": "Лапка побаливает",
-      "category": "free",
-      "iconId": "icon_event_doctor",
-      "unlock": { "minStage": "baby" },
-      "competenceIds": ["budget_idea"],
-      "situation": "Питомец прихрамывает. Доктор осмотрел лапку и помог — это бесплатно.",
+      "id": "debt",
+      "title": "Друг просит взаймы",
+      "category": "choice",
+      "iconId": "icon_event_debt",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "budget_idea",
+        "expenses_not_exceed"
+      ],
+      "situation": "Мишка забыл обед и просит одолжить 10 монет до завтра.",
+      "style": "book",
+      "show": {
+        "friend": {
+          "name": "Мишка",
+          "kind": "bear"
+        },
+        "pages": [
+          {
+            "scene": "school",
+            "narration": "Большая перемена. Все достают обеды, а у Мишки рюкзак пустой.",
+            "friend": "sad",
+            "bubbles": [
+              {
+                "voice": "friend",
+                "text": "Ой… я забыл обед дома."
+              }
+            ]
+          },
+          {
+            "scene": "canteen",
+            "narration": "В столовой бутерброд стоит 15 {coin}. А у Мишки ни одной монетки.",
+            "friend": "ask",
+            "bubbles": [
+              {
+                "voice": "friend",
+                "text": "Одолжишь 10 монет? Завтра верну!"
+              }
+            ]
+          },
+          {
+            "scene": "dream",
+            "narration": "Сколько можно дать, чтобы самому не остаться голодным?",
+            "thought": {
+              "title": "{pet} думает: у меня 25",
+              "stacks": [
+                {
+                  "amount": 15,
+                  "label": "на еду",
+                  "good": false
+                },
+                {
+                  "amount": 10,
+                  "label": "свободные",
+                  "good": true
+                }
+              ],
+              "note": "Мишка просит 10"
+            }
+          }
+        ]
+      },
       "options": [
         {
-          "id": "ok",
-          "label": "Хорошо!",
-          "cost": 0,
-          "effects": [{ "stat": "mood", "delta": 5 }],
-          "resultText": "Лапка как новая! За помощь доктора платить не нужно.",
-          "journalText": "Доктор посмотрел лапку. Всё хорошо!"
+          "id": "lend",
+          "label": "Дать 10 взаймы",
+          "emoji": "💰",
+          "cost": 10,
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 5
+            }
+          ],
+          "resultText": "Дали Мишке 10 {coin} взаймы. Завтра он их вернёт!",
+          "journalText": "Дали другу 10 монет в долг.",
+          "show": {
+            "reply": "Держи 10, но завтра верни!",
+            "mood": "happy",
+            "lesson": "Долг — это монеты, которые надо вернуть",
+            "ending": {
+              "scene": "morning",
+              "narration": "На следующее утро Мишка первым делом бежит к {pet}.",
+              "friend": "happy",
+              "bubbles": [
+                {
+                  "voice": "friend",
+                  "text": "Вот твои 10 монет! Спасибо, что выручил!"
+                }
+              ],
+              "petEmote": "✨"
+            }
+          },
+          "payback": {
+            "coins": 10,
+            "days": 1,
+            "text": "Мишка вернул долг"
+          }
+        },
+        {
+          "id": "share",
+          "label": "Поделиться обедом",
+          "emoji": "🍎",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 8
+            }
+          ],
+          "resultText": "Поделились обедом — оба сыты! Помочь можно и без монет.",
+          "journalText": "Поделились обедом с другом.",
+          "show": {
+            "reply": "Давай поделим мой обед!",
+            "mood": "happy",
+            "lesson": "Помочь можно и без монет",
+            "ending": {
+              "scene": "table",
+              "narration": "{pet} разламывает свой бутерброд пополам.",
+              "friend": "happy",
+              "bubbles": [
+                {
+                  "voice": "friend",
+                  "text": "Вкуснятина! Ты настоящий друг!"
+                }
+              ],
+              "petEmote": "💛"
+            }
+          }
+        },
+        {
+          "id": "refuse",
+          "label": "Вежливо отказать",
+          "emoji": "🙂",
+          "effects": [],
+          "resultText": "Отказать — это нормально. Монеты на нужное можно не отдавать.",
+          "journalText": "Вежливо отказали другу в долг.",
+          "show": {
+            "reply": "Прости, эти монеты мне на еду.",
+            "mood": "calm",
+            "lesson": "Отказать — это нормально",
+            "ending": {
+              "scene": "street",
+              "narration": "После уроков {pet} и Мишка вместе идут домой.",
+              "friend": "calm",
+              "bubbles": [
+                {
+                  "voice": "friend",
+                  "text": "Понимаю! Я попросил у учителя, всё хорошо."
+                }
+              ],
+              "petEmote": "🙂"
+            }
+          }
         }
       ],
-      "forAdult": "Событие показывает: не всякая забота стоит денег, и болезнь — не наказание за траты."
+      "forAdult": "Долг: взятое на время нужно вернуть. Взаймы дают только то, без чего можно обойтись, и отказать — не стыдно."
     },
     {
       "id": "friend_birthday",
       "title": "День рождения друга",
       "category": "choice",
       "iconId": "icon_event_gift",
-      "unlock": { "minStage": "baby" },
-      "competenceIds": ["need_over_want", "plan_purchases"],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "need_over_want",
+        "plan_purchases"
+      ],
       "situation": "У друга праздник! Можно купить подарок, а можно сделать своими руками.",
+      "style": "book",
+      "show": {
+        "friend": {
+          "name": "Зайка",
+          "kind": "bunny"
+        },
+        "pages": [
+          {
+            "scene": "street",
+            "narration": "По дороге из школы {pet} встречает Зайку.",
+            "friend": "happy",
+            "bubbles": [
+              {
+                "voice": "friend",
+                "text": "Приходи завтра ко мне на день рождения!"
+              }
+            ]
+          },
+          {
+            "scene": "shop",
+            "narration": "В магазине есть набор фломастеров за 20 {coin}. Красивый!",
+            "bubbles": [
+              {
+                "voice": "pet",
+                "text": "Зайка очень любит рисовать…"
+              }
+            ],
+            "prop": "🖍️"
+          },
+          {
+            "scene": "dream",
+            "narration": "Подарок можно купить, а можно сделать своими руками.",
+            "thought": {
+              "title": "Что подарить Зайке?",
+              "stacks": [],
+              "note": "Фломастеры за 20 или открытка своими руками"
+            }
+          }
+        ]
+      },
       "options": [
         {
           "id": "buy_gift",
-          "label": "Купить подарок",
+          "label": "Купить фломастеры",
+          "emoji": "🖍️",
           "cost": 20,
-          "effects": [{ "stat": "mood", "delta": 10 }],
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 10
+            }
+          ],
           "resultText": "Друг очень обрадовался подарку! Потратили 20 {coin}.",
-          "journalText": "Купили подарок другу."
+          "journalText": "Купили подарок другу.",
+          "show": {
+            "reply": "Куплю фломастеры!",
+            "mood": "happy",
+            "lesson": "Подарок — это внимание",
+            "ending": {
+              "scene": "table",
+              "narration": "На празднике Зайка открывает подарок.",
+              "friend": "happy",
+              "bubbles": [
+                {
+                  "voice": "friend",
+                  "text": "Фломастеры! Я как раз о них мечтала!"
+                }
+              ],
+              "petEmote": "🎉"
+            }
+          }
         },
         {
           "id": "handmade",
           "label": "Сделать открытку",
-          "cost": 0,
-          "effects": [{ "stat": "mood", "delta": 8 }],
+          "emoji": "💌",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 8
+            }
+          ],
           "resultText": "Открытка своими руками! Друг сказал, что это самый тёплый подарок.",
-          "journalText": "Сделали открытку своими руками."
+          "journalText": "Сделали открытку своими руками.",
+          "show": {
+            "reply": "Нарисую открытку сам!",
+            "mood": "happy",
+            "lesson": "Самое ценное — внимание",
+            "ending": {
+              "scene": "table",
+              "narration": "{pet} дарит открытку, нарисованную своими руками.",
+              "friend": "happy",
+              "bubbles": [
+                {
+                  "voice": "friend",
+                  "text": "Какая красивая! Повешу над кроватью!"
+                }
+              ],
+              "petEmote": "💌"
+            }
+          }
         }
       ],
       "forAdult": "У ребёнка всегда есть достойный бесплатный вариант: внимание дороже цены."
+    },
+    {
+      "id": "receipt",
+      "title": "Сломалась игрушка",
+      "category": "choice",
+      "iconId": "icon_event_receipt",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "check_change",
+        "plan_purchases"
+      ],
+      "situation": "Новая юла сломалась в первый же день. Чек от покупки лежит в кармане.",
+      "style": "book",
+      "show": {
+        "pages": [
+          {
+            "scene": "shop",
+            "narration": "Вчера {pet} купил в магазине юлу за 12 {coin}.",
+            "bubbles": [
+              {
+                "voice": "other",
+                "text": "Вот ваш чек, сохраните его!",
+                "name": "Продавец"
+              }
+            ],
+            "prop": "🧾"
+          },
+          {
+            "scene": "home",
+            "narration": "А сегодня юла сломалась — отвалилась ручка.",
+            "bubbles": [
+              {
+                "voice": "pet",
+                "text": "Ой! Она же совсем новая…"
+              }
+            ],
+            "petEmote": "😢",
+            "prop": "🪀"
+          },
+          {
+            "scene": "dream",
+            "narration": "Что делать со сломанной игрушкой?",
+            "thought": {
+              "title": "А где чек?",
+              "stacks": [],
+              "note": "Чек лежит в кармане куртки"
+            }
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "return",
+          "label": "Вернуть по чеку",
+          "emoji": "🧾",
+          "coins": 12,
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 5
+            }
+          ],
+          "resultText": "С чеком вернули 12 {coin}! Сломанную вещь можно вернуть — это право покупателя.",
+          "journalText": "Вернули сломанную юлу по чеку.",
+          "show": {
+            "reply": "Найду чек и отнесу в магазин!",
+            "mood": "happy",
+            "lesson": "Чек помогает вернуть сломанную вещь",
+            "ending": {
+              "scene": "shop",
+              "narration": "Продавец посмотрел чек и вернул монеты.",
+              "bubbles": [
+                {
+                  "voice": "other",
+                  "text": "Всё верно, вот ваши 12 монет!",
+                  "name": "Продавец"
+                }
+              ],
+              "petEmote": "✨",
+              "prop": "🪙"
+            }
+          }
+        },
+        {
+          "id": "fix",
+          "label": "Починить самому",
+          "emoji": "🩹",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 2
+            }
+          ],
+          "resultText": "Юлу подклеили. Крутится, но чуть криво. А с чеком можно было вернуть монеты.",
+          "journalText": "Подклеили сломанную юлу.",
+          "show": {
+            "reply": "Попробую починить сам!",
+            "mood": "calm",
+            "lesson": "Починить можно, но чек — надёжнее",
+            "ending": {
+              "scene": "home",
+              "narration": "{pet} подклеил ручку. Юла крутится, но немного криво.",
+              "petEmote": "🙂",
+              "prop": "🪀"
+            }
+          }
+        },
+        {
+          "id": "toss",
+          "label": "Выбросить",
+          "emoji": "🗑️",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": -3
+            }
+          ],
+          "resultText": "Юла отправилась в мусор, а монеты уже не вернуть. Чеки лучше хранить.",
+          "journalText": "Выбросили сломанную юлу вместе с чеком.",
+          "show": {
+            "reply": "Выброшу её вместе с чеком.",
+            "mood": "sad",
+            "lesson": "Чеки лучше хранить",
+            "ending": {
+              "scene": "home",
+              "narration": "Юла и чек отправились в мусор. А монеты не вернуть.",
+              "petEmote": "😕"
+            }
+          }
+        }
+      ],
+      "forAdult": "Права покупателя: сломанную вещь можно вернуть или обменять, а чек подтверждает покупку."
+    },
+    {
+      "id": "park",
+      "title": "Новый парк",
+      "category": "free",
+      "iconId": "icon_event_park",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "budget_idea"
+      ],
+      "situation": "В городе открыли новый парк. Его построили на налоги.",
+      "style": "book",
+      "show": {
+        "friend": {
+          "name": "Зайка",
+          "kind": "bunny"
+        },
+        "pages": [
+          {
+            "scene": "park",
+            "narration": "В городе открыли новый парк с качелями и горкой.",
+            "friend": "happy",
+            "bubbles": [
+              {
+                "voice": "friend",
+                "text": "Ура! Побежали кататься!"
+              }
+            ]
+          },
+          {
+            "scene": "park",
+            "narration": "У входа табличка: «Построено на налоги жителей».",
+            "friend": "ask",
+            "bubbles": [
+              {
+                "voice": "friend",
+                "text": "А что такое налоги?"
+              }
+            ],
+            "prop": "🪧"
+          },
+          {
+            "scene": "dream",
+            "narration": "Как ответить Зайке?",
+            "thought": {
+              "title": "{pet} вспоминает",
+              "stacks": [],
+              "note": "Налоги — деньги, которые платят взрослые. На них строят парки, школы и дороги."
+            }
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "explain",
+          "label": "Объяснить Зайке",
+          "emoji": "💡",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 10
+            }
+          ],
+          "resultText": "Налоги — это общие деньги. На них строят парки, школы, больницы и дороги.",
+          "journalText": "Узнали, что парки строят на налоги.",
+          "show": {
+            "reply": "Это деньги взрослых на общие дела!",
+            "mood": "happy",
+            "lesson": "Налоги превращаются в парки и школы",
+            "ending": {
+              "scene": "park",
+              "narration": "{pet} и Зайка катаются до самого вечера.",
+              "friend": "happy",
+              "bubbles": [
+                {
+                  "voice": "friend",
+                  "text": "Значит, этот парк немножко и наш!"
+                }
+              ],
+              "petEmote": "🎠"
+            }
+          }
+        },
+        {
+          "id": "ask_mom",
+          "label": "Спросить у мамы",
+          "emoji": "🙋",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 6
+            }
+          ],
+          "resultText": "Мама рассказала: на налоги строят больницы, школы и парки. Не знаешь — спроси взрослого!",
+          "journalText": "Спросили у мамы про налоги.",
+          "show": {
+            "reply": "Давай спросим у мамы!",
+            "mood": "calm",
+            "lesson": "Не знаешь — спроси взрослого",
+            "ending": {
+              "scene": "home",
+              "narration": "Мама рассказала, что на налоги строят больницы, школы и парки.",
+              "friend": "happy",
+              "bubbles": [
+                {
+                  "voice": "friend",
+                  "text": "Теперь понятно! Пойдём кататься!"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "forAdult": "Налоги: общие деньги, на которые государство строит парки, школы и дороги. Первое знакомство без цифр."
+    },
+    {
+      "id": "bank_code",
+      "title": "Незнакомец просит код",
+      "category": "free",
+      "iconId": "icon_event_code",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "money_operation"
+      ],
+      "situation": "Незнакомец пишет, что он из банка, и просит код с маминой карты.",
+      "style": "chat",
+      "show": {
+        "contact": {
+          "name": "Банк «Надёжный»",
+          "emoji": "🏦",
+          "note": "незнакомый номер"
+        },
+        "messages": [
+          "Здравствуйте! Я сотрудник банка.",
+          "С картой твоей мамы проблема! Срочно напиши код с обратной стороны, иначе все деньги пропадут!"
+        ],
+        "petNote": "Хм… что-то тут странное. Что ответим?",
+        "questions": [
+          {
+            "label": "А как вас зовут?",
+            "answers": [
+              "Это неважно! Быстрее код!!!"
+            ],
+            "petNote": "Торопит и злится — так часто делают обманщики."
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "adult",
+          "label": "Позвать маму",
+          "emoji": "🙋",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 5
+            }
+          ],
+          "resultText": "Правильно! Код с карты никому не говорят — даже «сотруднику банка».",
+          "journalText": "Не сказали код незнакомцу и позвали маму.",
+          "careful": true,
+          "show": {
+            "reply": "Сейчас позову маму.",
+            "petLine": "Молодец! Мама позвонила в банк сама — с картой всё в порядке.",
+            "mood": "happy",
+            "lesson": "Код с карты — секрет"
+          }
+        },
+        {
+          "id": "ignore",
+          "label": "Не отвечать",
+          "emoji": "🚫",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 2
+            }
+          ],
+          "resultText": "Не отвечать — хорошо. А ещё лучше рассказать взрослому.",
+          "journalText": "Не ответили незнакомцу.",
+          "careful": true,
+          "show": {
+            "reply": "Не буду отвечать.",
+            "petLine": "Тоже хорошо! Но про такие сообщения лучше рассказывать взрослым.",
+            "mood": "calm",
+            "lesson": "Странное — показать взрослому"
+          }
+        },
+        {
+          "id": "tell",
+          "label": "Написать код",
+          "emoji": "🔢",
+          "effects": [],
+          "resultText": "Это был обманщик. Хорошо, что это игра. В жизни код не говорят никому.",
+          "journalText": "Чуть не сказали код обманщику.",
+          "show": {
+            "reply": "Код: 1234",
+            "answers": [
+              "Спасибо 😈"
+            ],
+            "petLine": "Ой! Это был мошенник. Хорошо, что это игра и всё цело.",
+            "mood": "sad",
+            "lesson": "Банк никогда не спрашивает код"
+          }
+        }
+      ],
+      "forAdult": "Финансовая безопасность: коды и пароли не сообщают никому, даже «сотруднику банка». Срочность и угрозы — признак обмана."
+    },
+    {
+      "id": "prize",
+      "title": "Ты выиграл приз!",
+      "category": "choice",
+      "iconId": "icon_event_prize",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "money_operation",
+        "need_over_want"
+      ],
+      "situation": "В игре всплыло сообщение: «Ты выиграл телефон! Отправь 5 монет за доставку».",
+      "style": "chat",
+      "show": {
+        "contact": {
+          "name": "СуперПриз",
+          "emoji": "🎁",
+          "note": "всплыло в игре"
+        },
+        "messages": [
+          "🎉 Поздравляем! Ты выиграл новый телефон!",
+          "Отправь 5 монет за доставку — и приз твой! Осталось 2 минуты!"
+        ],
+        "petNote": "Ого… А мы разве во что-то играли?",
+        "questions": [
+          {
+            "label": "А за что приз?",
+            "answers": [
+              "Ты особенный! Скорее, время уходит!!!"
+            ],
+            "petNote": "Настоящие призы не просят платить. И не торопят."
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "close",
+          "label": "Закрыть окно",
+          "emoji": "❌",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 4
+            }
+          ],
+          "resultText": "Верно! Настоящие призы не просят платить. Это была ловушка.",
+          "journalText": "Не поверили в «бесплатный приз».",
+          "careful": true,
+          "show": {
+            "reply": "Нет, спасибо!",
+            "petLine": "Правильно! Бесплатный сыр бывает только в мышеловке.",
+            "mood": "happy",
+            "lesson": "Настоящий приз не просит денег"
+          }
+        },
+        {
+          "id": "pay",
+          "label": "Отправить 5 монет",
+          "emoji": "💸",
+          "cost": 5,
+          "effects": [],
+          "resultText": "Приза не было — 5 {coin} пропали. Настоящие призы не просят платить.",
+          "journalText": "Отправили 5 монет за «приз» — это был обман.",
+          "show": {
+            "reply": "Отправляю 5 монет!",
+            "answers": [
+              "…"
+            ],
+            "petLine": "Приза нет, а монеты пропали. Обманщики так и работают.",
+            "mood": "sad",
+            "lesson": "«Заплати за приз» — это обман"
+          }
+        }
+      ],
+      "forAdult": "Мошенничество с «выигрышем»: платить за приз не нужно. Спешка — главный приём обманщиков."
     },
     {
       "id": "ad",
       "title": "Яркая реклама",
       "category": "temptation",
       "iconId": "icon_event_ad",
-      "unlock": { "minStage": "teen" },
-      "competenceIds": ["need_over_want", "expenses_distinguish"],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "competenceIds": [
+        "need_over_want",
+        "expenses_distinguish"
+      ],
       "situation": "Реклама зовёт: «Купи прямо сейчас, только сегодня!» Вещь красивая, но не из списка нужного.",
+      "style": "chat",
+      "show": {
+        "contact": {
+          "name": "Магазин «Игрушкин»",
+          "emoji": "🧸",
+          "note": "реклама"
+        },
+        "messages": [
+          "🔥 Только сегодня! Супер-юла со светом!",
+          "Купи прямо сейчас за 15 монет! Завтра будет поздно!"
+        ],
+        "petNote": "Красивая… Но её нет в нашем списке. Что скажем?",
+        "questions": [
+          {
+            "label": "А она мне нужна?",
+            "answers": [
+              "Она нужна ВСЕМ! Все уже купили!"
+            ],
+            "petNote": "Реклама всегда так говорит. Решаем мы, а не она."
+          }
+        ]
+      },
       "options": [
         {
           "id": "buy",
           "label": "Купить",
+          "emoji": "🛍️",
           "cost": 15,
-          "effects": [{ "stat": "mood", "delta": 6 }],
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 6
+            }
+          ],
           "resultText": "Купили! Радость есть, и 15 {coin} потрачены. Так тоже можно.",
-          "journalText": "Купили вещь из рекламы."
+          "journalText": "Купили вещь из рекламы.",
+          "show": {
+            "reply": "Беру!",
+            "answers": [
+              "Спасибо за покупку! 🎉"
+            ],
+            "petLine": "Юла крутится! Монет стало меньше, но решили мы сами.",
+            "mood": "calm",
+            "lesson": "Решаешь ты, а не реклама"
+          }
         },
         {
           "id": "skip",
           "label": "Пройти мимо",
-          "cost": 0,
-          "effects": [{ "stat": "mood", "delta": 3 }],
+          "emoji": "🙅",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 3
+            }
+          ],
           "resultText": "Прошли мимо! Реклама кричала, а решение принял ты. Монеты остались.",
-          "journalText": "Прошли мимо рекламы."
+          "journalText": "Прошли мимо рекламы.",
+          "show": {
+            "reply": "Нет, спасибо. Подумаю.",
+            "petLine": "Молодец! Реклама кричала, а решение приняли мы.",
+            "mood": "happy",
+            "lesson": "Реклама торопит, а ты думаешь"
+          }
         }
       ],
       "forAdult": "Учимся замечать давление рекламы и спрашивать себя: это моё желание или чужой призыв?"
-    },
-    {
-      "id": "found_coins",
-      "title": "Находка в кармане",
-      "category": "bonus",
-      "iconId": "icon_event_coins",
-      "unlock": { "minStage": "egg" },
-      "competenceIds": ["budget_idea", "money_for_goal"],
-      "situation": "В кармане нашлись монетки, о которых все забыли!",
-      "options": [
-        {
-          "id": "take",
-          "label": "Ура, забираем!",
-          "coins": 10,
-          "effects": [{ "stat": "mood", "delta": 5 }],
-          "resultText": "Плюс 10 {coin}! Их можно отложить в копилку или потратить.",
-          "journalText": "Нашли 10 монет в кармане."
-        }
-      ],
-      "forAdult": "Нерегулярный доход: монеты пришли сверх плана, и их тоже нужно распределить."
     },
     {
       "id": "help_neighbor",
       "title": "Помощь соседке",
       "category": "bonus",
       "iconId": "icon_event_help",
-      "unlock": { "minStage": "teen" },
-      "competenceIds": ["budget_idea"],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "budget_idea",
+        "expenses_distinguish"
+      ],
       "situation": "Соседка просит помочь донести сумку. За помощь она хочет дать монетки.",
+      "style": "chat",
+      "show": {
+        "contact": {
+          "name": "Соседка Анна Петровна",
+          "emoji": "👵",
+          "note": "соседка"
+        },
+        "messages": [
+          "Здравствуй! У меня тяжёлые сумки с рынка.",
+          "Поможешь донести до квартиры? Я дам 10 монет за помощь."
+        ],
+        "petNote": "Поможем?"
+      },
       "options": [
         {
           "id": "coins",
-          "label": "Помочь",
+          "label": "Помочь за монеты",
+          "emoji": "💪",
           "coins": 10,
-          "effects": [{ "stat": "mood", "delta": 5 }],
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 5
+            }
+          ],
           "resultText": "Помогли и заработали 10 {coin}! Монеты приходят за труд.",
-          "journalText": "Помогли соседке и заработали 10 монет."
+          "journalText": "Помогли соседке и заработали 10 монет.",
+          "show": {
+            "reply": "Конечно помогу!",
+            "answers": [
+              "Спасибо! Вот 10 монет за работу 😊"
+            ],
+            "petLine": "Монеты за труд — это заработок!",
+            "mood": "happy",
+            "lesson": "Монеты приходят за труд"
+          }
         },
         {
           "id": "just_help",
           "label": "Помочь просто так",
-          "cost": 0,
-          "effects": [{ "stat": "mood", "delta": 8 }],
+          "emoji": "💛",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 8
+            }
+          ],
           "resultText": "Помогли просто так. Соседка улыбалась весь день!",
-          "journalText": "Помогли соседке просто так."
+          "journalText": "Помогли соседке просто так.",
+          "show": {
+            "reply": "Помогу просто так!",
+            "answers": [
+              "Какой ты добрый! Держи пирожок 🥧"
+            ],
+            "petLine": "Помогать приятно и без монет.",
+            "mood": "happy",
+            "lesson": "Помогать можно бесплатно"
+          }
         }
       ],
       "forAdult": "Первое знакомство с мыслью, что доход — результат труда. И что помогать можно бесплатно."
     },
     {
-      "id": "rain",
-      "title": "Дождь за окном",
-      "category": "free",
-      "iconId": "icon_event_rain",
-      "unlock": { "minStage": "baby" },
-      "competenceIds": ["plan_purchases"],
-      "situation": "На улице ливень. Дома тепло и сухо, можно посидеть вместе.",
+      "id": "umbrella",
+      "title": "Сломался зонтик",
+      "category": "choice",
+      "iconId": "icon_event_umbrella",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "savings_regular",
+        "budget_calc_split"
+      ],
+      "situation": "Зонтик сломался, а на улице дождь. Новый стоит 15 монет.",
+      "style": "pet",
+      "show": {
+        "petNote": "Ой! Мой зонтик сломался, а на улице дождь. Новый стоит 15 монет. Что мне делать?",
+        "scene": "rain"
+      },
       "options": [
         {
-          "id": "stay",
-          "label": "Посидим дома",
-          "cost": 0,
-          "effects": [{ "stat": "mood", "delta": 4 }],
-          "resultText": "Уютный дождливый день! А с дождевиком можно было бы и погулять.",
-          "journalText": "Весь день шёл дождь."
+          "id": "savings",
+          "label": "Взять из копилки",
+          "emoji": "🐷",
+          "cost": 15,
+          "effects": [
+            {
+              "stat": "care",
+              "delta": 10
+            }
+          ],
+          "resultText": "Взяли 15 {coin} из копилки и купили зонтик. Запас нужен как раз для таких случаев!",
+          "journalText": "Купили зонтик на монеты из копилки.",
+          "show": {
+            "hint": "запас на такой случай",
+            "petLine": "Ура! Хорошо, что у нас был запас. Это и есть подушка безопасности!",
+            "mood": "happy",
+            "lesson": "Подушка безопасности выручает"
+          },
+          "fromSavings": true
+        },
+        {
+          "id": "raincoat",
+          "label": "Надеть дождевик",
+          "emoji": "🧥",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 5
+            }
+          ],
+          "resultText": "Дождевик выручил, и монеты целы. Иногда лучшая покупка — та, которой не было.",
+          "journalText": "Надели дождевик вместо нового зонтика.",
+          "show": {
+            "hint": "монеты тратить не нужно",
+            "petLine": "Точно! У меня же есть дождевик. Монеты остались целы!",
+            "mood": "happy",
+            "lesson": "Не всё нужно покупать"
+          }
+        },
+        {
+          "id": "wait",
+          "label": "Подождать до завтра",
+          "emoji": "⏳",
+          "effects": [
+            {
+              "stat": "care",
+              "delta": -5
+            }
+          ],
+          "resultText": "Сегодня промокли. Запас в копилке помогает не ждать.",
+          "journalText": "Решили купить зонтик позже.",
+          "show": {
+            "hint": "сегодня промокну",
+            "petLine": "Брр… я промок. Завтра купим зонтик?",
+            "mood": "sad",
+            "lesson": "Запас помогает не ждать"
+          }
         }
       ],
-      "forAdult": "Спокойное событие без траты: не каждый день требует решений о деньгах."
+      "forAdult": "Подушка безопасности: запас в копилке нужен на неожиданные траты. Хороший повод пополнить его снова."
     },
     {
       "id": "broken_bulb",
       "title": "Лампочка погасла",
       "category": "choice",
       "iconId": "icon_event_bulb",
-      "unlock": { "minStage": "teen" },
-      "competenceIds": ["expenses_not_exceed", "plan_purchases"],
+      "unlock": {
+        "minStage": "teen"
+      },
+      "competenceIds": [
+        "expenses_not_exceed",
+        "plan_purchases"
+      ],
       "situation": "Лампочка перегорела. Новая стоит 10. Можно купить сегодня, а можно подождать.",
+      "style": "pet",
+      "show": {
+        "petNote": "Ой, лампочка погасла! В комнате темно. Новая стоит 10 монет. Купим?",
+        "scene": "home"
+      },
       "options": [
         {
           "id": "buy_bulb",
           "label": "Купить лампочку",
+          "emoji": "💡",
           "cost": 10,
-          "effects": [{ "stat": "care", "delta": 10 }],
+          "effects": [
+            {
+              "stat": "care",
+              "delta": 10
+            }
+          ],
           "resultText": "Новая лампочка светит! Потратили 10 {coin}.",
-          "journalText": "Купили новую лампочку."
+          "journalText": "Купили новую лампочку.",
+          "show": {
+            "hint": "сразу станет светло",
+            "petLine": "Светло и уютно! Спасибо!",
+            "mood": "happy",
+            "lesson": "Нужное покупают вовремя"
+          }
         },
         {
           "id": "wait",
           "label": "Подождать до завтра",
-          "cost": 0,
+          "emoji": "🕯️",
           "effects": [],
           "resultText": "Вечер при свете ночника! Лампочку купим, когда будет удобно.",
-          "journalText": "Лампочку решили купить позже."
+          "journalText": "Лампочку решили купить позже.",
+          "show": {
+            "hint": "посидим с ночником",
+            "petLine": "С ночником тоже уютно. Купим лампочку, когда будет удобно.",
+            "mood": "calm",
+            "lesson": "Некоторые покупки могут подождать"
+          }
         }
       ],
       "forAdult": "Неожиданный расход. Хороший повод поговорить, зачем нужен запас монет."
+    },
+    {
+      "id": "rain",
+      "title": "Дождь за окном",
+      "category": "free",
+      "iconId": "icon_event_rain",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "plan_purchases"
+      ],
+      "situation": "На улице ливень. Дома тепло и сухо, можно посидеть вместе.",
+      "style": "pet",
+      "show": {
+        "petNote": "Смотри, какой ливень! Что будем делать?",
+        "scene": "rain"
+      },
+      "options": [
+        {
+          "id": "stay",
+          "label": "Посидим дома",
+          "emoji": "🏠",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 4
+            }
+          ],
+          "resultText": "Уютный дождливый день! А с дождевиком можно было бы и погулять.",
+          "journalText": "Весь день шёл дождь.",
+          "show": {
+            "hint": "дома тепло и сухо",
+            "petLine": "Уютный день! Поиграем в настольную игру?",
+            "mood": "happy",
+            "lesson": "Отдыхать можно бесплатно"
+          }
+        },
+        {
+          "id": "puddles",
+          "label": "Гулять по лужам",
+          "emoji": "🥾",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 6
+            },
+            {
+              "stat": "care",
+              "delta": -3
+            }
+          ],
+          "resultText": "Весело, но немножко промокли. С дождевиком было бы суше!",
+          "journalText": "Гуляли под дождём.",
+          "show": {
+            "hint": "в резиновых сапогах",
+            "petLine": "Прыг по лужам! Весело, но я немножко промок.",
+            "mood": "calm",
+            "lesson": "У каждого выбора есть последствия"
+          }
+        }
+      ],
+      "forAdult": "Спокойное событие без траты: не каждый день требует решений о деньгах."
+    },
+    {
+      "id": "doctor",
+      "title": "Лапка побаливает",
+      "category": "free",
+      "iconId": "icon_event_doctor",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "budget_idea"
+      ],
+      "situation": "Питомец прихрамывает. Доктор осмотрел лапку и помог — это бесплатно.",
+      "style": "pet",
+      "show": {
+        "petNote": "Ой, лапка побаливает… Мне страшновато. Что делать?",
+        "scene": "home"
+      },
+      "options": [
+        {
+          "id": "ok",
+          "label": "Сходить к доктору",
+          "emoji": "🩺",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 5
+            },
+            {
+              "stat": "care",
+              "delta": 5
+            }
+          ],
+          "resultText": "Лапка как новая! За помощь доктора платить не нужно.",
+          "journalText": "Доктор посмотрел лапку. Всё хорошо!",
+          "show": {
+            "hint": "в поликлинике помогут",
+            "petLine": "Доктор посмотрел лапку и помог. И платить не пришлось!",
+            "mood": "happy",
+            "lesson": "Не всякая забота стоит денег"
+          }
+        },
+        {
+          "id": "rest",
+          "label": "Полежать дома",
+          "emoji": "🛋️",
+          "effects": [
+            {
+              "stat": "care",
+              "delta": -3
+            }
+          ],
+          "resultText": "Полежали, но лапка ещё болит. Если болит — лучше сходить к доктору.",
+          "journalText": "Лапку решили полечить дома.",
+          "show": {
+            "hint": "может, само пройдёт",
+            "petLine": "Полежал, но лапка всё ещё болит. Лучше показать доктору!",
+            "mood": "sad",
+            "lesson": "Здоровье важнее всего"
+          }
+        }
+      ],
+      "forAdult": "Событие показывает: не всякая забота стоит денег, и болезнь — не наказание за траты."
     },
     {
       "id": "holiday",
       "title": "Сегодня праздник",
       "category": "choice",
       "iconId": "icon_event_holiday",
-      "unlock": { "minStage": "baby" },
-      "competenceIds": ["expenses_distinguish"],
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "expenses_distinguish"
+      ],
       "situation": "В городе праздник! Можно купить праздничное лакомство или устроить веселье дома.",
+      "style": "pet",
+      "show": {
+        "petNote": "Сегодня праздник! На площади продают сахарную вату за 15 монет. Как отпразднуем?",
+        "scene": "street"
+      },
       "options": [
         {
           "id": "treat",
-          "label": "Праздничное лакомство",
+          "label": "Сахарная вата",
+          "emoji": "🍭",
           "cost": 15,
-          "effects": [{ "stat": "mood", "delta": 12 }],
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 12
+            }
+          ],
           "resultText": "Вот это праздник! Потратили 15 {coin}.",
-          "journalText": "Купили праздничное лакомство."
+          "journalText": "Купили праздничное лакомство.",
+          "show": {
+            "hint": "вкусно и сладко",
+            "petLine": "Мм, сладко! Вот это праздник!",
+            "mood": "happy",
+            "lesson": "Иногда можно порадовать себя"
+          }
         },
         {
           "id": "home_party",
           "label": "Веселье дома",
-          "cost": 0,
-          "effects": [{ "stat": "mood", "delta": 8 }],
+          "emoji": "🎶",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 8
+            }
+          ],
           "resultText": "Танцы дома — тоже праздник! И бесплатно.",
-          "journalText": "Устроили праздник дома."
+          "journalText": "Устроили праздник дома.",
+          "show": {
+            "hint": "танцы и игры",
+            "petLine": "Танцуем! Праздник можно устроить и бесплатно!",
+            "mood": "happy",
+            "lesson": "Радость бывает бесплатной"
+          }
         }
       ],
       "forAdult": "Праздник можно устроить и без траты. Оба варианта радуют питомца."
+    },
+    {
+      "id": "insurance",
+      "title": "Страховка для самоката",
+      "category": "choice",
+      "iconId": "icon_event_insurance",
+      "unlock": {
+        "minStage": "teen"
+      },
+      "competenceIds": [
+        "plan_purchases",
+        "expenses_not_exceed"
+      ],
+      "situation": "Можно заплатить 5 монет за страховку самоката. Если он сломается, ремонт будет бесплатным.",
+      "style": "pet",
+      "show": {
+        "petNote": "Мне предлагают страховку для самоката: плачу 5 монет, и если он сломается, ремонт будет бесплатным. А без неё ремонт стоит 20. Брать?",
+        "scene": "park"
+      },
+      "options": [
+        {
+          "id": "insure",
+          "label": "Застраховать",
+          "emoji": "🛡️",
+          "cost": 5,
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 3
+            }
+          ],
+          "resultText": "Самокат застрахован. Платим немного сейчас, чтобы не платить много потом.",
+          "journalText": "Застраховали самокат за 5 монет.",
+          "show": {
+            "hint": "5 монет сейчас",
+            "petLine": "Теперь самокат под защитой! Катаюсь спокойно.",
+            "mood": "happy",
+            "lesson": "Страховка — защита от больших трат"
+          }
+        },
+        {
+          "id": "skip",
+          "label": "Не страховать",
+          "emoji": "🙅",
+          "effects": [],
+          "resultText": "Тоже выбор. Если самокат сломается, ремонт будет стоить 20 {coin}.",
+          "journalText": "Не стали страховать самокат.",
+          "show": {
+            "hint": "ремонт, если что, 20 монет",
+            "petLine": "Хорошо, рискнём. Буду кататься аккуратно!",
+            "mood": "calm",
+            "lesson": "Без страховки риск — твой"
+          }
+        }
+      ],
+      "forAdult": "Страхование: небольшая плата сейчас защищает от большой траты потом. Без страховки риск остаётся на тебе."
+    },
+    {
+      "id": "safe_secrets",
+      "title": "Можно или нельзя?",
+      "category": "free",
+      "iconId": "icon_event_lock",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "money_operation"
+      ],
+      "situation": "Пять ситуаций про пароли и коды. Смахни: так можно или нельзя?",
+      "style": "swipe",
+      "show": {
+        "yes": "Можно",
+        "no": "Нельзя",
+        "rule": "Пароли и коды — секрет. Странное — показать взрослому.",
+        "cards": [
+          {
+            "emoji": "🔑",
+            "text": "Сказать пароль от игры лучшему другу",
+            "allowed": false,
+            "why": "Пароль — секрет даже от друзей."
+          },
+          {
+            "emoji": "📲",
+            "text": "Показать маме странное сообщение",
+            "allowed": true,
+            "why": "Взрослые помогут разобраться."
+          },
+          {
+            "emoji": "💳",
+            "text": "Назвать код с маминой карты «сотруднику банка»",
+            "allowed": false,
+            "why": "Настоящий банк никогда не спрашивает код."
+          },
+          {
+            "emoji": "🔒",
+            "text": "Придумать пароль, который трудно угадать",
+            "allowed": true,
+            "why": "Сложный пароль защищает от обманщиков."
+          },
+          {
+            "emoji": "🤫",
+            "text": "Скрыть от родителей, что тебе «подарили приз»",
+            "allowed": false,
+            "why": "Про «призы» от незнакомцев всегда рассказывают взрослым."
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "great",
+          "label": "Все правила знаю",
+          "emoji": "🏆",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 6
+            }
+          ],
+          "resultText": "Все ответы верные! Ты знаешь, как беречь секреты.",
+          "journalText": "Разобрали все правила про пароли.",
+          "careful": true,
+          "show": {
+            "minScore": 5,
+            "mood": "happy",
+            "lesson": "Ты хранитель секретов"
+          }
+        },
+        {
+          "id": "ok",
+          "label": "Буду знать",
+          "emoji": "🌟",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 2
+            }
+          ],
+          "resultText": "Хорошее начало! Запомни: пароли и коды — секрет, а странное показывают взрослым.",
+          "journalText": "Разобрали правила про пароли и коды.",
+          "show": {
+            "minScore": 0,
+            "mood": "calm",
+            "lesson": "Пароли и коды — секрет"
+          }
+        }
+      ],
+      "forAdult": "Финансовая безопасность: пароли и коды — тайна. О странных сообщениях и «призах» ребёнок рассказывает взрослому."
+    },
+    {
+      "id": "safe_online",
+      "title": "Осторожно, интернет",
+      "category": "free",
+      "iconId": "icon_event_web",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "money_operation",
+        "plan_purchases"
+      ],
+      "situation": "Пять ситуаций про покупки и ссылки в интернете. Смахни: так можно или нельзя?",
+      "style": "swipe",
+      "show": {
+        "yes": "Можно",
+        "no": "Нельзя",
+        "rule": "В интернете — только со взрослыми. Незнакомые ссылки и «призы» — мимо.",
+        "cards": [
+          {
+            "emoji": "🛒",
+            "text": "Купить игру в интернете вместе с мамой",
+            "allowed": true,
+            "why": "Покупки в интернете — только со взрослыми."
+          },
+          {
+            "emoji": "🔗",
+            "text": "Нажать на ссылку от незнакомца «Забери подарок»",
+            "allowed": false,
+            "why": "Незнакомые ссылки могут быть ловушкой."
+          },
+          {
+            "emoji": "📸",
+            "text": "Выложить в чат фото маминой карты",
+            "allowed": false,
+            "why": "Карту и её номер никому не показывают."
+          },
+          {
+            "emoji": "🙋",
+            "text": "Позвать взрослого, если сайт просит данные",
+            "allowed": true,
+            "why": "Взрослый поможет понять, безопасно ли это."
+          },
+          {
+            "emoji": "🎁",
+            "text": "Отправить монеты, чтобы забрать «бесплатный приз»",
+            "allowed": false,
+            "why": "Настоящие призы не просят платить."
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "great",
+          "label": "Все правила знаю",
+          "emoji": "🏆",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 6
+            }
+          ],
+          "resultText": "Все ответы верные! В интернете ты не попадёшься на удочку.",
+          "journalText": "Разобрали все правила интернета.",
+          "careful": true,
+          "show": {
+            "minScore": 5,
+            "mood": "happy",
+            "lesson": "Ты знаешь правила интернета"
+          }
+        },
+        {
+          "id": "ok",
+          "label": "Буду знать",
+          "emoji": "🌟",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 2
+            }
+          ],
+          "resultText": "Молодец, что разобрался! В интернете покупают только со взрослыми.",
+          "journalText": "Разобрали правила покупок в интернете.",
+          "show": {
+            "minScore": 0,
+            "mood": "calm",
+            "lesson": "В интернете — со взрослыми"
+          }
+        }
+      ],
+      "forAdult": "Цифровая безопасность: покупки онлайн — только со взрослыми, незнакомые ссылки и «бесплатные призы» — признак обмана."
+    },
+    {
+      "id": "smart_shopper",
+      "title": "Умный покупатель",
+      "category": "free",
+      "iconId": "icon_event_cart",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "check_change",
+        "shopping_list",
+        "prices_everyday"
+      ],
+      "situation": "Пять привычек покупателя. Смахни: так делать стоит или нет?",
+      "style": "swipe",
+      "show": {
+        "yes": "Стоит",
+        "no": "Не стоит",
+        "rule": "Список, сравнение цен, проверка сдачи и чек — привычки умного покупателя.",
+        "cards": [
+          {
+            "emoji": "🧾",
+            "text": "Сохранить чек после покупки",
+            "allowed": true,
+            "why": "С чеком можно вернуть сломанную вещь."
+          },
+          {
+            "emoji": "🪙",
+            "text": "Не проверять сдачу — продавец всегда считает точно",
+            "allowed": false,
+            "why": "Любой может случайно обсчитаться. Сдачу стоит проверить."
+          },
+          {
+            "emoji": "📝",
+            "text": "Составить список перед походом в магазин",
+            "allowed": true,
+            "why": "Со списком не купишь лишнего."
+          },
+          {
+            "emoji": "⏰",
+            "text": "Купить, потому что «скидка только 5 минут»",
+            "allowed": false,
+            "why": "Спешка мешает подумать. Хорошая покупка подождёт."
+          },
+          {
+            "emoji": "⚖️",
+            "text": "Сравнить цены в двух магазинах",
+            "allowed": true,
+            "why": "Так можно сберечь монеты."
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "great",
+          "label": "Все правила знаю",
+          "emoji": "🏆",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 6
+            }
+          ],
+          "resultText": "Все ответы верные! Ты настоящий умный покупатель.",
+          "journalText": "Разобрали все привычки покупателя.",
+          "show": {
+            "minScore": 5,
+            "mood": "happy",
+            "lesson": "Ты умный покупатель"
+          }
+        },
+        {
+          "id": "ok",
+          "label": "Буду знать",
+          "emoji": "🌟",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 2
+            }
+          ],
+          "resultText": "Хорошо! Список, чек и проверка сдачи — твои помощники.",
+          "journalText": "Разобрали привычки умного покупателя.",
+          "show": {
+            "minScore": 0,
+            "mood": "calm",
+            "lesson": "Список, чек и сдача"
+          }
+        }
+      ],
+      "forAdult": "Платежи и покупки: список, сравнение цен, проверка сдачи и чек. Спешка «только 5 минут» — повод остановиться."
+    },
+    {
+      "id": "found_coins",
+      "title": "Находка в кармане",
+      "category": "bonus",
+      "iconId": "icon_event_coins",
+      "unlock": {
+        "minStage": "egg"
+      },
+      "competenceIds": [
+        "budget_idea",
+        "money_for_goal"
+      ],
+      "situation": "В кармане нашлись монетки, о которых все забыли!",
+      "style": "chest",
+      "show": {
+        "prize": "🪙",
+        "prizeText": "В кармане куртки нашлись 10 {coin}! Куда их?",
+        "taps": 3
+      },
+      "options": [
+        {
+          "id": "save",
+          "label": "В копилку",
+          "emoji": "🐷",
+          "coins": 10,
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 3
+            }
+          ],
+          "resultText": "10 {coin} отправились в копилку. Мечта стала ближе!",
+          "journalText": "Нашли 10 монет и отложили в копилку.",
+          "show": {
+            "mood": "happy",
+            "lesson": "Неожиданные монеты можно отложить"
+          },
+          "toSavings": true
+        },
+        {
+          "id": "take",
+          "label": "Оставить на сегодня",
+          "emoji": "🍪",
+          "coins": 10,
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 5
+            }
+          ],
+          "resultText": "Плюс 10 {coin}! Их можно отложить в копилку или потратить.",
+          "journalText": "Нашли 10 монет в кармане.",
+          "show": {
+            "mood": "happy",
+            "lesson": "Неожиданный доход тоже планируют"
+          }
+        }
+      ],
+      "forAdult": "Нерегулярный доход: монеты пришли сверх плана, и их тоже нужно распределить."
+    },
+    {
+      "id": "yard_sale",
+      "title": "Ярмарка во дворе",
+      "category": "bonus",
+      "iconId": "icon_event_fair",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "expenses_distinguish",
+        "money_operation"
+      ],
+      "situation": "На ярмарке во дворе купили старую книжку, которую ты уже прочитал.",
+      "style": "chest",
+      "show": {
+        "prize": "📚",
+        "prizeText": "Твою старую книжку купили на ярмарке за 8 {coin}! Куда их?",
+        "taps": 3
+      },
+      "options": [
+        {
+          "id": "save",
+          "label": "В копилку",
+          "emoji": "🐷",
+          "coins": 8,
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 3
+            }
+          ],
+          "resultText": "8 {coin} за книжку — в копилку! Ненужные вещи могут принести монеты.",
+          "journalText": "Продали книжку на ярмарке и отложили монеты.",
+          "show": {
+            "mood": "happy",
+            "lesson": "Ненужные вещи можно продать"
+          },
+          "toSavings": true
+        },
+        {
+          "id": "take",
+          "label": "Оставить на сегодня",
+          "emoji": "🎈",
+          "coins": 8,
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 4
+            }
+          ],
+          "resultText": "Плюс 8 {coin}! Это нерегулярный доход — он бывает не каждый день.",
+          "journalText": "Продали книжку на ярмарке.",
+          "show": {
+            "mood": "happy",
+            "lesson": "Доход бывает и нерегулярным"
+          }
+        }
+      ],
+      "forAdult": "Нерегулярный доход: продажа ненужной вещи. Такие монеты тоже стоит распределить по плану."
+    },
+    {
+      "id": "grandma_euro",
+      "title": "Подарок бабушки",
+      "category": "free",
+      "iconId": "icon_event_euro",
+      "unlock": {
+        "minStage": "baby"
+      },
+      "competenceIds": [
+        "coins_denominations"
+      ],
+      "situation": "Бабушка вернулась из путешествия и привезла монетки евро.",
+      "style": "chest",
+      "show": {
+        "prize": "💶",
+        "prizeText": "Бабушка вернулась из путешествия и привезла монетки евро!",
+        "taps": 3
+      },
+      "options": [
+        {
+          "id": "look",
+          "label": "Рассмотреть монеты",
+          "emoji": "🔍",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 5
+            }
+          ],
+          "resultText": "В каждой стране свои деньги — валюта. У нас рубли, а в Европе — евро.",
+          "journalText": "Рассматривали монетки евро.",
+          "show": {
+            "mood": "happy",
+            "lesson": "В каждой стране своя валюта"
+          }
+        },
+        {
+          "id": "shop",
+          "label": "Купить лакомство",
+          "emoji": "🛒",
+          "effects": [
+            {
+              "stat": "mood",
+              "delta": 2
+            }
+          ],
+          "resultText": "В нашем магазине евро не берут — здесь платят рублями. Монетки останутся на память!",
+          "journalText": "Попробовали заплатить евро в магазине.",
+          "show": {
+            "mood": "calm",
+            "lesson": "У нас платят рублями"
+          }
+        }
+      ],
+      "forAdult": "Валюта: в разных странах свои деньги. В нашем магазине платят рублями."
     },
     {
       "id": "price_up",
       "title": "Сегодня еда дороже",
       "category": "price",
       "iconId": "icon_event_price",
-      "unlock": { "minStage": "adult" },
-      "competenceIds": ["prices_everyday", "expenses_not_exceed"],
+      "unlock": {
+        "minStage": "adult"
+      },
+      "competenceIds": [
+        "prices_everyday",
+        "expenses_not_exceed"
+      ],
       "situation": "В магазин привезли мало продуктов, и еда на день сегодня стоит на 5 дороже.",
-      "priceDeltas": [{ "itemId": "food", "delta": 5, "days": 1 }],
+      "priceDeltas": [
+        {
+          "itemId": "food",
+          "delta": 5,
+          "days": 1
+        }
+      ],
       "options": [
         {
           "id": "ok",

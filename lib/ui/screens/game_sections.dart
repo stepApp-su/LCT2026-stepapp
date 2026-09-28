@@ -87,6 +87,8 @@ extension _GameSections on _GameShellState {
             const SizedBox(height: 16),
             _Notice(
                 icon: Icons.lightbulb_outline_rounded, text: view.eta.textRu),
+            const SizedBox(height: 12),
+            _ReserveCard(state: s),
             const SizedBox(height: 20),
             if (view.isReached) ...[
               FilledButton.icon(
@@ -654,98 +656,6 @@ extension _GameSections on _GameShellState {
                     label: Text(texts.sleepAnyway)),
               ],
             ));
-  }
-
-  void showEvent() {
-    final event = s.todayEvent;
-    if (event == null || requirePlan()) return;
-    s.openEvent();
-    EventOutcome? outcome;
-    sheet(
-        s.eventHeader,
-        StatefulBuilder(builder: (context, update) {
-          final current = outcome;
-          final done = current is EventResolved ? current : null;
-          final short = current is EventShort ? current : null;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                  child: PopIn(
-                      motion: s.motion,
-                      child: EmojiBadge(event.iconId, size: 96))),
-              const SizedBox(height: 12),
-              Text(event.title,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text(event.situation,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 17)),
-              const SizedBox(height: 16),
-              if (done != null) ...[
-                _Notice(icon: Icons.check_circle_outline, text: done.text),
-                const SizedBox(height: 12),
-                if (done.shifts.isNotEmpty) _ShiftList(done.shifts),
-                const SizedBox(height: 8),
-                FilledButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(s.eventText('done'))),
-              ] else ...[
-                if (event.options.length > 1)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(s.eventText('chooseHint'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: FinniColors.muted)),
-                  ),
-                if (short != null) ...[
-                  _Notice(icon: Icons.lightbulb_outline, text: short.text),
-                  const SizedBox(height: 12),
-                ],
-                for (final option in event.options)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: FilledButton.tonal(
-                      onPressed: () {
-                        final result = s.resolveEvent(option.id);
-                        if (result != null) update(() => outcome = result);
-                      },
-                      style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.all(16)),
-                      child: Row(
-                        children: [
-                          Expanded(
-                              child: Text(option.label,
-                                  style: const TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w800))),
-                          if (option.cost > 0)
-                            _Pill(
-                                icon: Icons.remove_rounded,
-                                label: '${option.cost}',
-                                color: FinniColors.lavender)
-                          else if (option.coins > 0)
-                            _Pill(
-                                icon: Icons.add_rounded,
-                                label: '${option.coins}',
-                                color: FinniColors.mint)
-                          else
-                            const _Pill(
-                                icon: Icons.favorite_border_rounded,
-                                label: 'Бесплатно',
-                                color: FinniColors.mint),
-                        ],
-                      ),
-                    ),
-                  ),
-                TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(s.eventText('postpone'))),
-              ],
-            ],
-          );
-        }));
   }
 
   void glossary() =>

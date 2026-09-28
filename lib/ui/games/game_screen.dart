@@ -69,6 +69,7 @@ class _GameScreenState extends State<GameScreen> {
   Map<String, String> get binLabels => {
         for (final entry in s.content.shop.categories.entries)
           entry.key.name: entry.value.label,
+        ...texts.sort.bins,
       };
 
   void _submit(TaskAnswer value) {

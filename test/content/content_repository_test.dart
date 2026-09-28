@@ -144,6 +144,31 @@ void main() {
       }
     });
 
+    test('в словарике есть слова про безопасность, долг и чек', () {
+      for (final id in ['receipt', 'debt', 'fraud', 'cushion', 'tax', 'currency', 'insurance', 'cash']) {
+        expect(bundle.glossary.byId(id), isNotNull, reason: id);
+      }
+      expect(bundle.glossary.terms.where((t) => t.topic == 'safe'), isNotEmpty);
+      expect(bundle.glossary.texts['topic_safe'], isNotNull);
+    });
+
+    test('у каждого вида события есть несколько историй', () {
+      final byStyle = <EventStyle, int>{};
+      for (final event in bundle.events.events) {
+        if (event.priceDeltas.isNotEmpty) continue;
+        expect(event.style, isNot(EventStyle.card), reason: event.id);
+        byStyle[event.style] = (byStyle[event.style] ?? 0) + 1;
+        if (event.style == EventStyle.book) {
+          for (final option in event.options) {
+            expect(option.show.ending, isNotNull, reason: '${event.id}/${option.id}');
+          }
+        }
+      }
+      for (final style in EventStyle.values.where((s) => s != EventStyle.card)) {
+        expect(byStyle[style] ?? 0, greaterThanOrEqualTo(3), reason: style.name);
+      }
+    });
+
     test('в каждом событии есть вариант без траты', () {
       for (final event in bundle.events.events) {
         expect(event.options.any((o) => o.isFree), isTrue, reason: event.id);

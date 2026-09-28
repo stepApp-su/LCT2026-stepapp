@@ -1,5 +1,6 @@
 import 'content_json.dart';
 import 'economy.dart';
+import 'event_show.dart';
 import 'pet.dart';
 
 enum EventCategory { free, choice, temptation, bonus, price }
@@ -13,6 +14,12 @@ final class EventOption {
     required this.effects,
     required this.resultText,
     required this.journalText,
+    required this.emoji,
+    required this.show,
+    required this.payback,
+    required this.fromSavings,
+    required this.toSavings,
+    required this.careful,
   });
 
   factory EventOption.fromJson(Map<String, Object?> json) {
@@ -21,6 +28,16 @@ final class EventOption {
     if (cost > 0 && coins > 0) {
       throw ArgumentError.value(
           json['id'], 'options', 'вариант не может и тратить, и приносить монеты');
+    }
+    final show = json['show'];
+    final payback = json['payback'];
+    final fromSavings = jsonBool(json['fromSavings'] ?? false, 'options.fromSavings');
+    final toSavings = jsonBool(json['toSavings'] ?? false, 'options.toSavings');
+    if ((fromSavings || payback != null) && cost == 0) {
+      throw ArgumentError.value(json['id'], 'options', 'нечего брать из копилки или возвращать');
+    }
+    if (toSavings && coins == 0) {
+      throw ArgumentError.value(json['id'], 'options', 'нечего отложить в копилку');
     }
     return EventOption._(
       id: jsonText(json['id'], 'options.id'),
@@ -33,6 +50,16 @@ final class EventOption {
       ]),
       resultText: jsonText(json['resultText'], 'options.resultText'),
       journalText: jsonText(json['journalText'], 'options.journalText'),
+      emoji: jsonTextOrNull(json['emoji'], 'options.emoji'),
+      show: show == null
+          ? OptionShow.none
+          : OptionShow.fromJson(jsonMap(show, 'options.show')),
+      payback: payback == null
+          ? null
+          : Payback.fromJson(jsonMap(payback, 'options.payback')),
+      fromSavings: fromSavings,
+      toSavings: toSavings,
+      careful: jsonBool(json['careful'] ?? false, 'options.careful'),
     );
   }
 
@@ -43,6 +70,12 @@ final class EventOption {
   final List<StateEffect> effects;
   final String resultText;
   final String journalText;
+  final String? emoji;
+  final OptionShow show;
+  final Payback? payback;
+  final bool fromSavings;
+  final bool toSavings;
+  final bool careful;
 
   bool get isFree => cost == 0;
 }
@@ -79,6 +112,7 @@ final class GameEventDef {
     required this.options,
     required this.priceDeltas,
     required this.forAdult,
+    required this.show,
   });
 
   factory GameEventDef.fromJson(Map<String, Object?> json) {
@@ -109,6 +143,22 @@ final class GameEventDef {
     if (competenceIds.isEmpty) {
       throw ArgumentError.value(id, 'competenceIds', 'не указана компетенция');
     }
+    final style = jsonEnum(
+        EventStyle.values, json['style'] ?? EventStyle.card.name, 'style');
+    final show = style == EventStyle.card
+        ? EventShow.card
+        : EventShow.fromJson(style, jsonMap(json['show'] ?? const {}, 'show'));
+    if (style == EventStyle.book && options.any((o) => o.show.ending == null)) {
+      throw ArgumentError.value(id, 'options', 'у каждого ответа в книжке нужна концовка');
+    }
+    if (style == EventStyle.swipe) {
+      if (!options.any((o) => o.show.minScore == 0)) {
+        throw ArgumentError.value(id, 'options', 'нужен итог для любого счёта');
+      }
+      if (options.any((o) => o.show.minScore > show.cards.length)) {
+        throw ArgumentError.value(id, 'options', 'счёт больше, чем карточек');
+      }
+    }
     return GameEventDef._(
       id: id,
       title: jsonText(json['title'], 'title'),
@@ -121,6 +171,7 @@ final class GameEventDef {
       options: List.unmodifiable(options),
       priceDeltas: List.unmodifiable(priceDeltas),
       forAdult: jsonText(json['forAdult'], 'forAdult'),
+      show: show,
     );
   }
 
@@ -134,6 +185,18 @@ final class GameEventDef {
   final List<EventOption> options;
   final List<PriceDelta> priceDeltas;
   final String forAdult;
+  final EventShow show;
+
+  EventStyle get style => show.style;
+
+  EventOption optionForScore(int score) {
+    EventOption? best;
+    for (final option in options) {
+      if (option.show.minScore > score) continue;
+      if (best == null || option.show.minScore > best.show.minScore) best = option;
+    }
+    return best ?? options.first;
+  }
 
   bool isAvailableAt(PetStage stage) => stage.index >= minStage.index;
 

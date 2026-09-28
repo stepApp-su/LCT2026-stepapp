@@ -48,6 +48,9 @@ sealed class TitleCondition {
       case 'reserve':
         _onlyKeys(json, const {'type', 'count'}, where);
         return ReserveCondition.create(days: _read<int>(json, 'count', where));
+      case 'careful':
+        _onlyKeys(json, const {'type', 'count'}, where);
+        return CarefulCondition.create(count: _read<int>(json, 'count', where));
       default:
         throw ArgumentError.value(
             type, '$where.type', 'неизвестный тип условия');
@@ -143,6 +146,23 @@ final class GoalsCondition extends TitleCondition {
   factory GoalsCondition.create({required int count}) {
     _requireCount(count, 'count');
     return GoalsCondition._(count);
+  }
+
+  final int count;
+
+  @override
+  Set<String> get placeholders => const {'count'};
+
+  @override
+  Map<String, String> get values => {'count': '$count'};
+}
+
+final class CarefulCondition extends TitleCondition {
+  const CarefulCondition._(this.count);
+
+  factory CarefulCondition.create({required int count}) {
+    _requireCount(count, 'count');
+    return CarefulCondition._(count);
   }
 
   final int count;

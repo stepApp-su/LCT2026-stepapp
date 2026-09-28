@@ -116,6 +116,9 @@ class GameController extends ChangeNotifier {
   DateTime? dailyDoneAt;
   late DayEventPicker eventPicker;
   late Map<int, String> eventChoices;
+  late List<Map<String, Object?>> paybacks;
+  List<String> news = const [];
+  int carefulCount = 0;
   late Map<PlanDirection, int> planExtra;
   late List<Map<String, dynamic>> dayHistory;
   List<StatShift> lastShifts = const [];
@@ -283,6 +286,16 @@ class GameController extends ChangeNotifier {
       for (final e in (data['eventChoices'] as Map? ?? {}).entries)
         int.parse('${e.key}'): '${e.value}'
     };
+    paybacks = [
+      for (final raw in data['paybacks'] as List? ?? [])
+        if (raw is Map &&
+            raw['day'] is int &&
+            raw['coins'] is int &&
+            raw['text'] is String)
+          raw.cast<String, Object?>()
+    ];
+    news = [...(data['news'] as List? ?? []).whereType<String>()];
+    carefulCount = data['careful'] as int? ?? 0;
     final extra = (data['planExtra'] as Map? ?? {}).cast<String, Object?>();
     planExtra = {
       for (final d in PlanDirection.values) d: (extra[d.name] as int?) ?? 0
@@ -474,7 +487,8 @@ class GameController extends ChangeNotifier {
             dayNumber: day,
             completedTaskIds: tasks.completedTaskIds,
             reachedGoalIds: goals.reachedGoalIds,
-            savings: wallet.wallet.savings));
+            savings: wallet.wallet.savings,
+            careful: carefulCount));
     final pet = PetStateService(
         rules: content.economy.pet, initial: stats, dayNumber: day);
     final night = pet.closeDay(
@@ -597,9 +611,44 @@ class GameController extends ChangeNotifier {
         reasonText: params.day.incomeReason,
         at: clock.now(),
         dayNumber: day);
+    _payBack();
     changed();
     return true;
   }
+
+  void _payBack() {
+    final due = [
+      for (final p in paybacks)
+        if ((p['day'] as int) <= day) p
+    ];
+    if (due.isEmpty) return;
+    paybacks = [
+      for (final p in paybacks)
+        if ((p['day'] as int) > day) p
+    ];
+    final lines = <String>[];
+    for (final p in due) {
+      final coins = p['coins'] as int;
+      final text = eventLine(p['text'] as String);
+      wallet.earn(
+          amount: coins,
+          sourceId: 'payback:${p['eventId'] ?? 'event'}',
+          reasonText: text,
+          at: clock.now(),
+          dayNumber: day);
+      lines.add(fillPlurals('$text +$coins {coin}'));
+    }
+    news = [...news, ...lines];
+  }
+
+  void clearNews() {
+    if (news.isEmpty) return;
+    news = const [];
+    changed();
+  }
+
+  int get pendingPayback =>
+      paybacks.fold(0, (sum, p) => sum + (p['coins'] as int));
 
   PlanService _newPlan() => PlanService(
       income: content.economy.params.day.income,
@@ -743,6 +792,9 @@ class GameController extends ChangeNotifier {
   String eventText(String key, [Map<String, String> values = const {}]) =>
       fillPlurals(fillTemplate(content.events.texts[key] ?? '', values));
 
+  String eventLine(String text) =>
+      fillPlurals(fillTemplate(text, {'pet': petName}));
+
   void openEvent() {
     final event = todayEvent;
     if (event != null && eventPending) {
@@ -756,6 +808,14 @@ class GameController extends ChangeNotifier {
     final option = event.option(optionId);
     if (option == null) return null;
     final now = clock.now();
+    if (option.fromSavings) {
+      final gap = option.cost - wallet.wallet.savings;
+      if (gap > 0 || !withdraw(option.cost)) {
+        final shown = gap > 0 ? gap : option.cost;
+        return EventShort(
+            gap: shown, text: eventText('noSavings', {'gap': '$shown'}));
+      }
+    }
     if (option.cost > 0) {
       final paid = wallet.spend(
           amount: option.cost,
@@ -775,13 +835,26 @@ class GameController extends ChangeNotifier {
           reasonText: option.journalText,
           at: now,
           dayNumber: day);
+      if (option.toSavings) saveCoins(option.coins);
     }
+    if (option.payback case final back?) {
+      paybacks = [
+        ...paybacks,
+        {
+          'day': day + back.days,
+          'coins': back.coins,
+          'text': back.text,
+          'eventId': event.id,
+        }
+      ];
+    }
+    if (option.careful) carefulCount++;
     final shifts = _applyEffects(option.effects);
     eventChoices = {...eventChoices, day: option.id};
     say('event_resolved', facts: {'eventId': event.id});
     changed();
     return EventResolved(
-        option: option, text: fillPlurals(option.resultText), shifts: shifts);
+        option: option, text: eventLine(option.resultText), shifts: shifts);
   }
 
   List<StatShift> _applyEffects(Iterable<StateEffect> effects) {
@@ -1515,6 +1588,9 @@ class GameController extends ChangeNotifier {
         'eventChoices': {
           for (final e in eventChoices.entries) '${e.key}': e.value
         },
+        'paybacks': paybacks,
+        'news': news,
+        'careful': carefulCount,
         'planExtra': {for (final e in planExtra.entries) e.key.name: e.value},
         'dayHistory': dayHistory,
         'legacyCompletedTasks': legacyCompletedTasks,
