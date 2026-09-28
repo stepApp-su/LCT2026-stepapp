@@ -241,6 +241,7 @@ class _GameScreenState extends State<GameScreen> {
                         },
                         onSubmit: _submit,
                         onSituation: (read) => situation = read,
+                        sound: s.fx,
                       )),
                       ),
                       const SizedBox(height: 16),
@@ -270,7 +271,10 @@ class _GameScreenState extends State<GameScreen> {
           SizedBox(
             width: 92,
             height: 104,
-            child: MoniScene(motion: s.motion, outfit: s.outfit),
+            child: MoniScene(
+                motion: s.motion,
+                outfit: s.outfit,
+                onPet: () => s.fx('pet_tap')),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -507,7 +511,10 @@ class _GameScreenState extends State<GameScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: FilledButton.icon(
-              onPressed: () => setState(() => showFeedback = false),
+              onPressed: () {
+                s.fx('retry');
+                setState(() => showFeedback = false);
+              },
               icon: const Icon(Icons.replay_rounded),
               label: Text(texts.tryAgain),
             ),

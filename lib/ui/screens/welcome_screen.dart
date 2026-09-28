@@ -185,7 +185,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: SizedBox(
           height: height,
           width: height * 1.1,
-          child: MoniScene(motion: s.motion, stage: PetStage.baby),
+          child: MoniScene(
+              motion: s.motion,
+              stage: PetStage.baby,
+              onPet: () => s.fx('pet_tap')),
         ),
       );
 
