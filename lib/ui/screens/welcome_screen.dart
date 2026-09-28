@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/models/models.dart';
 import '../../domain/ru_words.dart';
 import '../game_controller.dart';
+import '../pet_appearance.dart';
 import '../theme/finni_theme.dart';
 import '../widgets/emoji_art.dart';
 import '../widgets/finni_ui.dart';
@@ -20,6 +21,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   int step = 0;
   String name = 'Мони';
   bool nameOk = true;
+  PetAppearance pet = PetAppearance.moni;
   bool simple = true;
   String? dream;
 
@@ -52,7 +54,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if (step < _last) {
       setState(() => step++);
     } else {
-      s.createPet(name, simple, goalId: dream);
+      s.createPet(name, simple, goalId: dream, pet: pet);
     }
   }
 
@@ -95,10 +97,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     child: SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
-                        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
-                        onPressed: step == 1 && !nameOk || step == 2 && dream == null
-                            ? null
-                            : _next,
+                        style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(56)),
+                        onPressed:
+                            step == 1 && !nameOk || step == 2 && dream == null
+                                ? null
+                                : _next,
                         icon: Icon(step == _last
                             ? Icons.pets_outlined
                             : Icons.arrow_forward_rounded),
@@ -152,7 +156,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       width: i == step ? 24 : 9,
                       height: 9,
                       decoration: BoxDecoration(
-                        color: i == step ? FinniColors.primary : FinniColors.line,
+                        color:
+                            i == step ? FinniColors.primary : FinniColors.line,
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
@@ -186,6 +191,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           height: height,
           width: height * 1.1,
           child: MoniScene(
+              appearance: pet,
               motion: s.motion,
               stage: PetStage.baby,
               onPet: () => s.fx('pet_tap')),
@@ -197,15 +203,34 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: Text(text,
             textAlign: TextAlign.center,
             style: const TextStyle(
-                fontSize: 26, fontWeight: FontWeight.w900, color: FinniColors.ink, height: 1.15)),
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: FinniColors.ink,
+                height: 1.15)),
       );
 
   Widget _lead(String text) => Text(text,
       textAlign: TextAlign.center,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.muted));
+      style: const TextStyle(
+          fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.muted));
 
   List<Widget> _hello(BuildContext context) => [
         _pet(190),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          children: [
+            for (final option in PetAppearance.values)
+              ChoiceChip(
+                label: Text(option.name),
+                selected: pet == option,
+                onSelected: (_) => setState(() {
+                  if (name == pet.name) name = option.name;
+                  pet = option;
+                }),
+              ),
+          ],
+        ),
         _title(context, 'Привет! Давай дружить'),
         _lead('Я буду жить у тебя, а ты научишься обращаться с монетками.'),
         const SizedBox(height: 16),
@@ -222,15 +247,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: 44,
                   height: 44,
                   alignment: Alignment.center,
-                  decoration:
-                      BoxDecoration(color: color, borderRadius: BorderRadius.circular(14)),
+                  decoration: BoxDecoration(
+                      color: color, borderRadius: BorderRadius.circular(14)),
                   child: Text(emoji, style: const TextStyle(fontSize: 22)),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Text(text,
                       style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w800, color: FinniColors.ink)),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: FinniColors.ink)),
                 ),
               ]),
             ),
@@ -256,13 +283,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final columns = MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
     return [
       _title(context, 'О чём мечтаем?'),
-      _lead('Мечта — большая покупка. На неё копят по чуть-чуть. Поменять её можно потом.'),
+      _lead(
+          'Мечта — большая покупка. На неё копят по чуть-чуть. Поменять её можно потом.'),
       const SizedBox(height: 14),
       LayoutBuilder(builder: (context, constraints) {
-        final width =
-            ((constraints.maxWidth - (columns - 1) * 10) / columns).clamp(0.0, double.infinity);
+        final width = ((constraints.maxWidth - (columns - 1) * 10) / columns)
+            .clamp(0.0, double.infinity);
         final scale = MediaQuery.textScalerOf(context);
-        final height = 24 + 56 + 6 + scale.scale(16) * 1.15 * 2 + 8 + scale.scale(16) * 1.25 + 10;
+        final height = 24 +
+            56 +
+            6 +
+            scale.scale(16) * 1.15 * 2 +
+            8 +
+            scale.scale(16) * 1.25 +
+            10;
         return Wrap(spacing: 10, runSpacing: 10, children: [
           for (final goal in goals)
             SizedBox(width: width, height: height, child: _dreamTile(goal)),
@@ -277,7 +311,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return Semantics(
       selected: selected,
       button: true,
-      label: '${goal.title}, ${goal.price} ${ruCoins(goal.price)}, $days ${ruDays(days)}',
+      label:
+          '${goal.title}, ${goal.price} ${ruCoins(goal.price)}, $days ${ruDays(days)}',
       excludeSemantics: true,
       child: _Card(
         selected: selected,
@@ -293,7 +328,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w900, color: FinniColors.ink, height: 1.15)),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: FinniColors.ink,
+                      height: 1.15)),
             ),
           ),
           const SizedBox(height: 4),
@@ -332,16 +370,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Text(emoji, style: const TextStyle(fontSize: 32)),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(title,
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w900, color: FinniColors.ink)),
-                      Text(subtitle,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.muted)),
-                    ]),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(title,
+                              style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: FinniColors.ink)),
+                          Text(subtitle,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: FinniColors.muted)),
+                        ]),
                   ),
-                  Icon(simple == value ? Icons.radio_button_checked : Icons.radio_button_off,
+                  Icon(
+                      simple == value
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
                       color: FinniColors.primary),
                 ]),
               ),

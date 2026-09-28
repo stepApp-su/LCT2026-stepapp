@@ -26,6 +26,7 @@ import '../widgets/coach.dart';
 import '../widgets/coin_icon.dart';
 import '../widgets/day_end.dart';
 import '../widgets/game_icon.dart';
+import '../widgets/room_scene.dart';
 import '../game_controller.dart';
 
 part 'game_sections.dart';
@@ -144,7 +145,9 @@ class _GameShellState extends State<GameShell> {
       final tour = s.coach.tour(id);
       if (tour == null || s.coachSeen(id)) continue;
       final requires = tour.requires;
-      if (requires != null && !(coachConditions[requires]?.call() ?? false)) continue;
+      if (requires != null && !(coachConditions[requires]?.call() ?? false)) {
+        continue;
+      }
       return id;
     }
     return null;
@@ -163,8 +166,12 @@ class _GameShellState extends State<GameShell> {
       };
 
   Future<void> coachNow() async {
-    if (!mounted || celebrating || s.celebration != null || !s.onboarded) return;
-    if (ModalRoute.of(context)?.isCurrent == false || Coach.busy(context)) return;
+    if (!mounted || celebrating || s.celebration != null || !s.onboarded) {
+      return;
+    }
+    if (ModalRoute.of(context)?.isCurrent == false || Coach.busy(context)) {
+      return;
+    }
     final id = pendingTour;
     final tour = id == null ? null : s.coach.tour(id);
     if (tour == null) return;
@@ -335,9 +342,6 @@ class _GameShellState extends State<GameShell> {
             )),
       );
 
-  static const BorderRadius _archRadius = BorderRadius.vertical(
-      top: Radius.circular(150), bottom: Radius.circular(48));
-
   List<RoomPiece> get roomPieces {
     final pieces = <RoomPiece>[];
     for (final spot in s.room.spots) {
@@ -358,7 +362,8 @@ class _GameShellState extends State<GameShell> {
         final enlarged = MediaQuery.textScalerOf(context).scale(16) > 20;
         final petHeight = enlarged
             ? 300.0
-            : (constraints.maxHeight - 400).clamp(240.0, 440.0);
+            : (constraints.maxHeight - 400).clamp(240.0, 440.0) +
+                (s.needsPlan ? 32.0 : 0.0);
         return SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -366,289 +371,234 @@ class _GameShellState extends State<GameShell> {
               CoachTarget(
                 id: 'home.goal',
                 child: Semantics(
-                button: true,
-                label: s.currentGoal == null
-                    ? 'Выбери мечту'
-                    : 'Мечта: ${s.goal}. ${s.wallet.wallet.savings} из ${s.target} монет',
-                excludeSemantics: true,
-                child: Material(
-                  color: FinniColors.lavender,
-                  borderRadius: BorderRadius.circular(24),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                      onTap: savings,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              _GoalIcon(s.goalId),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                  child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                    Text(
-                                        s.currentGoal == null
-                                            ? 'Выбери мечту'
-                                            : 'Мечта: ${s.goal}',
-                                        style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w800)),
-                                    const SizedBox(height: 5),
-                                    _GoalProgress(
-                                        saved: s.wallet.wallet.savings,
-                                        target: s.target),
-                                  ])),
-                              const Padding(
-                                padding: EdgeInsets.only(bottom: 12),
-                                child: Icon(Icons.chevron_right_rounded),
-                              ),
-                            ]),
-                      )),
+                  button: true,
+                  label: s.currentGoal == null
+                      ? 'Выбери мечту'
+                      : 'Мечта: ${s.goal}. ${s.wallet.wallet.savings} из ${s.target} монет',
+                  excludeSemantics: true,
+                  child: Material(
+                    color: FinniColors.lavender,
+                    borderRadius: BorderRadius.circular(24),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                        onTap: savings,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                _GoalIcon(s.goalId),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                      Text(
+                                          s.currentGoal == null
+                                              ? 'Выбери мечту'
+                                              : 'Мечта: ${s.goal}',
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w800)),
+                                      const SizedBox(height: 5),
+                                      _GoalProgress(
+                                          saved: s.wallet.wallet.savings,
+                                          target: s.target),
+                                    ])),
+                                const Padding(
+                                  padding: EdgeInsets.only(bottom: 12),
+                                  child: Icon(Icons.chevron_right_rounded),
+                                ),
+                              ]),
+                        )),
+                  ),
                 ),
-              ),
               ),
               const SizedBox(height: 8),
               CoachTarget(
                 id: 'home.coins',
                 child: Row(children: [
-                Expanded(
-                    child: _ResourceChip(
-                        label: 'День ${s.day}',
-                        icon: Icons.wb_sunny_outlined,
-                        color: FinniColors.paper)),
-                const SizedBox(width: 6),
-                Expanded(
-                    child: _ResourceChip(
-                        label: '${s.wallet.wallet.balance}',
-                        semantics: 'Монеты: ${s.wallet.wallet.balance}',
-                        coin: true,
-                        color: FinniColors.honey)),
-                const SizedBox(width: 6),
-                Expanded(
-                    child: _ResourceChip(
-                        label: '${s.wallet.wallet.savings}',
-                        semantics: 'Копилка: ${s.wallet.wallet.savings}',
-                        icon: Icons.savings_outlined,
-                        color: FinniColors.lavender,
-                        onTap: savings)),
-              ]),
+                  Expanded(
+                      child: _ResourceChip(
+                          label: 'День ${s.day}',
+                          icon: Icons.wb_sunny_outlined,
+                          color: FinniColors.paper)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                      child: _ResourceChip(
+                          label: '${s.wallet.wallet.balance}',
+                          semantics: 'Монеты: ${s.wallet.wallet.balance}',
+                          coin: true,
+                          color: FinniColors.honey)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                      child: _ResourceChip(
+                          label: '${s.wallet.wallet.savings}',
+                          semantics: 'Копилка: ${s.wallet.wallet.savings}',
+                          icon: Icons.savings_outlined,
+                          color: FinniColors.lavender,
+                          onTap: savings)),
+                ]),
               ),
               const SizedBox(height: 8),
               CoachTarget(
                 id: 'home.pet',
                 child: SizedBox(
-                  height: petHeight,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned.fill(
-                          top: 26,
-                          bottom: 0,
-                          child: Semantics(
-                            button: true,
-                            label: 'Комната питомца',
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => room(1),
-                              child: ClipRRect(
-                                borderRadius: _archRadius,
-                                child: RoomLayer(
-                                  pieces: const [],
-                                  wallpaperId: s.wallpaperId,
-                                  window: roomWindow,
-                                ),
-                              ),
-                            ),
-                          )),
-                      Positioned(
-                          left: 20,
-                          right: 20,
-                          bottom: 8,
-                          height: 32,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                                color: FinniColors.mint,
-                                borderRadius: BorderRadius.circular(80)),
-                          )),
-                      Positioned.fill(
-                          top: 26,
-                          bottom: 0,
-                          child: IgnorePointer(
-                            child: ClipRRect(
-                              borderRadius: _archRadius,
-                              child: RoomLayer(pieces: roomPieces),
-                            ),
-                          )),
-                      Positioned.fill(
-                          top: 14,
-                          bottom: 4,
-                          child: IgnorePointer(
-                            child: MoniScene(
-                              stage: s.stage,
-                              outfit: s.outfit,
-                              motion: s.motion,
-                              equipped: s.equipped,
-                            ),
-                          )),
-                      Positioned.fill(
-                          top: 26,
-                          bottom: 0,
-                          child: IgnorePointer(
-                            child: ClipRRect(
-                              borderRadius: _archRadius,
-                              child: RoomLayer(
-                                  pieces: roomPieces, front: true),
-                            ),
-                          )),
-                      if (s.roomEmpty)
+                    height: petHeight,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned.fill(
+                            child: Semantics(
+                          button: true,
+                          label: 'Комната питомца',
+                          child: GestureDetector(
+                            onTap: () => room(1),
+                            child: RoomScene(
+                                state: s, largePet: true, pieces: roomPieces),
+                          ),
+                        )),
                         Positioned(
                           right: 8,
-                          bottom: 12,
-                          child: _RoomButton(
-                              news: s.hasNewThings, onTap: () => room(1)),
-                        )
-                      else if (s.hasNewThings)
-                        const Positioned(
-                          right: 22,
-                          top: 44,
-                          child: _NewDot(),
-                        ),
-                      Positioned(
-                          left: 8,
-                          right: 48,
-                          top: 4,
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Wrap(
-                                  spacing: 0,
-                                  runSpacing: 4,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    Text(s.petName,
-                                        style: const TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.w800)),
-                                    const SizedBox(width: 8),
-                                    TagChip(s.stageLabel,
-                                        tone: TagTone.green),
-                                    const SizedBox(width: 5),
-                                    TagChip(
-                                        '🏅 ${s.currentTitle?.title ?? 'Новичок'}',
-                                        tone: TagTone.gold),
-                                  ],
-                                ),
-                              ])),
-                      Positioned(
-                          right: 0,
                           top: 0,
-                          child: CoachTarget(
-                              id: 'home.help',
-                              child: IconButton(
-                                  tooltip: 'Подсказка',
-                                  onPressed: help,
-                                  icon: const Icon(Icons.help_outline_rounded)))),
-                      if (s.todayEvent case final event? when s.eventPending)
+                          child: _RoomButton(
+                              compact: true,
+                              news: s.hasNewThings, onTap: () => room(1)),
+                        ),
                         Positioned(
                             left: 8,
-                            bottom: 14,
-                            child: CoachTarget(
-                              id: 'home.event',
-                              child: Semantics(
-                              button: true,
-                              label: '${s.eventHeader}: ${event.title}',
-                              excludeSemantics: true,
-                              child: Squish(
-                                onTap: showEvent,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: FinniColors.honey,
-                                    borderRadius: BorderRadius.circular(18),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                          color: FinniColors.shadow,
-                                          blurRadius: 8,
-                                          offset: Offset(0, 3)),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
+                            right: s.hasNewThings ? 82 : 64,
+                            top: 4,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
                                     children: [
-                                      EmojiBadge(event.iconId,
-                                          size: 30, color: FinniColors.paper),
+                                      Flexible(
+                                        child: Text(s.petName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                                fontSize: 26,
+                                                fontWeight: FontWeight.w800)),
+                                      ),
                                       const SizedBox(width: 8),
-                                      Text(s.eventHeader,
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w900)),
+                                      Flexible(
+                                        child: TagChip(
+                                            s.currentTitle?.title ?? 'Новичок',
+                                            tone: TagTone.purple),
+                                      ),
                                     ],
                                   ),
-                                ),
-                              ),
-                            ))),
-                      Positioned(
-                          left: 16,
-                          right: 16,
-                          top: 44,
-                          child: Align(
-                              alignment: Alignment.topCenter,
-                              child: ConstrainedBox(
-                                  constraints:
-                                      const BoxConstraints(maxWidth: 310),
-                                  child: AnimatedBubble(
-                                    line: s.bubble,
-                                    motion: s.motion,
-                                    onClose: s.dismissBubble,
-                                    onAction: s.bubble?.action == null
-                                        ? null
-                                        : () => bubbleAction(
-                                            s.bubble!.action!.route),
-                                  )))),
-                    ],
-                  )),
+                                  const SizedBox(height: 4),
+                                  Text(s.stageLabel,
+                                      style: const TextStyle(
+                                          fontSize: 19,
+                                          color: FinniColors.muted)),
+                                ])),
+                        if (s.todayEvent case final event? when s.eventPending)
+                          Positioned(
+                              left: 8,
+                              bottom: 14,
+                              child: CoachTarget(
+                                  id: 'home.event',
+                                  child: Semantics(
+                                    button: true,
+                                    label: '${s.eventHeader}: ${event.title}',
+                                    excludeSemantics: true,
+                                    child: Squish(
+                                      onTap: showEvent,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: FinniColors.honey,
+                                          borderRadius:
+                                              BorderRadius.circular(18),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                                color: FinniColors.shadow,
+                                                blurRadius: 8,
+                                                offset: Offset(0, 3)),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            EmojiBadge(event.iconId,
+                                                size: 30,
+                                                color: FinniColors.paper),
+                                            const SizedBox(width: 8),
+                                            Text(s.eventHeader,
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w900)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ))),
+                        Positioned(
+                            left: 16,
+                            right: 16,
+                            top: 44,
+                            child: Align(
+                                alignment: Alignment.topCenter,
+                                child: ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 310),
+                                    child: AnimatedBubble(
+                                      line: s.bubble,
+                                      motion: s.motion,
+                                      onClose: s.dismissBubble,
+                                      onAction: s.bubble?.action == null
+                                          ? null
+                                          : () => bubbleAction(
+                                              s.bubble!.action!.route),
+                                    )))),
+                      ],
+                    )),
               ),
               const SizedBox(height: 8),
               CoachTarget(
                 id: 'home.stats',
                 child: LayoutBuilder(builder: (context, constraints) {
-                final columns =
-                    MediaQuery.textScalerOf(context).scale(13) > 19 ? 1 : 2;
-                final width =
-                    ((constraints.maxWidth - (columns - 1) * 8) / columns).clamp(0.0, double.infinity);
-                return EqualGrid(
-                    columns: columns,
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _Stat(
-                          label: 'Сытость',
-                          value: s.stats.satiety,
-                          icon: GameIconKind.food,
-                          color: FinniColors.gold),
-                      _Stat(
-                          label: 'Уход',
-                          value: s.stats.care,
-                          icon: GameIconKind.care,
-                          color: FinniColors.blue),
-                      _Stat(
-                          label: 'Радость',
-                          value: s.stats.mood,
-                          icon: GameIconKind.joy,
-                          color: FinniColors.purple),
-                      _Stat(
-                          label: 'Уют',
-                          value: s.stats.cozy,
-                          icon: GameIconKind.cozy,
-                          color: FinniColors.primary),
-                    ]
-                        .map((stat) => SizedBox(width: width, child: stat))
-                        .toList());
-              }),
+                  final columns =
+                      MediaQuery.textScalerOf(context).scale(13) > 19 ? 1 : 2;
+                  final width =
+                      ((constraints.maxWidth - (columns - 1) * 8) / columns)
+                          .clamp(0.0, double.infinity);
+                  return EqualGrid(
+                      columns: columns,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _Stat(
+                            label: 'Сытость',
+                            value: s.stats.satiety,
+                            icon: GameIconKind.food,
+                            color: FinniColors.gold),
+                        _Stat(
+                            label: 'Уход',
+                            value: s.stats.care,
+                            icon: GameIconKind.care,
+                            color: FinniColors.blue),
+                        _Stat(
+                            label: 'Радость',
+                            value: s.stats.mood,
+                            icon: GameIconKind.joy,
+                            color: FinniColors.purple),
+                        _Stat(
+                            label: 'Уют',
+                            value: s.stats.cozy,
+                            icon: GameIconKind.cozy,
+                            color: FinniColors.primary),
+                      ]
+                          .map((stat) => SizedBox(width: width, child: stat))
+                          .toList());
+                }),
               ),
               const SizedBox(height: 12),
               HomeQuests(
@@ -719,27 +669,27 @@ class _GameShellState extends State<GameShell> {
                 CoachTarget(
                   id: 'plan.optional',
                   child: _BudgetRow(
-                  title: 'Желаемое',
-                  subtitle: 'То, что радует',
-                  icon: Icons.celebration_outlined,
-                  color: FinniColors.sky,
-                  value: s.plan.plan.optional,
-                  direction: PlanDirection.optional,
-                  state: s,
-                ),
+                    title: 'Желаемое',
+                    subtitle: 'То, что радует',
+                    icon: Icons.celebration_outlined,
+                    color: FinniColors.sky,
+                    value: s.plan.plan.optional,
+                    direction: PlanDirection.optional,
+                    state: s,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 CoachTarget(
                   id: 'plan.savings',
                   child: _BudgetRow(
-                  title: 'Копилка',
-                  subtitle: 'Навстречу мечте',
-                  icon: Icons.savings_outlined,
-                  color: FinniColors.lavender,
-                  value: s.plan.plan.savings,
-                  direction: PlanDirection.savings,
-                  state: s,
-                ),
+                    title: 'Копилка',
+                    subtitle: 'Навстречу мечте',
+                    icon: Icons.savings_outlined,
+                    color: FinniColors.lavender,
+                    value: s.plan.plan.savings,
+                    direction: PlanDirection.savings,
+                    state: s,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 if (s.plan.hint() != null) ...[
@@ -765,67 +715,72 @@ class _GameShellState extends State<GameShell> {
           CoachTarget(
             id: 'plan.confirm',
             child: _Panel(
-            radius: 0,
-            padding: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Не распределено',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+              radius: 0,
+              padding: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Не распределено',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      _Coins(s.plan.remainder),
+                    ],
+                  ),
+                  if (s.plan.isConfirmed && s.savingsToDeposit > 0) ...[
+                    const SizedBox(height: 12),
+                    CoachTarget(
+                      id: 'plan.save',
+                      child: FilledButton.tonalIcon(
+                        onPressed: () {
+                          final amount = s.savingsToDeposit;
+                          if (s.saveByPlan()) {
+                            Celebration.show(context,
+                                motion: s.motion, emoji: '🐷');
+                            toast(
+                                'Отложили $amount ${ruCoins(amount)} в копилку. Мечта ближе!');
+                          } else {
+                            toast(
+                                'Сначала выбери мечту — нажми на неё на главном экране.');
+                          }
+                        },
+                        icon: const Icon(Icons.savings_outlined),
+                        label: Text(
+                            'Отложить в копилку ${s.savingsToDeposit} по плану'),
                       ),
                     ),
-                    _Coins(s.plan.remainder),
                   ],
-                ),
-                if (s.plan.isConfirmed && s.savingsToDeposit > 0) ...[
                   const SizedBox(height: 12),
-                  CoachTarget(
-                    id: 'plan.save',
-                    child: FilledButton.tonalIcon(
-                      onPressed: () {
-                        final amount = s.savingsToDeposit;
-                        if (s.saveByPlan()) {
-                          Celebration.show(context, motion: s.motion, emoji: '🐷');
-                          toast('Отложили $amount ${ruCoins(amount)} в копилку. Мечта ближе!');
-                        } else {
-                          toast('Сначала выбери мечту — нажми на неё на главном экране.');
-                        }
-                      },
-                      icon: const Icon(Icons.savings_outlined),
-                      label: Text('Отложить в копилку ${s.savingsToDeposit} по плану'),
+                  FilledButton.icon(
+                    onPressed: s.plan.isConfirmed
+                        ? null
+                        : () {
+                            s.confirmPlan();
+                            toast(
+                                'План готов! Теперь можно играть, покупать и копить.');
+                            go(0);
+                            if (s.eventPending) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) showEvent();
+                              });
+                            }
+                          },
+                    icon: Icon(
+                      s.plan.isConfirmed
+                          ? Icons.check_rounded
+                          : Icons.check_circle_outline_rounded,
+                    ),
+                    label: Text(
+                      s.plan.isConfirmed ? 'План сохранён' : 'Подтвердить план',
                     ),
                   ),
                 ],
-                const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: s.plan.isConfirmed
-                      ? null
-                      : () {
-                          s.confirmPlan();
-                          toast('План готов! Теперь можно играть, покупать и копить.');
-                          go(0);
-                          if (s.eventPending) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) showEvent();
-                            });
-                          }
-                        },
-                  icon: Icon(
-                    s.plan.isConfirmed
-                        ? Icons.check_rounded
-                        : Icons.check_circle_outline_rounded,
-                  ),
-                  label: Text(
-                    s.plan.isConfirmed ? 'План сохранён' : 'Подтвердить план',
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
           ),
         ],
       );
@@ -1015,7 +970,6 @@ class _GameShellState extends State<GameShell> {
     );
   }
 
-
   Widget _planNotice(ShopItem item) {
     final check = s.planCheck(item);
     final String text;
@@ -1153,8 +1107,7 @@ class _GameShellState extends State<GameShell> {
                 PurchaseDone(:final diaryText, :final noteText) => [
                     _Notice(
                       icon: Icons.check_circle_outline,
-                      text:
-                          '$diaryText${noteText == null ? '' : ' $noteText'}',
+                      text: '$diaryText${noteText == null ? '' : ' $noteText'}',
                     ),
                     const SizedBox(height: 12),
                     _Panel(

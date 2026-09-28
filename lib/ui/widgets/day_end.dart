@@ -23,14 +23,17 @@ const Map<String, (String, String, Color)> _statLooks = {
   'cozy': ('🏠', 'Уют', FinniColors.nightCozy),
 };
 
-const TextStyle _kicker =
-    TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.nightDim);
+const TextStyle _kicker = TextStyle(
+    fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.nightDim);
 const TextStyle _title = TextStyle(
-    fontSize: 28, fontWeight: FontWeight.w900, color: FinniColors.nightInk, height: 1.15);
-const TextStyle _body =
-    TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.nightInk);
-const TextStyle _soft =
-    TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.nightSoft);
+    fontSize: 28,
+    fontWeight: FontWeight.w900,
+    color: FinniColors.nightInk,
+    height: 1.15);
+const TextStyle _body = TextStyle(
+    fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.nightInk);
+const TextStyle _soft = TextStyle(
+    fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.nightSoft);
 
 Future<String?> showDayEnd(BuildContext context, GameController state,
         Map<String, dynamic> event) =>
@@ -106,9 +109,11 @@ class _DayEndScreenState extends State<DayEndScreen> {
         child: Scaffold(
           backgroundColor: FinniColors.nightTop,
           body: AnimatedSwitcher(
-            duration: _motion ? const Duration(milliseconds: 500) : Duration.zero,
+            duration:
+                _motion ? const Duration(milliseconds: 500) : Duration.zero,
             child: morning
-                ? KeyedSubtree(key: const ValueKey('morning'), child: _morning())
+                ? KeyedSubtree(
+                    key: const ValueKey('morning'), child: _morning())
                 : KeyedSubtree(key: const ValueKey('night'), child: _night()),
           ),
         ),
@@ -133,7 +138,8 @@ class _DayEndScreenState extends State<DayEndScreen> {
         child: Stack(children: [
           Positioned.fill(
             child: IgnorePointer(
-              child: CustomPaint(painter: NightSky(moon: moon, stars: stars, sun: sun)),
+              child: CustomPaint(
+                  painter: NightSky(moon: moon, stars: stars, sun: sun)),
             ),
           ),
           SafeArea(
@@ -185,6 +191,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
             Positioned.fill(
               child: ExcludeSemantics(
                 child: MoniScene(
+                  appearance: s.appearance,
                   stage: s.stage,
                   sleeping: sleeping,
                   motion: s.motion,
@@ -214,7 +221,10 @@ class _DayEndScreenState extends State<DayEndScreen> {
     final day = _int('day');
     final points = _int('points');
     final factors = _maps('factors');
-    final missed = [for (final f in factors) if (f['met'] != true) f];
+    final missed = [
+      for (final f in factors)
+        if (f['met'] != true) f
+    ];
     final nextAt = (e['nextAt'] as num?)?.toInt();
     final from = _int('stageFrom');
     final current = _int('growthPoints');
@@ -223,7 +233,11 @@ class _DayEndScreenState extends State<DayEndScreen> {
         : (e['titles'] as List? ?? const []);
     final columns = MediaQuery.textScalerOf(context).scale(16) > 22 ? 2 : 4;
     return _frame(
-      colors: const [FinniColors.nightTop, FinniColors.nightMid, FinniColors.nightLow],
+      colors: const [
+        FinniColors.nightTop,
+        FinniColors.nightMid,
+        FinniColors.nightLow
+      ],
       moon: true,
       stars: 1,
       sun: false,
@@ -238,19 +252,26 @@ class _DayEndScreenState extends State<DayEndScreen> {
         _pet(sleeping: true),
         const SizedBox(height: 14),
         NightGlass(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic, children: [
-              Text('+$points',
-                  style: const TextStyle(
-                      fontSize: 36, fontWeight: FontWeight.w900, color: FinniColors.honey)),
-              const SizedBox(width: 8),
-              const Flexible(
-                child: Text('к росту за день',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w800, color: FinniColors.nightInk)),
-              ),
-            ]),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text('+$points',
+                      style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w900,
+                          color: FinniColors.honey)),
+                  const SizedBox(width: 8),
+                  const Flexible(
+                    child: Text('к росту за день',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: FinniColors.nightInk)),
+                  ),
+                ]),
             const SizedBox(height: 10),
             if (nextAt != null && nextAt > from) ...[
               ClipRRect(
@@ -263,7 +284,8 @@ class _DayEndScreenState extends State<DayEndScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text('$current из $nextAt до стадии «${e['nextLabel']}»', style: _soft),
+              Text('$current из $nextAt до стадии «${e['nextLabel']}»',
+                  style: _soft),
             ] else
               Text('${s.petName} уже совсем взрослый!', style: _soft),
           ]),
@@ -283,15 +305,20 @@ class _DayEndScreenState extends State<DayEndScreen> {
               padding: const EdgeInsets.only(top: 10),
               child: NightGlass(
                 child: Row(children: [
-                  const Icon(Icons.workspace_premium_rounded, color: FinniColors.honey),
+                  const Icon(Icons.workspace_premium_rounded,
+                      color: FinniColors.honey),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('Новое звание: ${title.title}',
-                          style: const TextStyle(
-                              fontSize: 17, fontWeight: FontWeight.w900, color: FinniColors.nightInk)),
-                      Text(s.titles.reasonOf(title), style: _soft),
-                    ]),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Новое звание: ${title.title}',
+                              style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  color: FinniColors.nightInk)),
+                          Text(s.titles.reasonOf(title), style: _soft),
+                        ]),
                   ),
                 ]),
               ),
@@ -301,14 +328,17 @@ class _DayEndScreenState extends State<DayEndScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-                color: FinniColors.honey, borderRadius: BorderRadius.circular(18)),
+                color: FinniColors.honey,
+                borderRadius: BorderRadius.circular(18)),
             child: Row(children: [
               const Text('⭐', style: TextStyle(fontSize: 20)),
               const SizedBox(width: 10),
               Expanded(
                 child: Text('Завтра: ${_lower('${missed.first['text']}')}',
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.honeyInk)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: FinniColors.honeyInk)),
               ),
             ]),
           ),
@@ -353,9 +383,12 @@ class _DayEndScreenState extends State<DayEndScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.nightInk)),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: FinniColors.nightInk)),
             Icon(met ? Icons.check_rounded : Icons.remove_rounded,
-                size: 20, color: met ? FinniColors.nightMint : FinniColors.nightDim),
+                size: 20,
+                color: met ? FinniColors.nightMint : FinniColors.nightDim),
           ]),
         ),
       ),
@@ -375,10 +408,13 @@ class _DayEndScreenState extends State<DayEndScreen> {
       backgroundColor: FinniColors.sheetNight,
       builder: (context) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text('Итоги дня ${_int('day')}',
               style: const TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.w900, color: FinniColors.nightInk)),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: FinniColors.nightInk)),
           const SizedBox(height: 12),
           Row(children: [
             Expanded(child: _money('+${_int('earned')}', 'заработал')),
@@ -393,8 +429,14 @@ class _DayEndScreenState extends State<DayEndScreen> {
                 padding: EdgeInsets.symmetric(vertical: 6),
                 child: Row(children: [
                   Expanded(child: SizedBox()),
-                  SizedBox(width: 58, child: Text('План', textAlign: TextAlign.right, style: _soft)),
-                  SizedBox(width: 58, child: Text('Факт', textAlign: TextAlign.right, style: _soft)),
+                  SizedBox(
+                      width: 58,
+                      child: Text('План',
+                          textAlign: TextAlign.right, style: _soft)),
+                  SizedBox(
+                      width: 58,
+                      child: Text('Факт',
+                          textAlign: TextAlign.right, style: _soft)),
                   SizedBox(width: 34),
                 ]),
               ),
@@ -409,7 +451,11 @@ class _DayEndScreenState extends State<DayEndScreen> {
                   width: 52,
                   height: 56,
                   child: ExcludeSemantics(
-                    child: MoniScene(stage: s.stage, motion: false, outfit: s.outfit),
+                    child: MoniScene(
+                        appearance: s.appearance,
+                        stage: s.stage,
+                        motion: false,
+                        outfit: s.outfit),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -437,7 +483,9 @@ class _DayEndScreenState extends State<DayEndScreen> {
         child: Column(children: [
           Text(value,
               style: const TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.w900, color: FinniColors.nightInk)),
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: FinniColors.nightInk)),
           Text(label, style: _soft),
         ]),
       );
@@ -461,16 +509,20 @@ class _DayEndScreenState extends State<DayEndScreen> {
           ),
           SizedBox(
               width: 58,
-              child: Text('$plan', textAlign: TextAlign.right,
+              child: Text('$plan',
+                  textAlign: TextAlign.right,
                   style: _body.copyWith(fontWeight: FontWeight.w900))),
           SizedBox(
               width: 58,
-              child: Text('$fact', textAlign: TextAlign.right,
+              child: Text('$fact',
+                  textAlign: TextAlign.right,
                   style: _body.copyWith(fontWeight: FontWeight.w900))),
           SizedBox(
             width: 34,
-            child: Icon(ok ? Icons.check_circle_rounded : Icons.info_outline_rounded,
-                size: 20, color: ok ? FinniColors.nightMint : FinniColors.honey),
+            child: Icon(
+                ok ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                size: 20,
+                color: ok ? FinniColors.nightMint : FinniColors.honey),
           ),
         ]),
       ),
@@ -479,7 +531,9 @@ class _DayEndScreenState extends State<DayEndScreen> {
 
   Widget _morning() {
     final night = _maps('night');
-    final reasons = [for (final r in (e['nightReasons'] as List? ?? const [])) '$r'];
+    final reasons = [
+      for (final r in (e['nightReasons'] as List? ?? const [])) '$r'
+    ];
     final dropped = {
       for (final shift in night)
         if (((shift['after'] as num?) ?? 0) < ((shift['before'] as num?) ?? 0))
@@ -511,13 +565,17 @@ class _DayEndScreenState extends State<DayEndScreen> {
         _pet(sleeping: false),
         const SizedBox(height: 14),
         NightGlass(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('Что изменилось за ночь',
                 style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w900, color: FinniColors.nightInk)),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: FinniColors.nightInk)),
             const SizedBox(height: 4),
             if (night.isEmpty)
-              Text('Ночь прошла спокойно — ${s.petName} отлично выспался.', style: _soft)
+              Text('Ночь прошла спокойно — ${s.petName} отлично выспался.',
+                  style: _soft)
             else ...[
               Text(reasons.join(' '), style: _soft),
               const SizedBox(height: 6),
@@ -527,16 +585,21 @@ class _DayEndScreenState extends State<DayEndScreen> {
         ),
         const SizedBox(height: 10),
         NightGlass(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               const Expanded(
                 child: Text('☀️ Новые монеты на день',
                     style: TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w800, color: FinniColors.nightInk)),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: FinniColors.nightInk)),
               ),
               Text('+${s.plan.plan.income}',
                   style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.w900, color: FinniColors.honey)),
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: FinniColors.honey)),
             ]),
             for (final entry in fixes.entries)
               Padding(
@@ -562,7 +625,8 @@ class _DayEndScreenState extends State<DayEndScreen> {
             minimumSize: const Size.fromHeight(56),
           ),
           onPressed: () => Navigator.pop(context, toPlan ? 'plan' : null),
-          icon: Icon(toPlan ? Icons.edit_note_rounded : Icons.arrow_forward_rounded),
+          icon: Icon(
+              toPlan ? Icons.edit_note_rounded : Icons.arrow_forward_rounded),
           label: Text(toPlan ? 'Составить план на день' : 'Продолжить'),
         ),
       ],
@@ -602,12 +666,14 @@ class _DayEndScreenState extends State<DayEndScreen> {
             height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-                color: FinniColors.glassStrong, borderRadius: BorderRadius.circular(12)),
+                color: FinniColors.glassStrong,
+                borderRadius: BorderRadius.circular(12)),
             child: Text(look.$1, style: const TextStyle(fontSize: 18)),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(look.$2, style: _body.copyWith(fontWeight: FontWeight.w800)),
               const SizedBox(height: 6),
               LayoutBuilder(builder: (context, constraints) {
@@ -627,7 +693,8 @@ class _DayEndScreenState extends State<DayEndScreen> {
                     Container(
                         width: w * (after / 100).clamp(0.0, 1.0),
                         decoration: BoxDecoration(
-                            color: look.$3, borderRadius: BorderRadius.circular(6))),
+                            color: look.$3,
+                            borderRadius: BorderRadius.circular(6))),
                   ]),
                 );
               }),
@@ -638,7 +705,9 @@ class _DayEndScreenState extends State<DayEndScreen> {
               style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w900,
-                  color: delta < 0 ? FinniColors.nightPeach : FinniColors.nightMint)),
+                  color: delta < 0
+                      ? FinniColors.nightPeach
+                      : FinniColors.nightMint)),
         ]),
       ),
     );
@@ -725,12 +794,15 @@ class NightSky extends CustomPainter {
           ..shader = RadialGradient(colors: [
             FinniColors.sunGlow.withValues(alpha: .55),
             FinniColors.sunGlow.withValues(alpha: 0),
-          ]).createShader(Rect.fromCircle(center: center, radius: size.width * .7)),
+          ]).createShader(
+              Rect.fromCircle(center: center, radius: size.width * .7)),
       );
     }
   }
 
   @override
   bool shouldRepaint(NightSky oldDelegate) =>
-      oldDelegate.moon != moon || oldDelegate.stars != stars || oldDelegate.sun != sun;
+      oldDelegate.moon != moon ||
+      oldDelegate.stars != stars ||
+      oldDelegate.sun != sun;
 }

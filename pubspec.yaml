@@ -26,6 +26,11 @@ flutter:
     - assets/images/
     - assets/images/hud/
     - assets/pets/moni/
+    - assets/pets/pix/
+    - assets/pets/tyapa/
+    - assets/pets/bumba/
+    - assets/room/
+    - assets/pets/shared/
     - assets/audio/sfx/
     - assets/audio/voice/
     - assets/audio/babble/fox/

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../theme/finni_theme.dart';
 import 'game_icon.dart';
 import 'moni_scene.dart';
+import 'sprite_sheet.dart';
+import 'room_backdrop.dart';
 
 const Map<String, (String, int)> _sprites = {
   'food': ('props', 0),
@@ -244,8 +246,8 @@ const List<Color> kArtBackgrounds = [
   FinniColors.honey,
 ];
 
-Color artBackground(String id) =>
-    kArtBackgrounds[id.codeUnits.fold(0, (a, b) => a + b) % kArtBackgrounds.length];
+Color artBackground(String id) => kArtBackgrounds[
+    id.codeUnits.fold(0, (a, b) => a + b) % kArtBackgrounds.length];
 
 class ItemArt extends StatelessWidget {
   const ItemArt(this.id, {super.key, this.size = 72, this.background = true});
@@ -259,7 +261,20 @@ class ItemArt extends StatelessWidget {
     final sprite = _sprites[id];
     final icon = _icons[id];
     final Widget art;
-    if (sprite != null) {
+    if (accessoryCells.containsKey(id)) {
+      art = SheetArt(
+          path: 'assets/pets/shared/accessories.png',
+          cell: accessoryCells[id]!,
+          columns: 3,
+          rows: 3);
+    } else if (furnitureCells.containsKey(id)) {
+      art = SheetArt(
+          path: 'assets/room/furniture.png', cell: furnitureCells[id]!);
+    } else if (wallpaperCells.containsKey(id)) {
+      art = RoomBackdrop(wallpaperId: id, thumbnail: true);
+    } else if (goalCells.containsKey(id)) {
+      art = SheetArt(path: 'assets/room/goals.png', cell: goalCells[id]!);
+    } else if (sprite != null) {
       art = ProductArt(sheet: sprite.$1, cell: sprite.$2);
     } else if (icon != null) {
       art = GameIcon(icon, size: size * .8);
@@ -299,6 +314,18 @@ class RoomArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (furnitureCells.containsKey(id) || goalCells.containsKey(id)) {
+      return SizedBox(
+          width: size,
+          height: size,
+          child: SheetArt(
+            path: goalCells.containsKey(id)
+                ? 'assets/room/goals.png'
+                : 'assets/room/furniture.png',
+            cell: goalCells[id] ?? furnitureCells[id]!,
+            alignment: Alignment.bottomCenter,
+          ));
+    }
     final sprite = _sprites[id];
     final icon = _icons[id];
     final Widget art;
@@ -306,8 +333,7 @@ class RoomArt extends StatelessWidget {
       art = ProductArt(sheet: sprite.$1, cell: sprite.$2);
     } else if (icon != null) {
       art = Align(
-          alignment: Alignment.bottomCenter,
-          child: GameIcon(icon, size: size));
+          alignment: Alignment.bottomCenter, child: GameIcon(icon, size: size));
     } else if (id == 'aquarium') {
       art = Align(
         alignment: Alignment.bottomCenter,
@@ -331,7 +357,8 @@ class RoomArt extends StatelessWidget {
         ),
       );
     } else {
-      art = Align(
+      art = FittedBox(
+        fit: BoxFit.scaleDown,
         alignment: Alignment.bottomCenter,
         child: Text(
           kEmoji[id] ?? '🎁',
@@ -353,11 +380,15 @@ class _PatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final clip = RRect.fromRectAndRadius(rect, Radius.circular(size.width * .2));
+    final clip =
+        RRect.fromRectAndRadius(rect, Radius.circular(size.width * .2));
     canvas.save();
     canvas.clipRRect(clip);
     canvas.drawRect(rect, Paint()..color = FinniColors.paper);
-    final paint = Paint()..color = dots ? FinniColors.purple.withValues(alpha: .45) : FinniColors.primary.withValues(alpha: .35);
+    final paint = Paint()
+      ..color = dots
+          ? FinniColors.purple.withValues(alpha: .45)
+          : FinniColors.primary.withValues(alpha: .35);
     if (dots) {
       final step = size.width / 4;
       for (var y = step / 2; y < size.height; y += step) {
@@ -388,6 +419,10 @@ class EmojiBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sprite = _sprites[iconId];
+    final hasArtwork = accessoryCells.containsKey(iconId) ||
+        furnitureCells.containsKey(iconId) ||
+        wallpaperCells.containsKey(iconId) ||
+        goalCells.containsKey(iconId);
     return ExcludeSemantics(
       child: Container(
         width: size,
@@ -397,15 +432,17 @@ class EmojiBadge extends StatelessWidget {
           color: color ?? artBackground(iconId).withValues(alpha: .8),
           borderRadius: BorderRadius.circular(size * .32),
         ),
-        child: sprite != null
-            ? ProductArt(sheet: sprite.$1, cell: sprite.$2)
-            : Center(
-                child: Text(
-                  kEmoji[iconId] ?? '⭐',
-                  style: TextStyle(fontSize: size * .5, height: 1),
-                  textScaler: TextScaler.noScaling,
-                ),
-              ),
+        child: hasArtwork
+            ? ItemArt(iconId, size: size * .8, background: false)
+            : sprite != null
+                ? ProductArt(sheet: sprite.$1, cell: sprite.$2)
+                : Center(
+                    child: Text(
+                      kEmoji[iconId] ?? '⭐',
+                      style: TextStyle(fontSize: size * .5, height: 1),
+                      textScaler: TextScaler.noScaling,
+                    ),
+                  ),
       ),
     );
   }

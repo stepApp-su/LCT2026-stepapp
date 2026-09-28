@@ -63,6 +63,7 @@ class _GameScreenState extends State<GameScreen> {
       }
     });
   }
+
   TaskTexts get texts => s.content.tasks.texts;
   bool get finished => reward != null;
 
@@ -130,7 +131,8 @@ class _GameScreenState extends State<GameScreen> {
   void _hint() {
     final line = s.hintFor(session);
     final variant = session.variant;
-    final hint = s.hints.hint(variant, answer: answer, situation: situation?.call());
+    final hint =
+        s.hints.hint(variant, answer: answer, situation: situation?.call());
     final general = variant.hint.trim();
     final showGeneral = general.isNotEmpty && !hint.text.contains(general);
     setState(() => petLine = line);
@@ -146,7 +148,8 @@ class _GameScreenState extends State<GameScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(hint.ready ? '👍' : '💡',
-                style: const TextStyle(fontSize: 48), textAlign: TextAlign.center),
+                style: const TextStyle(fontSize: 48),
+                textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(hint.text,
                 textAlign: TextAlign.center,
@@ -163,7 +166,8 @@ class _GameScreenState extends State<GameScreen> {
               const SizedBox(height: 12),
               Text(line.textRu,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, color: FinniColors.muted)),
+                  style:
+                      const TextStyle(fontSize: 16, color: FinniColors.muted)),
             ],
             const SizedBox(height: 16),
             FilledButton(
@@ -224,25 +228,25 @@ class _GameScreenState extends State<GameScreen> {
                       CoachTarget(
                         id: 'game.board',
                         child: buildBoard(BoardContext(
-                        task: task,
-                        variant: variant,
-                        texts: texts,
-                        plan: s.content.economy.params.plan,
-                        binLabels: binLabels,
-                        check: showFeedback ? feedback?.check : null,
-                        locked: finished,
-                        motion: s.motion,
-                        onChanged: (value) {
-                          if (!mounted) return;
-                          setState(() {
-                            answer = value;
-                            if (!finished) showFeedback = false;
-                          });
-                        },
-                        onSubmit: _submit,
-                        onSituation: (read) => situation = read,
-                        sound: s.fx,
-                      )),
+                          task: task,
+                          variant: variant,
+                          texts: texts,
+                          plan: s.content.economy.params.plan,
+                          binLabels: binLabels,
+                          check: showFeedback ? feedback?.check : null,
+                          locked: finished,
+                          motion: s.motion,
+                          onChanged: (value) {
+                            if (!mounted) return;
+                            setState(() {
+                              answer = value;
+                              if (!finished) showFeedback = false;
+                            });
+                          },
+                          onSubmit: _submit,
+                          onSituation: (read) => situation = read,
+                          sound: s.fx,
+                        )),
                       ),
                       const SizedBox(height: 16),
                       AnimatedSwitcher(
@@ -272,6 +276,8 @@ class _GameScreenState extends State<GameScreen> {
             width: 92,
             height: 104,
             child: MoniScene(
+                appearance: s.appearance,
+                stage: s.stage,
                 motion: s.motion,
                 outfit: s.outfit,
                 onPet: () => s.fx('pet_tap')),
@@ -289,7 +295,8 @@ class _GameScreenState extends State<GameScreen> {
                     children: [
                       for (final (i, label) in _levelLabels().indexed)
                         TagPill(
-                          icon: i == 0 ? Icons.flag_rounded : Icons.stars_rounded,
+                          icon:
+                              i == 0 ? Icons.flag_rounded : Icons.stars_rounded,
                           label: label,
                           color: i == 0 ? FinniColors.honey : FinniColors.mint,
                         ),
@@ -306,8 +313,7 @@ class _GameScreenState extends State<GameScreen> {
                           label: 'Посложнее',
                           color: FinniColors.lavender,
                         ),
-                      if (widget.mode == GameMode.practice &&
-                          session.count > 1)
+                      if (widget.mode == GameMode.practice && session.count > 1)
                         TagPill(
                           icon: Icons.layers_outlined,
                           label:
@@ -336,24 +342,26 @@ class _GameScreenState extends State<GameScreen> {
                 CoachTarget(
                   id: 'game.intro',
                   child: Material(
-                  color: FinniColors.paper,
-                  elevation: 2,
-                  shadowColor: FinniColors.shadow,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(22),
-                    topRight: Radius.circular(22),
-                    bottomRight: Radius.circular(22),
-                    bottomLeft: Radius.circular(6),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Text(
-                      variant.intro,
-                      style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w700, height: 1.3),
+                    color: FinniColors.paper,
+                    elevation: 2,
+                    shadowColor: FinniColors.shadow,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(22),
+                      topRight: Radius.circular(22),
+                      bottomRight: Radius.circular(22),
+                      bottomLeft: Radius.circular(6),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Text(
+                        variant.intro,
+                        style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            height: 1.3),
+                      ),
                     ),
                   ),
-                ),
                 ),
               ],
             ),
@@ -469,7 +477,8 @@ class _GameScreenState extends State<GameScreen> {
                 child: Text(switch (step?.finished) {
                   final LevelRecord done =>
                     'Уровень пройден! За весь уровень — ${done.coins} ${ruCoins(done.coins)}.',
-                  _ when inLevel => 'Часть зарплаты уже в кошельке. Идём дальше!',
+                  _ when inLevel =>
+                    'Часть зарплаты уже в кошельке. Идём дальше!',
                   _ => 'Монеты уже в кошельке.',
                 }),
               ),

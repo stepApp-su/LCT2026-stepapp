@@ -88,6 +88,7 @@ class HomeQuests extends StatelessWidget {
     if (state.needsPlan) {
       return CoachTarget(id: 'home.plan', child: _QuestTile(
         title: 'Составь план на день',
+        horizontal: true,
         subtitle: 'Разложим ${state.plan.plan.income} ${ruCoins(state.plan.plan.income)}',
         semantics: 'Сначала план на день. Открыть план',
         icon: const Icon(Icons.edit_note_rounded, color: FinniColors.primary),
@@ -201,11 +202,13 @@ class _QuestTile extends StatelessWidget {
     this.gradient,
     this.onTap,
     this.tags = const [],
+    this.horizontal = false,
   });
 
   final String title;
   final String subtitle;
   final List<String> tags;
+  final bool horizontal;
   final String semantics;
   final Widget icon;
   final IconData? trailing;
@@ -237,7 +240,37 @@ class _QuestTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             border: colors == null ? Border.all(color: FinniColors.line) : null,
           ),
-          child: Column(
+          child: horizontal ? Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                    color: FinniColors.paper, shape: BoxShape.circle),
+                child: icon,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w900)),
+                    Text(subtitle,
+                        style: const TextStyle(
+                            fontSize: 16, color: FinniColors.ink)),
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                Icon(trailing, size: 24, color: FinniColors.primary),
+              ],
+            ],
+          ) : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(

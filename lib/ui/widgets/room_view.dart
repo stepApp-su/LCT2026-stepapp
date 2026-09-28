@@ -30,10 +30,46 @@ class RoomLayer extends StatelessWidget {
 
   static double unit(Size size) => math.min(size.width, size.height * 1.53);
 
-  static Rect rectOf(RoomSpot spot, Size size) {
-    final w = (spot.size ?? .14) * unit(size);
-    return Rect.fromLTWH((spot.x ?? .5) * size.width - w / 2,
-        (spot.y ?? 1) * size.height - w, w, w);
+  static Offset markerOf(RoomSpot spot, Size size) => switch (spot.id) {
+        'floor_rug' => Offset(size.width * .50, size.height * .80),
+        'middle_right' => Offset(size.width * .79, size.height * .81),
+        _ => rectOf(spot, size).center,
+      };
+
+  static Rect rectOf(RoomSpot spot, Size size, {String? artId}) {
+    final placement = switch (spot.id) {
+      'window_out_left' => (.39, .24, .09, .09),
+      'window_out_right' => (.50, .24, .105, .09),
+      'goal_window' => (.61, .24, .09, .09),
+      'wall_poster' => (.13, .50, .15, .17),
+      'wall_clock' => (.27, .29, .105, .105),
+      'wall_shelf' => (.83, .48, .26, .14),
+      'sill_left' => (.075, .665, .11, .14),
+      'sill_right' => (.21, .665, .11, .12),
+      'goal_wall_left' => (.07, .85, .12, .18),
+      'back_left' => (.26, .84, .24, .16),
+      'back_right' => (.79, .735, .19, .14),
+      'corner_right' => (.94, .735, .065, .12),
+      'middle_right' => (.83, .81, .27, .115),
+      'floor_rug' => (.52, .94, .40, .12),
+      'front_left' => (.13, .98, .18, .12),
+      'front_right' => (.90, .98, .17, .19),
+      'toy_1' => (.29, .98, .075, .075),
+      'toy_2' => (.56, .98, .08, .07),
+      'goal_floor' => (.415, .98, .13, .09),
+      'goal_wall_mid' => (.715, .98, .15, .12),
+      _ => (spot.x ?? .5, spot.y ?? 1, spot.size ?? .14, spot.size ?? .14),
+    };
+    final scale = switch (artId) {
+      'smartwatch' => .65,
+      'roller_skates' || 'slime_kit' => .8,
+      'drawing_tablet' || 'keyboard' || 'board_game' => .9,
+      _ => 1.0,
+    };
+    final w = placement.$3 * size.width * scale;
+    final h = placement.$4 * size.height * scale;
+    return Rect.fromLTWH(placement.$1 * size.width - w / 2,
+        placement.$2 * size.height - h, w, h);
   }
 
   @override
@@ -42,8 +78,41 @@ class RoomLayer extends StatelessWidget {
         final shown = [
           for (final piece in pieces)
             if (((piece.spot.z ?? 0) > petZ) == front) piece
-        ]..sort((a, b) => (a.spot.z ?? 0).compareTo(b.spot.z ?? 0));
+        ]..sort((a, b) => (a.spot.id == 'middle_right' ? 14 : a.spot.z ?? 0)
+            .compareTo(b.spot.id == 'middle_right' ? 14 : b.spot.z ?? 0));
         return Stack(clipBehavior: Clip.none, children: [
+          if (!front)
+            for (final shelf in [
+              (['sill_left', 'sill_right'], .015, .665, .265),
+              (
+                ['window_out_left', 'window_out_right', 'goal_window'],
+                .33,
+                .245,
+                .34
+              ),
+            ])
+              if (pieces.any((p) => shelf.$1.contains(p.spot.id)))
+                Positioned(
+                  left: size.width * shelf.$2,
+                  top: size.height * shelf.$3,
+                  width: size.width * shelf.$4,
+                  height: 8,
+                  child: DecoratedBox(
+                      decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFFF0D4A9), Color(0xFFC49A68)],
+                    ),
+                    borderRadius: BorderRadius.circular(3),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Color(0x22000000),
+                          offset: Offset(0, 2),
+                          blurRadius: 2)
+                    ],
+                  )),
+                ),
           if (!front && wallpaperId != null)
             Positioned.fill(
                 child: CustomPaint(painter: WallpaperPainter(wallpaperId!))),
@@ -67,8 +136,9 @@ class RoomLayer extends StatelessWidget {
             ),
           for (final piece in shown)
             Positioned.fromRect(
-              rect: rectOf(piece.spot, size),
-              child: RoomArt(piece.artId, size: rectOf(piece.spot, size).width),
+              rect: rectOf(piece.spot, size, artId: piece.artId),
+              child: RoomArt(piece.artId,
+                  size: rectOf(piece.spot, size, artId: piece.artId).width),
             ),
         ]);
       });
@@ -108,7 +178,13 @@ class WallpaperPainter extends CustomPainter {
         }
       case 'wp_clouds':
         final paint = Paint()..color = FinniColors.paper;
-        for (final (fx, fy) in const [(.18, .22), (.55, .12), (.36, .5), (.82, .62), (.1, .74)]) {
+        for (final (fx, fy) in const [
+          (.18, .22),
+          (.55, .12),
+          (.36, .5),
+          (.82, .62),
+          (.1, .74)
+        ]) {
           final c = Offset(size.width * fx, size.height * fy);
           final r = step * .45;
           canvas.drawCircle(c, r, paint);
@@ -131,7 +207,9 @@ class WallpaperPainter extends CustomPainter {
         )..layout();
         var row = 0;
         for (var y = step / 3; y < size.height; y += step, row++) {
-          for (var x = row.isEven ? step / 3 : step; x < size.width; x += step * 1.4) {
+          for (var x = row.isEven ? step / 3 : step;
+              x < size.width;
+              x += step * 1.4) {
             painter.paint(canvas, Offset(x, y));
           }
         }

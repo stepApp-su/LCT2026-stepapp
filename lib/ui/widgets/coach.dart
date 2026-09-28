@@ -14,7 +14,6 @@ abstract final class CoachIds {
     'home.goal',
     'home.coins',
     'home.pet',
-    'home.help',
     'home.stats',
     'home.event',
     'home.plan',

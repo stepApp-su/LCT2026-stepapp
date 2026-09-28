@@ -73,7 +73,10 @@ class LevelButton extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(compact ? 22 : 28),
             boxShadow: const [
-              BoxShadow(color: FinniColors.shadow, blurRadius: 10, offset: Offset(0, 4)),
+              BoxShadow(
+                  color: FinniColors.shadow,
+                  blurRadius: 10,
+                  offset: Offset(0, 4)),
             ],
           ),
           child: Row(
@@ -140,7 +143,8 @@ class LevelButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: FinniColors.mint,
               borderRadius: BorderRadius.circular(compact ? 22 : 28),
-              border: Border.all(color: FinniColors.primary.withValues(alpha: .25)),
+              border:
+                  Border.all(color: FinniColors.primary.withValues(alpha: .25)),
             ),
             child: Row(
               children: [
@@ -169,7 +173,8 @@ class LevelButton extends StatelessWidget {
                               : 'Новый уровень — завтра. А пока можно потренироваться.',
                           maxLines: compact ? 1 : 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 16, color: FinniColors.muted)),
+                          style: const TextStyle(
+                              fontSize: 16, color: FinniColors.muted)),
                       if (!compact) ...[
                         const SizedBox(height: 6),
                         _StarCount(record: done),
@@ -180,7 +185,8 @@ class LevelButton extends StatelessWidget {
                 if (compact)
                   _StarCount(record: done)
                 else if (onPractice != null)
-                  const Icon(Icons.fitness_center_rounded, color: FinniColors.primary),
+                  const Icon(Icons.fitness_center_rounded,
+                      color: FinniColors.primary),
               ],
             ),
           ),
@@ -213,7 +219,10 @@ class _LevelScreenState extends State<LevelScreen> {
     final tour = s.coach.tour('level');
     if (tour == null) return;
     await Coach.run(context,
-        steps: tour.steps, texts: s.coach.texts, values: {'name': s.petName}, motion: s.motion);
+        steps: tour.steps,
+        texts: s.coach.texts,
+        values: {'name': s.petName},
+        motion: s.motion);
     s.markCoachSeen([tour.id, ...tour.covers]);
   }
 
@@ -222,14 +231,16 @@ class _LevelScreenState extends State<LevelScreen> {
     if (slot == null) return;
     await Navigator.of(context).push<GameReward>(MaterialPageRoute(
       settings: RouteSettings(name: 'level:${slot.taskId}'),
-      builder: (_) => GameScreen(state: s, taskId: slot.taskId, mode: GameMode.level),
+      builder: (_) =>
+          GameScreen(state: s, taskId: slot.taskId, mode: GameMode.level),
     ));
     if (!mounted) return;
     setState(() {
       if (s.levelRun == null) result = s.todayLevel;
     });
     if (result != null) {
-      Celebration.show(context, motion: s.motion, emoji: '💰', text: 'Всего +${result!.coins}');
+      Celebration.show(context,
+          motion: s.motion, emoji: '💰', text: 'Всего +${result!.coins}');
     }
   }
 
@@ -244,7 +255,8 @@ class _LevelScreenState extends State<LevelScreen> {
           onPressed: () => Navigator.pop(context, false),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: Text(s.levels.titleOf(done?.number ?? run?.number ?? s.levelNumber)),
+        title: Text(
+            s.levels.titleOf(done?.number ?? run?.number ?? s.levelNumber)),
         actions: [
           IconButton(
             tooltip: 'Подсказка',
@@ -296,20 +308,23 @@ class _Path extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = run.current;
-    final currentTask = current == null ? null : state.content.tasks.byId(current.taskId);
+    final currentTask =
+        current == null ? null : state.content.tasks.byId(current.taskId);
     return Column(
       children: [
         Expanded(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
-              CoachTarget(id: 'level.header', child: _Header(state: state, run: run)),
+              CoachTarget(
+                  id: 'level.header', child: _Header(state: state, run: run)),
               const SizedBox(height: 12),
               LayoutBuilder(builder: (context, constraints) {
                 final width = constraints.maxWidth;
                 final centers = [
                   for (var i = 0; i < run.slots.length; i++)
-                    Offset(width / 2 + _sway[i % _sway.length] * (width / 2 - 70),
+                    Offset(
+                        width / 2 + _sway[i % _sway.length] * (width / 2 - 70),
                         _row * i + 50),
                 ];
                 return SizedBox(
@@ -319,7 +334,8 @@ class _Path extends StatelessWidget {
                     children: [
                       Positioned.fill(
                         child: CustomPaint(
-                          painter: _TrailPainter(centers: centers, done: run.done),
+                          painter:
+                              _TrailPainter(centers: centers, done: run.done),
                         ),
                       ),
                       for (final (i, slot) in run.slots.indexed)
@@ -346,7 +362,8 @@ class _Path extends StatelessWidget {
               }),
               const SoftNotice(
                 icon: Icons.favorite_border_rounded,
-                text: 'Пробовать можно сколько угодно: зарплата за уровень не уменьшается. Звёзды — за то, как ты думал.',
+                text:
+                    'Пробовать можно сколько угодно: зарплата за уровень не уменьшается. Звёзды — за то, как ты думал.',
                 color: FinniColors.lavender,
               ),
             ],
@@ -361,17 +378,17 @@ class _Path extends StatelessWidget {
           child: CoachTarget(
             id: 'level.start',
             child: SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: currentTask == null ? null : onPlay,
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: Text(currentTask == null
-                  ? 'Готово'
-                  : run.isStarted
-                      ? 'Дальше: ${currentTask.title}'
-                      : 'Начать: ${currentTask.title}'),
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: currentTask == null ? null : onPlay,
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: Text(currentTask == null
+                    ? 'Готово'
+                    : run.isStarted
+                        ? 'Дальше: ${currentTask.title}'
+                        : 'Начать: ${currentTask.title}'),
+              ),
             ),
-          ),
           ),
         ),
       ],
@@ -405,6 +422,7 @@ class _Header extends StatelessWidget {
             width: 84,
             height: 92,
             child: MoniScene(
+                appearance: state.appearance,
                 motion: state.motion,
                 stage: state.stage,
                 outfit: state.outfit,
@@ -419,7 +437,8 @@ class _Header extends StatelessWidget {
                   run.isStarted
                       ? 'Ещё ${games - run.done} ${ruGames(games - run.done)} — и уровень пройден!'
                       : 'Сегодня $games ${ruGames(games)}. За каждую — часть зарплаты!',
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, height: 1.25),
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800, height: 1.25),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -476,19 +495,22 @@ class _Node extends StatelessWidget {
           width: isCurrent ? 3 : 2,
         ),
         boxShadow: const [
-          BoxShadow(color: FinniColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
+          BoxShadow(
+              color: FinniColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
         ],
       ),
       alignment: Alignment.center,
       child: Opacity(
         opacity: waiting ? .45 : 1,
-        child: EmojiBadge(task.iconId, size: 50, color: FinniColors.transparent),
+        child:
+            EmojiBadge(task.iconId, size: 50, color: FinniColors.transparent),
       ),
     );
     if (isCurrent) circle = _Pulse(motion: state.motion, child: circle);
     return Semantics(
       button: onTap != null,
-      label: 'Игра ${index + 1}: ${task.title}${done ? '. Звёзд: $stars' : isCurrent ? '. Сейчас' : ''}',
+      label:
+          'Игра ${index + 1}: ${task.title}${done ? '. Звёзд: $stars' : isCurrent ? '. Сейчас' : ''}',
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -506,7 +528,8 @@ class _Node extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 13,
                       backgroundColor: FinniColors.primary,
-                      child: Icon(Icons.check_rounded, size: 18, color: FinniColors.paper),
+                      child: Icon(Icons.check_rounded,
+                          size: 18, color: FinniColors.paper),
                     ),
                   ),
                 if (slot.isNew && !done)
@@ -536,7 +559,10 @@ class _Node extends StatelessWidget {
               StarRow(stars: stars!, size: 16)
             else if (slot.isHard)
               const Text('🔥 посложнее',
-                  style: TextStyle(fontSize: 16, color: FinniColors.purple, fontWeight: FontWeight.w700)),
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: FinniColors.purple,
+                      fontWeight: FontWeight.w700)),
           ],
         ),
       ),
@@ -559,7 +585,8 @@ class _Result extends StatelessWidget {
       children: [
         PopIn(
           motion: state.motion,
-          child: const Text('🎉', textAlign: TextAlign.center, style: TextStyle(fontSize: 64)),
+          child: const Text('🎉',
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 64)),
         ),
         Text('Уровень ${record.number} пройден!',
             textAlign: TextAlign.center,
@@ -592,7 +619,8 @@ class _Result extends StatelessWidget {
                 const Text('✉️', style: TextStyle(fontSize: 48)),
                 const SizedBox(height: 4),
                 const Text('Всего за уровень',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 8),
                 CoinAmount(record.coins, prefix: '+', size: 32),
                 const SizedBox(height: 8),
@@ -666,10 +694,12 @@ class _Silhouette extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           ColorFiltered(
-            colorFilter: const ColorFilter.mode(FinniColors.purple, BlendMode.srcIn),
+            colorFilter:
+                const ColorFilter.mode(FinniColors.purple, BlendMode.srcIn),
             child: Opacity(
               opacity: .35,
-              child: EmojiBadge(iconId, size: 52, color: FinniColors.transparent),
+              child:
+                  EmojiBadge(iconId, size: 52, color: FinniColors.transparent),
             ),
           ),
           const Icon(Icons.lock_rounded, color: FinniColors.purple, size: 22),

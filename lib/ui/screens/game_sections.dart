@@ -227,7 +227,9 @@ extension _GameSections on _GameShellState {
                   Row(children: [
                     Expanded(
                         child: Text(
-                            withdrawal ? 'Сейчас в копилке' : 'Сейчас в кошельке',
+                            withdrawal
+                                ? 'Сейчас в копилке'
+                                : 'Сейчас в кошельке',
                             style: const TextStyle(
                                 fontSize: 17, fontWeight: FontWeight.w800))),
                     _Coins(max),
@@ -242,16 +244,22 @@ extension _GameSections on _GameShellState {
                   ],
                 ])),
         const SizedBox(height: 8),
-        Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
-          if (!withdrawal && s.savingsToDeposit > 0 && s.savingsToDeposit != max)
-            OutlinedButton(
-                onPressed: () => update(() => amount = s.savingsToDeposit),
-                child: Text('По плану: ${s.savingsToDeposit}')),
-          if (max > 0)
-            OutlinedButton(
-                onPressed: () => update(() => amount = max),
-                child: Text(withdrawal ? 'Всё: $max' : 'Все монеты: $max')),
-        ]),
+        Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (!withdrawal &&
+                  s.savingsToDeposit > 0 &&
+                  s.savingsToDeposit != max)
+                OutlinedButton(
+                    onPressed: () => update(() => amount = s.savingsToDeposit),
+                    child: Text('По плану: ${s.savingsToDeposit}')),
+              if (max > 0)
+                OutlinedButton(
+                    onPressed: () => update(() => amount = max),
+                    child: Text(withdrawal ? 'Всё: $max' : 'Все монеты: $max')),
+            ]),
         const SizedBox(height: 12),
         Row(children: [
           IconButton.filledTonal(
@@ -458,32 +466,32 @@ extension _GameSections on _GameShellState {
         CoachTarget(
           id: 'more.profile',
           child: Column(children: [
-        Center(
-          child: SizedBox(
-            height: 150,
-            width: 180,
-            child: IgnorePointer(
-              child: MoniScene(
-                  stage: s.stage, motion: s.motion, outfit: s.outfit),
+            Center(
+              child: SizedBox(
+                height: 150,
+                width: 180,
+                child: IgnorePointer(
+                  child: MoniScene(
+                      stage: s.stage, motion: s.motion, outfit: s.outfit),
+                ),
+              ),
             ),
-          ),
-        ),
-        Center(
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(s.petName,
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.w900)),
-              TagChip(s.stageLabel, tone: TagTone.green),
-              TagChip('🏅 ${s.currentTitle?.title ?? 'Новичок'}',
-                  tone: TagTone.gold),
-            ],
-          ),
-        ),
+            Center(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(s.petName,
+                      style: const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.w900)),
+                  TagChip(s.stageLabel, tone: TagTone.green),
+                  TagChip('🏅 ${s.currentTitle?.title ?? 'Новичок'}',
+                      tone: TagTone.gold),
+                ],
+              ),
+            ),
           ]),
         ),
         const SizedBox(height: 16),
@@ -493,36 +501,73 @@ extension _GameSections on _GameShellState {
             final columns =
                 MediaQuery.textScalerOf(context).scale(16) > 22 ? 2 : 3;
             final width = (c.maxWidth - (columns - 1) * 10) / columns;
-            return EqualGrid(columns: columns, spacing: 10, runSpacing: 10, children: [
-              for (final (id, label, art, action, news) in [
-                ('more.wardrobe', 'Гардероб', const RoomArt('bow', size: 44), room, s.hasNewThings),
-                ('more.titles', 'Звания', const Text('🏅', style: TextStyle(fontSize: 34)), titles, false),
-                ('more.diary', 'Дневник', const Text('📒', style: TextStyle(fontSize: 34)), history, false),
-                ('more.summary', 'Итоги', const Text('🌙', style: TextStyle(fontSize: 34)), daySummary, false),
-                ('more.glossary', 'Словарик', const Text('💡', style: TextStyle(fontSize: 34)), glossary, false),
-              ])
-                SizedBox(
+            return EqualGrid(
+                columns: columns,
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  for (final (id, label, art, action, news) in [
+                    (
+                      'more.wardrobe',
+                      'Гардероб',
+                      const RoomArt('bow', size: 44),
+                      room,
+                      s.hasNewThings
+                    ),
+                    (
+                      'more.titles',
+                      'Звания',
+                      const Text('🏅', style: TextStyle(fontSize: 34)),
+                      titles,
+                      false
+                    ),
+                    (
+                      'more.diary',
+                      'Дневник',
+                      const Text('📒', style: TextStyle(fontSize: 34)),
+                      history,
+                      false
+                    ),
+                    (
+                      'more.summary',
+                      'Итоги',
+                      const Text('🌙', style: TextStyle(fontSize: 34)),
+                      daySummary,
+                      false
+                    ),
+                    (
+                      'more.glossary',
+                      'Словарик',
+                      const Text('💡', style: TextStyle(fontSize: 34)),
+                      glossary,
+                      false
+                    ),
+                  ])
+                    SizedBox(
+                        width: width,
+                        child: CoachTarget(
+                            id: id,
+                            child: _MoreTile(
+                                label: label,
+                                art: art,
+                                news: news,
+                                onTap: action))),
+                  SizedBox(
                     width: width,
                     child: CoachTarget(
-                        id: id,
-                        child: _MoreTile(
-                            label: label, art: art, news: news, onTap: action))),
-              SizedBox(
-                width: width,
-                child: CoachTarget(
-                  id: 'more.coach',
-                  child: _MoreTile(
-                    label: 'Обучение',
-                    art: const Text('🎓', style: TextStyle(fontSize: 34)),
-                    onTap: () {
-                      s.resetCoach();
-                      toast('Хорошо! Сейчас я всё покажу.');
-                      go(0);
-                    },
+                      id: 'more.coach',
+                      child: _MoreTile(
+                        label: 'Обучение',
+                        art: const Text('🎓', style: TextStyle(fontSize: 34)),
+                        onTap: () {
+                          s.resetCoach();
+                          toast('Хорошо! Сейчас я всё покажу.');
+                          go(0);
+                        },
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ]);
+                ]);
           }),
         ),
         const SizedBox(height: 14),
@@ -530,8 +575,10 @@ extension _GameSections on _GameShellState {
           color: FinniColors.sky,
           borderRadius: BorderRadius.circular(18),
           child: ListTile(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            leading: const Icon(Icons.lock_outline_rounded, color: FinniColors.blue),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            leading:
+                const Icon(Icons.lock_outline_rounded, color: FinniColors.blue),
             title: const Text('Для взрослого',
                 style: TextStyle(fontWeight: FontWeight.w800)),
             subtitle: const Text('Настройки и успехи ребёнка'),
@@ -548,8 +595,7 @@ extension _GameSections on _GameShellState {
       'Гардероб и комната', (context) => _RoomPage(shell: this, tab: tab),
       tour: 'room');
 
-  void titles() => section(
-      'Звания и рост',
+  void titles() => section('Звания и рост',
       (context) => _TitlesView(state: s, onChange: chooseTitle),
       tour: 'titles');
 
@@ -595,26 +641,26 @@ extension _GameSections on _GameShellState {
         state: s,
         tour: 'summary',
         child: BedtimeScreen(
-        state: s,
-        onSleep: (screenContext) => goToSleep(screenContext, summaryDay),
-        onTodo: (screenContext, todo) {
-          Navigator.of(screenContext).pop();
-          switch (todo) {
-            case BedtimeTodo.plan:
-              go(1);
-            case BedtimeTodo.needs:
-              go(2);
-            case BedtimeTodo.task:
-              if (s.levelDoneToday) {
-                unawaited(playDaily());
-              } else {
-                unawaited(playLevel());
-              }
-            case BedtimeTodo.event:
-              showEvent();
-          }
-        },
-      ),
+          state: s,
+          onSleep: (screenContext) => goToSleep(screenContext, summaryDay),
+          onTodo: (screenContext, todo) {
+            Navigator.of(screenContext).pop();
+            switch (todo) {
+              case BedtimeTodo.plan:
+                go(1);
+              case BedtimeTodo.needs:
+                go(2);
+              case BedtimeTodo.task:
+                if (s.levelDoneToday) {
+                  unawaited(playDaily());
+                } else {
+                  unawaited(playLevel());
+                }
+              case BedtimeTodo.event:
+                showEvent();
+            }
+          },
+        ),
       ),
     ));
   }
@@ -675,8 +721,7 @@ extension _GameSections on _GameShellState {
             builder: (context, update) => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                          'Чтобы открыть настройки, решите пример: $a × $b.'),
+                      Text('Чтобы открыть настройки, решите пример: $a × $b.'),
                       const SizedBox(height: 16),
                       TextField(
                           controller: answer,
@@ -811,7 +856,8 @@ class _MoreTile extends StatelessWidget {
 }
 
 class _TourStarter extends StatefulWidget {
-  const _TourStarter({required this.state, required this.tour, required this.child});
+  const _TourStarter(
+      {required this.state, required this.tour, required this.child});
   final GameController state;
   final String? tour;
   final Widget child;
@@ -825,9 +871,8 @@ class _TourStarterState extends State<_TourStarter> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => Future.delayed(
-            const Duration(milliseconds: 350), _start));
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => Future.delayed(const Duration(milliseconds: 350), _start));
   }
 
   Future<void> _start() async {

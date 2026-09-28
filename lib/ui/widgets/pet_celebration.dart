@@ -45,8 +45,7 @@ class _PetCelebrationState extends State<PetCelebration>
       animation.value = 1;
     } else if (!loadingEgg) {
       loadingEgg = true;
-      precacheImage(const AssetImage('assets/pets/moni/egg.png'), context)
-          .then((_) {
+      precacheImage(AssetImage(widget.state.appearance.egg), context).then((_) {
         eggReady = true;
         startWhenReady();
       });
@@ -108,6 +107,7 @@ class _PetCelebrationState extends State<PetCelebration>
                                 child: Transform.scale(
                                     scale: 1,
                                     child: MoniScene(
+                                        appearance: widget.state.appearance,
                                         onReady: () {
                                           petReady = true;
                                           startWhenReady();
@@ -136,7 +136,8 @@ class _PetCelebrationState extends State<PetCelebration>
                                                   child: ClipPath(
                                                       clipper: _EggHalf(top),
                                                       child: Image.asset(
-                                                          'assets/pets/moni/egg.png',
+                                                          widget.state
+                                                              .appearance.egg,
                                                           fit: BoxFit
                                                               .contain))))),
                                   ]))),

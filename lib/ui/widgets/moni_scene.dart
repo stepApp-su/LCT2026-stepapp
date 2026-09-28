@@ -9,11 +9,15 @@ import 'package:flutter/services.dart';
 import '../theme/finni_theme.dart';
 import '../../domain/models/pet.dart';
 import 'moni_idle.dart';
+import '../pet_appearance.dart';
+import 'pet_rig_layout.dart';
+import 'sprite_sheet.dart';
 
 class MoniScene extends StatefulWidget {
   const MoniScene(
       {super.key,
       this.motion = true,
+      this.appearance = PetAppearance.moni,
       this.stage = PetStage.teen,
       this.celebrationProgress,
       this.onReady,
@@ -22,6 +26,7 @@ class MoniScene extends StatefulWidget {
       this.sleeping = false,
       this.outfit = const {}});
   final bool motion;
+  final PetAppearance appearance;
   final PetStage stage;
   final double? celebrationProgress;
   final VoidCallback? onReady;
@@ -40,12 +45,16 @@ class _MoniSceneState extends State<MoniScene>
     duration: const Duration(seconds: moniIdleSeconds),
   );
   ui.Image? rig, accessories;
+  SpriteSheet? clothing;
+  SpriteSheet? ears;
+  SpriteSheet? backpack;
   List<Rect> accessoryBounds = [];
   ui.Image? closedFace;
   final Map<PetStage, ui.Image> stageRigs = {};
   final Map<PetStage, ui.Image> stageFaces = {};
   Timer? reaction;
   bool happy = false;
+  int loadRevision = 0;
   @override
   void initState() {
     super.initState();
@@ -53,22 +62,45 @@ class _MoniSceneState extends State<MoniScene>
   }
 
   Future<void> _load() async {
+    final revision = ++loadRevision;
+    final appearance = widget.appearance;
     final images = await Future.wait(
       ['rig', 'accessories', 'rig-baby', 'rig-adult'].map((name) async {
-        final bytes = await rootBundle.load('assets/pets/moni/$name.png');
+        final folder =
+            name == 'accessories' ? 'assets/pets/shared' : appearance.assets;
+        final bytes = await rootBundle.load('$folder/$name.png');
         final codec = await ui.instantiateImageCodec(
           bytes.buffer.asUint8List(),
+          targetWidth: name == 'accessories' ? null : 1774,
+          targetHeight: name == 'accessories' ? null : 887,
         );
         final frame = await codec.getNextFrame();
         codec.dispose();
         return frame.image;
       }),
     );
-    final bounds = await _trimCells(images[1]);
-    final closed = await _makeClosedFace(images[0]);
-    final babyClosed = await _makeClosedFace(images[2]);
-    final adultClosed = await _makeClosedFace(images[3]);
-    if (!mounted) {
+    final bounds =
+        (await SpriteSheet.load('assets/pets/shared/accessories.png', 3, 3))
+            .cells;
+    final fittedClothing =
+        await SpriteSheet.load('${appearance.assets}/outfits.png', 2, 1);
+    final fittedBackpack =
+        await SpriteSheet.load('assets/pets/shared/backpack.png', 1, 1);
+    final fittedEars = appearance == PetAppearance.tyapa
+        ? await SpriteSheet.load('${appearance.assets}/ears.png', 2, 3,
+            regions: const [
+                Rect.fromLTWH(100, 20, 400, 365),
+                Rect.fromLTWH(560, 20, 400, 365),
+                Rect.fromLTWH(100, 390, 400, 440),
+                Rect.fromLTWH(560, 390, 400, 440),
+                Rect.fromLTWH(50, 835, 450, 680),
+                Rect.fromLTWH(560, 835, 450, 680),
+              ])
+        : null;
+    final closed = await _makeClosedFace(images[0], appearance);
+    final babyClosed = await _makeClosedFace(images[2], appearance);
+    final adultClosed = await _makeClosedFace(images[3], appearance);
+    if (!mounted || revision != loadRevision) {
       closed.dispose();
       babyClosed.dispose();
       adultClosed.dispose();
@@ -81,6 +113,9 @@ class _MoniSceneState extends State<MoniScene>
       rig = images[0];
       accessories = images[1];
       accessoryBounds = bounds;
+      clothing = fittedClothing;
+      backpack = fittedBackpack;
+      ears = fittedEars;
       closedFace = closed;
       stageRigs.addAll({PetStage.baby: images[2], PetStage.adult: images[3]});
       stageFaces
@@ -90,16 +125,16 @@ class _MoniSceneState extends State<MoniScene>
   }
 
   // Keep the neutral outline; replace only the painted facial expression.
-  Future<ui.Image> _makeClosedFace(ui.Image image) async {
+  Future<ui.Image> _makeClosedFace(
+      ui.Image image, PetAppearance appearance) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     const target = Rect.fromLTWH(0, 0, 510, 434);
     final paint = Paint()..filterQuality = FilterQuality.high;
-    canvas.drawImageRect(
-        image, const Rect.fromLTWH(480, 65, 449, 383), target, paint);
+    canvas.drawImageRect(image, _headSource(appearance), target, paint);
     canvas.saveLayer(target, Paint());
     canvas.drawImageRect(
-        image, const Rect.fromLTWH(480, 468, 450, 388), target, paint);
+        image, PetRigLayout(appearance, PetStage.teen).closed, target, paint);
     canvas.save();
     canvas.translate(510 * .53, 434 * .58);
     canvas.scale(510 * .455, 434 * .385);
@@ -115,53 +150,6 @@ class _MoniSceneState extends State<MoniScene>
     final result = await picture.toImage(510, 434);
     picture.dispose();
     return result;
-  }
-
-  Future<List<Rect>> _trimCells(ui.Image image) async {
-    final bytes = (await image.toByteData())!;
-    final cells = <Rect>[];
-    final cw = image.width / 4, ch = image.height / 3;
-    for (var i = 0; i < 12; i++) {
-      final x0 = ((i % 4) * cw + 3).ceil();
-      final x1 = ((i % 4 + 1) * cw - 3).floor();
-      final y0 = ((i ~/ 4) * ch + 3).ceil();
-      final y1 = ((i ~/ 4 + 1) * ch - 3).floor();
-      final rows = List<bool>.filled(y1 - y0, false);
-      final cols = List<bool>.filled(x1 - x0, false);
-      for (var y = y0; y < y1; y++) {
-        for (var x = x0; x < x1; x++) {
-          if (bytes.getUint8((y * image.width + x) * 4 + 3) > 70) {
-            rows[y - y0] = true;
-            cols[x - x0] = true;
-          }
-        }
-      }
-      final (top, bottom) = _mainSpan(rows);
-      final (left, right) = _mainSpan(cols);
-      cells.add(Rect.fromLTRB((x0 + left).toDouble(), (y0 + top).toDouble(),
-          (x0 + right).toDouble(), (y0 + bottom).toDouble()));
-    }
-    return cells;
-  }
-
-  static (int, int) _mainSpan(List<bool> filled) {
-    final runs = <(int, int)>[];
-    int? start;
-    for (var i = 0; i <= filled.length; i++) {
-      final on = i < filled.length && filled[i];
-      if (on && start == null) start = i;
-      if (!on && start != null) {
-        runs.add((start, i));
-        start = null;
-      }
-    }
-    if (runs.isEmpty) return (0, filled.length);
-    final longest = runs.fold(0, (m, r) => math.max(m, r.$2 - r.$1));
-    final kept = [
-      for (final r in runs)
-        if (r.$2 - r.$1 >= longest * .35) r
-    ];
-    return (kept.first.$1, kept.last.$2);
   }
 
   void sync() {
@@ -181,19 +169,34 @@ class _MoniSceneState extends State<MoniScene>
   @override
   void didUpdateWidget(covariant MoniScene old) {
     super.didUpdateWidget(old);
+    if (old.appearance != widget.appearance) {
+      _disposeImages();
+      rig = accessories = closedFace = null;
+      clothing = null;
+      ears = null;
+      stageRigs.clear();
+      stageFaces.clear();
+      reaction?.cancel();
+      happy = false;
+      _load();
+    }
     sync();
   }
 
-  @override
-  void dispose() {
-    ticker.dispose();
-    reaction?.cancel();
+  void _disposeImages() {
     closedFace?.dispose();
     rig?.dispose();
     accessories?.dispose();
     for (final image in [...stageRigs.values, ...stageFaces.values]) {
       image.dispose();
     }
+  }
+
+  @override
+  void dispose() {
+    ticker.dispose();
+    reaction?.cancel();
+    _disposeImages();
     super.dispose();
   }
 
@@ -227,6 +230,10 @@ class _MoniSceneState extends State<MoniScene>
                 stageRigs[widget.stage] ?? rig,
                 widget.stage,
                 widget.celebrationProgress,
+                widget.appearance,
+                clothing,
+                ears,
+                backpack,
               ),
               size: Size.infinite,
             ),
@@ -234,6 +241,9 @@ class _MoniSceneState extends State<MoniScene>
         ),
       );
 }
+
+Rect _headSource(PetAppearance appearance) =>
+    PetRigLayout(appearance, PetStage.teen).head;
 
 class _MoniPainter extends CustomPainter {
   _MoniPainter(
@@ -247,7 +257,12 @@ class _MoniPainter extends CustomPainter {
       this.closedFace,
       this.faceRig,
       this.stage,
-      this.celebrationProgress);
+      this.celebrationProgress,
+      this.appearance,
+      this.clothing,
+      this.ears,
+      this.backpack);
+  final SpriteSheet? backpack;
   final ui.Image? rig, accessories;
   final double t;
   final bool happy;
@@ -258,6 +273,9 @@ class _MoniPainter extends CustomPainter {
   final ui.Image? faceRig;
   final PetStage stage;
   final double? celebrationProgress;
+  final PetAppearance appearance;
+  final SpriteSheet? clothing;
+  final SpriteSheet? ears;
   @override
   void paint(Canvas c, Size size) {
     final s = math.min(size.width / 470, size.height / 550);
@@ -294,7 +312,7 @@ class _MoniPainter extends CustomPainter {
     c.rotate(math.sin(progress * math.pi * 6) * .035 * joy);
     c.translate(-320, -593);
     void part(Rect from, Rect to,
-        {double angle = 0, Offset? pivot, bool face = false}) {
+        {double angle = 0, Offset? pivot, bool face = false, ui.Image? image}) {
       c.save();
       if (angle != 0) {
         final p = pivot ?? to.center;
@@ -302,76 +320,127 @@ class _MoniPainter extends CustomPainter {
         c.rotate(angle);
         c.translate(-p.dx, -p.dy);
       }
-      c.drawImageRect(face ? faceRig! : rig!, from, to, paint);
+      c.drawImageRect(image ?? (face ? faceRig! : rig!), from, to, paint);
       c.restore();
     }
 
     final breath = moniIdleWave(t, 4) * 1.5;
+    final layout = PetRigLayout(appearance, stage);
+    final selected = {...outfit.values, if (equipped != null) equipped!};
+    void accessory(String id, Offset center, double width, {double angle = 0}) {
+      if (!selected.contains(id) ||
+          accessories == null ||
+          accessoryBounds.length != 9) {
+        return;
+      }
+      final source = accessoryBounds[accessoryCells[id]!];
+      final height = width * source.height / source.width;
+      c.save();
+      c.translate(center.dx, center.dy);
+      c.rotate(angle);
+      c.drawImageRect(accessories!, source,
+          Rect.fromLTWH(-width / 2, -height / 2, width, height), paint);
+      c.restore();
+    }
+
     part(
-      const Rect.fromLTWH(42, 469, 397, 377),
-      const Rect.fromLTWH(121, 382, 162, 154),
+      layout.tail,
+      layout.tailTarget,
       angle: moniIdleWave(t, 4) * .06 + math.sin(progress * 48) * .20 * joy,
       pivot: const Offset(254, 516),
     );
-    part(
-      const Rect.fromLTWH(42, 90, 410, 367),
-      Rect.fromLTWH(214, 406 + breath, 209, 187 - breath),
-    );
+    if (selected.contains('backpack') && backpack != null) {
+      final source = backpack!.cells.first;
+      final target = layout.backpackTarget(breath);
+      final fitted = applyBoxFit(BoxFit.contain, source.size, target.size);
+      c.drawImageRect(backpack!.image, source,
+          Alignment.center.inscribe(fitted.destination, target), paint);
+    }
+    final bodyTarget = layout.bodyTarget(breath);
+    final dressed = selected.contains('raincoat')
+        ? 1
+        : selected.contains('tshirt')
+            ? 0
+            : null;
+    if (dressed != null && clothing != null) {
+      c.drawImageRect(
+          clothing!.image, clothing!.cells[dressed], bodyTarget, paint);
+    } else {
+      part(layout.body, bodyTarget);
+    }
+    if (selected.contains('backpack')) {
+      final strap = layout.backpackStrap.shift(Offset(0, breath));
+      c.drawPath(strap.shift(const Offset(1.5, 2)), Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 12
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0x44372449));
+      c.drawPath(strap, Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 9
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFF9A76BC));
+      c.drawPath(strap, Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFFC8A9E3));
+    }
+    accessory('scarf', Offset(350, 448 + breath), 112, angle: -.10);
+    accessory('bowtie', Offset(358, 441 + breath), 62, angle: -.13);
+    accessory('balloon', Offset(458, 508 + breath), 110,
+        angle: moniIdleWave(t, 2) * .035);
     c.save();
     c.translate(0, breath);
     c.translate(354, 412);
     c.rotate(moniIdleWave(t, 3) * .008);
     c.translate(-354, -412);
+    final leftEar = layout.leftEar;
+    final rightEar = layout.rightEar;
+    void drawLeftEar() => part(
+          ears?.cells[layout.age * 2] ?? layout.leftSource,
+          leftEar,
+          angle: layout.leftAngle +
+              moniIdleWave(t, 2) * .015 -
+              jump * .10 +
+              encore * .08,
+          pivot: layout.leftPivot,
+          face: true,
+          image: ears?.image,
+        );
+    if (appearance != PetAppearance.tyapa) drawLeftEar();
     part(
-      const Rect.fromLTWH(944, 48, 390, 403),
-      const Rect.fromLTWH(88, 151, 203, 210),
-      angle: -.12 + moniIdleWave(t, 2) * .015 - jump * .10 + encore * .08,
-      pivot: const Offset(258, 334),
+      ears?.cells[layout.age * 2 + 1] ?? layout.rightSource,
+      rightEar,
+      angle: layout.rightAngle -
+          moniIdleWave(t, 2) * .015 +
+          jump * .12 -
+          encore * .06,
+      pivot: layout.rightPivot,
       face: true,
-    );
-    part(
-      const Rect.fromLTWH(1363, 43, 399, 411),
-      const Rect.fromLTWH(335, 90, 179, 227),
-      angle: .04 - moniIdleWave(t, 2) * .015 + jump * .12 - encore * .06,
-      pivot: const Offset(371, 287),
-      face: true,
+      image: ears?.image,
     );
     final blink = (t > 2.8 && t < 2.94) ||
         (t > 6.4 && t < 6.54) ||
         (t > 10.1 && t < 10.24);
     if ((blink || happy || jump > .7 || encore > .3) && closedFace != null) {
       c.drawImageRect(closedFace!, const Rect.fromLTWH(0, 0, 510, 434),
-          const Rect.fromLTWH(217, 216, 255, 217), paint);
+          layout.headTarget, paint);
     } else {
-      part(const Rect.fromLTWH(480, 65, 449, 383),
-          const Rect.fromLTWH(217, 216, 255, 217),
-          face: true);
+      part(_headSource(appearance), layout.headTarget, face: true);
     }
-    if (accessories != null && accessoryBounds.length == 12) {
-      final a = accessories!;
-      final selected = {...outfit.values, if (equipped != null) equipped!};
-      const placements = {
-        'raincoat': (6, 330.0, 584.0, 192.0, 0.0),
-        'tshirt': (5, 330.0, 574.0, 176.0, 0.0),
-        'backpack': (7, 404.0, 528.0, 98.0, .10),
-        'scarf': (3, 338.0, 528.0, 132.0, 0.0),
-        'bowtie': (4, 342.0, 505.0, 110.0, 0.0),
-        'glasses': (2, 340.0, 381.0, 176.0, -.18),
-        'cap': (1, 350.0, 268.0, 178.0, -.10),
-        'bow': (0, 262.0, 262.0, 96.0, -.35),
-        'balloon': (8, 466.0, 600.0, 92.0, .10),
-      };
-      for (final MapEntry(key: id, value: placement) in placements.entries) {
-        if (!selected.contains(id)) continue;
-        final source = accessoryBounds[placement.$1];
-        final w = placement.$4, h = w * source.height / source.width;
-        c.save();
-        c.translate(placement.$2, placement.$3 - h / 2);
-        c.rotate(placement.$5);
-        c.drawImageRect(a, source, Rect.fromLTWH(-w / 2, -h / 2, w, h), paint);
-        c.restore();
-      }
-    }
+    if (appearance == PetAppearance.tyapa) drawLeftEar();
+    accessory(
+        'bow',
+        appearance == PetAppearance.tyapa
+            ? const Offset(254, 296)
+            : const Offset(268, 281),
+        62,
+        angle: -.25);
+    accessory(
+        'cap', layout.capCenter, 148,
+        angle: -.16);
+    accessory('glasses', layout.glassesCenter, 166, angle: -.25);
     c.restore();
     c.restore();
   }
@@ -380,6 +449,8 @@ class _MoniPainter extends CustomPainter {
   bool shouldRepaint(covariant _MoniPainter old) =>
       old.rig != rig ||
       old.faceRig != faceRig ||
+      old.clothing != clothing ||
+      old.ears != ears ||
       old.stage != stage ||
       old.celebrationProgress != celebrationProgress ||
       old.closedFace != closedFace ||
