@@ -516,7 +516,7 @@ void main() {
         <String>[],
         ['saver'],
       ]);
-      expect(events, [null, null, 'doctor', null, 'friend_birthday', null]);
+      expect(events, [null, null, 'debt', null, 'found_coins', null]);
 
       final last = await s.repository.loadProfile();
       expect(last.currentDay.number, 6);
@@ -728,16 +728,16 @@ void main() {
 
     test('только в дни расписания, по очереди из events.json', () {
       expect(picks(PetStage.adult, 25), {
-        3: 'doctor',
-        5: 'friend_birthday',
-        8: 'ad',
-        10: 'found_coins',
-        13: 'rain',
-        15: 'broken_bulb',
-        18: 'help_neighbor',
-        20: 'holiday',
-        23: 'doctor',
-        25: 'friend_birthday',
+        3: 'debt',
+        5: 'found_coins',
+        8: 'bank_code',
+        10: 'umbrella',
+        13: 'safe_secrets',
+        15: 'friend_birthday',
+        18: 'prize',
+        20: 'rain',
+        23: 'yard_sale',
+        25: 'safe_online',
       });
       expect(picks(PetStage.adult, 25).keys,
           _content.economy.params.events.eventDaysUpTo(25));
@@ -771,7 +771,7 @@ void main() {
       PetStage growing(int day) => day < 6 ? PetStage.egg : PetStage.teen;
       expect(picker().pick(3, growing)?.id, 'found_coins');
       expect(picker().pick(5, growing), isNull);
-      expect(picker().pick(8, growing)?.id, 'ad');
+      expect(picker().pick(8, growing)?.id, 'bank_code');
       expect(picker().pick(4, growing), isNull);
     });
 
@@ -804,13 +804,13 @@ void main() {
         return profile;
       }
 
-      expect((await play([false, true])).currentDay.event?.id, 'doctor');
+      expect((await play([false, true])).currentDay.event?.id, 'debt');
       expect((await play([false, false])).currentDay.event?.id, 'found_coins');
       final grownOnEventDay =
           await play([false, false, true, false, false, false, false]);
       expect(grownOnEventDay.currentDay.number, 8);
       expect(grownOnEventDay.progress.stage, PetStage.baby);
-      expect(grownOnEventDay.currentDay.event?.id, 'rain');
+      expect(grownOnEventDay.currentDay.event?.id, 'umbrella');
     });
 
     test('событие дня хранит самую большую цену выбора', () {

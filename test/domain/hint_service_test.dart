@@ -31,6 +31,25 @@ void main() {
     }
   });
 
+  test('«Безопасно или опасно?»: подсказка про обманщика, а не про покупки', () {
+    final task = catalog.byId('payments_sort_safety')!;
+    final variant = task.variant(TaskDifficulty.easy);
+    final payload = variant.payload as SortPayload;
+    final card = payload.cards.first;
+    final other = payload.bins.firstWhere((b) => b != card.bin);
+    final wrong = hints.hint(variant, answer: SortAnswer({card.id: other}));
+    expect(wrong.text, contains(card.label));
+    expect(wrong.text, contains('обманщику'));
+    expectKind(wrong.text);
+    final start = hints.hint(variant);
+    expect(start.text, contains('опасно'));
+    expect(catalog.texts.sort.bins.keys, containsAll(payload.bins));
+    expect(catalog.tutorialFor(task).first.text, contains('ситуации'));
+    for (final difficulty in TaskDifficulty.values) {
+      expect(task.variantsOf(difficulty).length, greaterThanOrEqualTo(2));
+    }
+  });
+
   test('SORT: подсказка называет карточку не на своём месте', () {
     final variant = variantOf(TaskType.sort);
     final payload = variant.payload as SortPayload;

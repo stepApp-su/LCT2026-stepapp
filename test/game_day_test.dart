@@ -242,4 +242,67 @@ void main() {
     expect(restored.todayEvent!.id, isNot(event.id));
     expect(restored.dayHistory.map((e) => e['event']), contains(event.title));
   });
+
+  test('долг возвращают утром, и об этом приходит новость', () async {
+    final state = fresh();
+    nextDay(state);
+    nextDay(state);
+    final event = state.todayEvent!;
+    expect(event.id, 'debt');
+    expect(event.style, EventStyle.book);
+    expect(event.show.pages, isNotEmpty);
+    final before = state.wallet.wallet.balance;
+    final outcome = state.resolveEvent('lend');
+    expect(outcome, isA<EventResolved>());
+    expect(state.wallet.wallet.balance, before - 10);
+    expect(state.paybacks, hasLength(1));
+    await state.flush();
+    final restored = GameController(config,
+        content: content, saved: await state.repository.load());
+    expect(restored.paybacks, hasLength(1));
+    nextDay(restored);
+    expect(restored.paybacks, isEmpty);
+    expect(restored.news.single, contains('Мишка вернул долг'));
+    expect(restored.news.single, contains('10 монет'));
+    final back = restored.wallet.journal
+        .where((t) => t.sourceId == 'payback:debt')
+        .toList();
+    expect(back.single.amount, 10);
+    expect(back.single.dayNumber, 4);
+    restored.clearNews();
+    expect(restored.news, isEmpty);
+  });
+
+  test('осторожный ответ в событии приближает звание «Осторожный»', () async {
+    final state = fresh();
+    while (state.day < 8) {
+      nextDay(state);
+    }
+    expect(state.todayEvent!.id, 'bank_code');
+    expect(state.carefulCount, 0);
+    expect(state.resolveEvent('adult'), isA<EventResolved>());
+    expect(state.carefulCount, 1);
+    await state.flush();
+    final restored = GameController(config,
+        content: content, saved: await state.repository.load());
+    expect(restored.carefulCount, 1);
+    final careful = [
+      for (final event in content.events.events)
+        for (final option in event.options)
+          if (option.careful) '${event.id}/${option.id}'
+    ];
+    expect(careful, containsAll(['bank_code/adult', 'prize/close', 'safe_secrets/great']));
+    expect(careful, isNot(contains('bank_code/tell')));
+  });
+
+  test('события: копилка, счёт карточек и подстановки из контента', () {
+    final state = fresh();
+    final umbrella = content.events.byId('umbrella')!;
+    final savings = umbrella.options.firstWhere((o) => o.fromSavings);
+    expect(savings.cost, 15);
+    expect(state.eventLine('{pet}: 15 {coin}'), '${state.petName}: 15 монет');
+    final swipe = content.events.byId('safe_secrets')!;
+    expect(swipe.optionForScore(swipe.show.cards.length).id, 'great');
+    expect(swipe.optionForScore(0).id, 'ok');
+  });
 }

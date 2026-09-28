@@ -16,6 +16,7 @@ final class TitleFacts {
     required this.completedTaskIds,
     required this.reachedGoalIds,
     required this.savings,
+    required this.careful,
   });
 
   factory TitleFacts.create({
@@ -23,16 +24,19 @@ final class TitleFacts {
     Iterable<String> completedTaskIds = const [],
     Iterable<String> reachedGoalIds = const [],
     int savings = 0,
+    int careful = 0,
   }) {
     if (dayNumber < 1) {
       throw ArgumentError.value(dayNumber, 'dayNumber', 'Дни нумеруются с 1');
     }
     if (savings < 0) throw ArgumentError.value(savings, 'savings', '≥ 0');
+    if (careful < 0) throw ArgumentError.value(careful, 'careful', '≥ 0');
     return TitleFacts._(
       dayNumber: dayNumber,
       completedTaskIds: Set.unmodifiable(completedTaskIds),
       reachedGoalIds: Set.unmodifiable(reachedGoalIds),
       savings: savings,
+      careful: careful,
     );
   }
 
@@ -47,6 +51,7 @@ final class TitleFacts {
   final Set<String> completedTaskIds;
   final Set<String> reachedGoalIds;
   final int savings;
+  final int careful;
 }
 
 final class EarnedTitle {
@@ -186,6 +191,7 @@ final class TitleService {
         capped(facts.reachedGoalIds.length, count),
       ReserveCondition(days: final reserveDays) =>
         capped(facts.savings, reserveDays * dailyNeedsCost),
+      CarefulCondition(:final count) => capped(facts.careful, count),
     };
   }
 
@@ -245,6 +251,7 @@ final class TitleService {
         ReserveCondition(days: final reserveDays) => dailyNeedsCost > 0 &&
             days.last.facts.mandatoryPaid &&
             facts.savings >= reserveDays * dailyNeedsCost,
+        CarefulCondition(:final count) => facts.careful >= count,
       };
 
   int _longestRun(List<GrowthDay> days, DaysCondition condition) {

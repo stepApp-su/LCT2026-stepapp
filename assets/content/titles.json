@@ -56,6 +56,14 @@
       "condition": { "type": "goals", "count": 1 }
     },
     {
+      "id": "careful",
+      "title": "Осторожный",
+      "description": "{count} раза уберегли деньги от обмана.",
+      "iconId": "icon_title_careful",
+      "competenceId": "money_operation",
+      "condition": { "type": "careful", "count": 3 }
+    },
+    {
       "id": "budget_master",
       "title": "Мастер бюджета",
       "description": "{count} {day} покупали нужное и держались своего плана.",

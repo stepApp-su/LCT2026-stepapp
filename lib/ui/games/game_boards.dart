@@ -344,7 +344,8 @@ class _SortBoardState extends State<SortBoard> {
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           child: Center(
                             child: Text(
-                              bin == payload.bins.first ? '🧺' : '🎁',
+                              board.texts.sort.binEmoji[bin] ??
+                                  (bin == payload.bins.first ? '🧺' : '🎁'),
                               style: const TextStyle(fontSize: 40),
                             ),
                           ),

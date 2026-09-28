@@ -96,16 +96,17 @@ final class HintService {
       for (final card in payload.cards)
         if (placed[card.id] case final bin? when bin != card.bin) card
     ];
+    final kind = payload.bins.contains('safe') ? 'safe' : 'sort';
     if (wrong.length == 1) {
-      return TaskHint(_t('sortWrong', {'card': wrong.first.label}));
+      return TaskHint(_t('${kind}Wrong', {'card': wrong.first.label}));
     }
     if (wrong.length > 1) {
-      return TaskHint(_t('sortWrongMany',
+      return TaskHint(_t('${kind}WrongMany',
           {'count': _cards(wrong.length), 'card': wrong.first.label}));
     }
     final waiting = [for (final card in payload.cards) if (!placed.containsKey(card.id)) card];
     if (waiting.isEmpty) return TaskHint(_t('sortReady'), ready: true);
-    if (placed.isEmpty) return TaskHint(_t('sortStart', {'card': waiting.first.label}));
+    if (placed.isEmpty) return TaskHint(_t('${kind}Start', {'card': waiting.first.label}));
     return TaskHint(
         _t('sortRest', {'count': _cards(waiting.length), 'card': waiting.first.label}));
   }

@@ -10,6 +10,7 @@ export 'economy.dart';
 export 'economy_config.dart';
 export 'economy_params.dart';
 export 'event_catalog.dart';
+export 'event_show.dart';
 export 'glossary_catalog.dart';
 export 'goal_catalog.dart';
 export 'growth.dart';

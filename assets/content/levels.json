@@ -21,6 +21,7 @@
     { "taskId": "planning_distribute_day", "level": 1 },
     { "taskId": "planning_choice_enough", "level": 2 },
     { "taskId": "savings_board_dream", "level": 3 },
+    { "taskId": "payments_sort_safety", "level": 3 },
     { "taskId": "payments_order_prices", "level": 4 },
     { "taskId": "payments_basket_shop", "level": 5 },
     { "taskId": "payments_cashier_shift", "level": 6 },

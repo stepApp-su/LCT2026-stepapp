@@ -114,14 +114,25 @@ final class TaskReward {
 // --- тексты интерфейса -------------------------------------------------------
 
 final class SortTexts {
-  const SortTexts({required this.instruction, required this.notAllPlaced});
+  const SortTexts({
+    required this.instruction,
+    required this.notAllPlaced,
+    this.bins = const {},
+    this.binEmoji = const {},
+  });
 
   final String instruction;
   final String notAllPlaced;
+  final Map<String, String> bins;
+  final Map<String, String> binEmoji;
 
   factory SortTexts.fromJson(Map<String, Object?> json) => SortTexts(
         instruction: json['instruction'] as String,
         notAllPlaced: json['notAllPlaced'] as String,
+        bins: Map.unmodifiable(
+            ((json['bins'] as Map?) ?? const {}).cast<String, String>()),
+        binEmoji: Map.unmodifiable(
+            ((json['binEmoji'] as Map?) ?? const {}).cast<String, String>()),
       );
 }
 
@@ -891,6 +902,7 @@ final class TaskCatalog {
     required this.texts,
     required this.tasks,
     required this.tutorials,
+    required this.taskTutorials,
   });
 
   factory TaskCatalog.create({
@@ -899,7 +911,16 @@ final class TaskCatalog {
     required TaskTexts texts,
     required List<TaskDef> tasks,
     Map<TaskType, List<TutorialStep>> tutorials = const {},
+    Map<String, List<TutorialStep>> taskTutorials = const {},
   }) {
+    for (final entry in taskTutorials.entries) {
+      if (entry.value.isEmpty) {
+        throw ArgumentError.value(entry.key, 'taskTutorials', 'обучение без шагов');
+      }
+      if (!tasks.any((task) => task.id == entry.key)) {
+        throw ArgumentError.value(entry.key, 'taskTutorials', 'нет такого задания');
+      }
+    }
     for (final entry in tutorials.entries) {
       if (entry.value.isEmpty) {
         throw ArgumentError.value(entry.key.name, 'tutorials', 'обучение без шагов');
@@ -933,6 +954,7 @@ final class TaskCatalog {
       texts: texts,
       tasks: List.unmodifiable([...tasks]..sort((a, b) => a.order.compareTo(b.order))),
       tutorials: Map.unmodifiable(tutorials),
+      taskTutorials: Map.unmodifiable(taskTutorials),
     );
   }
 
@@ -1188,11 +1210,21 @@ final class TaskCatalog {
                 TutorialStep.fromJson(raw),
             ],
         },
+        taskTutorials: {
+          for (final entry
+              in jsonMap(json['taskTutorials'] ?? const {}, 'taskTutorials').entries)
+            entry.key: [
+              for (final raw in jsonMaps(entry.value, 'taskTutorials.${entry.key}'))
+                TutorialStep.fromJson(raw),
+            ],
+        },
       );
 
   final Map<TaskType, List<TutorialStep>> tutorials;
+  final Map<String, List<TutorialStep>> taskTutorials;
 
-  List<TutorialStep> tutorialFor(TaskDef task) => tutorials[task.type] ?? const [];
+  List<TutorialStep> tutorialFor(TaskDef task) =>
+      taskTutorials[task.id] ?? tutorials[task.type] ?? const [];
 
   final int schemaVersion;
   final List<TaskTheme> themes;

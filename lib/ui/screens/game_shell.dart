@@ -20,6 +20,7 @@ import '../widgets/moni_scene.dart';
 import '../widgets/name_picker.dart';
 import '../widgets/pet_celebration.dart';
 import '../widgets/room_view.dart';
+import '../widgets/story_art.dart';
 import '../widgets/bedtime_screen.dart';
 import '../widgets/coach.dart';
 import '../widgets/coin_icon.dart';
@@ -30,6 +31,7 @@ import '../game_controller.dart';
 part 'game_sections.dart';
 part '../widgets/game_components.dart';
 part 'more_pages.dart';
+part 'event_pages.dart';
 
 class GameShell extends StatefulWidget {
   const GameShell({super.key, required this.state});
@@ -44,6 +46,7 @@ class _GameShellState extends State<GameShell> {
   Timer? idleTimer;
   bool celebrating = false;
   bool coachQueued = false;
+  bool newsQueued = false;
   GameController get s => widget.state;
 
   @override
@@ -52,10 +55,12 @@ class _GameShellState extends State<GameShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && s.bubble == null) s.greet();
       if (mounted) showCelebration();
+      showNews();
       maybeCoach();
     });
     s.addListener(showCelebration);
     s.addListener(maybeCoach);
+    s.addListener(showNews);
     idleTimer = Timer.periodic(const Duration(seconds: 45), (_) {
       if (mounted && page == 0 && ModalRoute.of(context)?.isCurrent == true) {
         s.idle();
@@ -67,6 +72,7 @@ class _GameShellState extends State<GameShell> {
   void dispose() {
     s.removeListener(showCelebration);
     s.removeListener(maybeCoach);
+    s.removeListener(showNews);
     idleTimer?.cancel();
     super.dispose();
   }
@@ -90,8 +96,22 @@ class _GameShellState extends State<GameShell> {
       if (!mounted) return;
       s.acknowledgeCelebration();
       celebrating = false;
+      showNews();
       if (next == 'plan') go(1);
       maybeCoach();
+    });
+  }
+
+  void showNews() {
+    if (!mounted || newsQueued || celebrating || s.celebration != null) return;
+    if (s.news.isEmpty) return;
+    newsQueued = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      newsQueued = false;
+      if (!mounted || s.news.isEmpty || s.celebration != null) return;
+      final lines = s.news;
+      s.clearNews();
+      toast(lines.join('\n'));
     });
   }
 
