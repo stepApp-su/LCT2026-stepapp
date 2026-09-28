@@ -59,6 +59,17 @@ class _DayEndScreenState extends State<DayEndScreen> {
   bool morning = false;
 
   GameController get s => widget.state;
+
+  @override
+  void initState() {
+    super.initState();
+    final titles = widget.event['titles'] as List? ?? const [];
+    if (titles.isNotEmpty) {
+      s.fx('title_earned');
+    } else if (((widget.event['points'] as num?)?.toInt() ?? 0) > 0) {
+      s.fx('tally');
+    }
+  }
   Map<String, dynamic> get e => widget.event;
 
   int _int(String key) => (e[key] as num?)?.toInt() ?? 0;
@@ -86,6 +97,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
       if (!mounted) return;
     }
     setState(() => morning = true);
+    s.fx('coin');
   }
 
   @override

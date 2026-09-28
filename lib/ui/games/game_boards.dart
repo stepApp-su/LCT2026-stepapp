@@ -32,6 +32,7 @@ final class BoardContext {
     required this.onChanged,
     required this.onSubmit,
     this.onSituation,
+    this.sound,
   });
 
   final TaskDef task;
@@ -45,6 +46,9 @@ final class BoardContext {
   final ValueChanged<TaskAnswer?> onChanged;
   final ValueChanged<TaskAnswer> onSubmit;
   final void Function(HintSituation Function() read)? onSituation;
+
+  /// Короткий эффект по id из звуковой схемы; в тестах null — тишина.
+  final void Function(String event)? sound;
 
   bool get showMarks => check != null && check!.verdict != TaskVerdict.incomplete;
 }
@@ -171,12 +175,14 @@ class _SortBoardState extends State<SortBoard> {
       placed[cardId] = bin;
       selected = null;
     });
+    board.sound?.call('snap');
     _report();
   }
 
   void _unplace(String cardId) {
     if (board.locked) return;
     setState(() => placed.remove(cardId));
+    board.sound?.call('snap');
     _report();
   }
 
@@ -433,12 +439,14 @@ class _CoinsBoardState extends State<CoinsBoard> {
   void _add(int value) {
     if (board.locked || _used(value) >= (payload.wallet[value] ?? 0)) return;
     setState(() => counter.add(value));
+    board.sound?.call('coin');
     _report();
   }
 
   void _removeAt(int index) {
     if (board.locked) return;
     setState(() => counter.removeAt(index));
+    board.sound?.call('ui_tick');
     _report();
   }
 
@@ -669,6 +677,7 @@ class _DistributeBoardState extends State<DistributeBoard> {
       return;
     }
     setState(() => amounts[counter.id] = next);
+    board.sound?.call('ui_tick');
     _report();
   }
 
@@ -979,6 +988,7 @@ class _OrderBoardState extends State<OrderBoard> {
       order[index] = a;
       picked = null;
     });
+    board.sound?.call('snap');
     _report();
   }
 
@@ -1181,6 +1191,7 @@ class _BasketBoardState extends State<BasketBoard> {
     setState(() {
       if (!basket.remove(product.id)) basket.add(product.id);
     });
+    board.sound?.call('snap');
     board.onChanged(basket.isEmpty ? null : BasketAnswer({...basket}));
   }
 
@@ -1406,6 +1417,7 @@ class _WeekBoardState extends State<WeekBoard> {
     final next = saved[day] + delta * payload.step;
     if (board.locked || next < 0 || next > payload.maxSavePerDay) return;
     setState(() => saved[day] = next);
+    board.sound?.call('ui_tick');
     _report();
   }
 

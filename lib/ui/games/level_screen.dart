@@ -404,7 +404,11 @@ class _Header extends StatelessWidget {
           SizedBox(
             width: 84,
             height: 92,
-            child: MoniScene(motion: state.motion, stage: state.stage, outfit: state.outfit),
+            child: MoniScene(
+                motion: state.motion,
+                stage: state.stage,
+                outfit: state.outfit,
+                onPet: () => state.fx('pet_tap')),
           ),
           const SizedBox(width: 8),
           Expanded(
