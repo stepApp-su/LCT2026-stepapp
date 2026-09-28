@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'pet_appearance.dart';
+import 'room_layout.dart';
 
 import '../content/content_loader.dart';
 import '../content/content_repository.dart';
@@ -93,7 +95,8 @@ class GameController extends ChangeNotifier {
     _restore(saved);
   }
 
-  static const String character = 'fox';
+  late PetAppearance appearance;
+  String get character => appearance.character;
   static const Map<String, String> _legacyItems = {'ball': 'bouncy_ball'};
 
   final Map<String, dynamic> config;
@@ -128,6 +131,10 @@ class GameController extends ChangeNotifier {
   Map<String, dynamic>? celebration;
   PetStage get stage => progress.stage;
   late Set<String> wishlist;
+  late Set<String> hiddenRoomItems;
+  late Map<String, String> roomSelection;
+  Map<String, String> get visibleRoomItems => resolveRoomItems(
+      roomSelection, {...shop.owned, ...goals.reachedGoalIds}, hiddenRoomItems);
   late Map<String, String> outfit;
   late List<String> legacyCompletedTasks;
   late Map<String, int> bestStars;
@@ -187,7 +194,8 @@ class GameController extends ChangeNotifier {
     sound = data['sound'] != false;
     simpleMode = data['simpleMode'] != false;
     onboarded = data['onboarded'] == true;
-    petName = data['petName'] as String? ?? 'Мони';
+    appearance = PetAppearance.restore(data['character']);
+    petName = data['petName'] as String? ?? appearance.name;
     growth = GrowthService(content.economy.growth);
     titles = TitleService.forContent(content.titles,
         tasks: content.tasks, shop: content.shop);
@@ -215,6 +223,11 @@ class GameController extends ChangeNotifier {
     }
     if (data['confirmed'] == true) plan.confirm();
     wishlist = {...(data['wishlist'] as List? ?? []).cast<String>()};
+    hiddenRoomItems = {
+      ...(data['hiddenRoomItems'] as List? ?? []).cast<String>()
+    };
+    roomSelection =
+        (data['roomSelection'] as Map? ?? {}).cast<String, String>();
     outfit = (data['outfit'] as Map? ?? {}).cast<String, String>();
     legacyCompletedTasks =
         (data['legacyCompletedTasks'] as List? ?? []).cast<String>();
@@ -280,8 +293,8 @@ class GameController extends ChangeNotifier {
             run.number == levelHistory.length + 1
         ? run
         : null;
-    eventPicker = DayEventPicker(
-        schedule: params.events, catalog: content.events);
+    eventPicker =
+        DayEventPicker(schedule: params.events, catalog: content.events);
     eventChoices = {
       for (final e in (data['eventChoices'] as Map? ?? {}).entries)
         int.parse('${e.key}'): '${e.value}'
@@ -321,6 +334,21 @@ class GameController extends ChangeNotifier {
                   when spot.type == RoomSpotType.item)
                 spot.id: item.id
           };
+    if (storedPlaced == null) {
+      placed.removeWhere((_, id) => hiddenRoomItems.contains(id));
+      for (final entry in roomSelection.entries) {
+        final candidates = roomPlaces[entry.key];
+        if (candidates == null) continue;
+        placed.removeWhere((_, id) => candidates.contains(id));
+        if (candidates.contains(entry.value) && shop.isOwned(entry.value) &&
+            !hiddenRoomItems.contains(entry.value)) {
+          final spot = room.spotFor(entry.value);
+          if (spot != null && spot.type == RoomSpotType.item) {
+            placed[spot.id] = entry.value;
+          }
+        }
+      }
+    }
     final storedSeen = data['seenItems'] as List?;
     seenItems = storedSeen != null
         ? {...storedSeen.cast<String>()}
@@ -333,8 +361,7 @@ class GameController extends ChangeNotifier {
 
   int get day => _day;
 
-  RoomDef get room =>
-      content.rooms.rooms.firstWhere((r) => r.enabled);
+  RoomDef get room => content.rooms.rooms.firstWhere((r) => r.enabled);
 
   RoomSpot? _spot(String id) {
     for (final spot in room.spots) {
@@ -366,8 +393,7 @@ class GameController extends ChangeNotifier {
           if (content.shop.byId(id) case final item?) item
       ];
 
-  bool canFill(RoomSpot spot) =>
-      spot.accepts.any((id) => shop.isOwned(id));
+  bool canFill(RoomSpot spot) => spot.accepts.any((id) => shop.isOwned(id));
 
   void place(RoomSpot spot, String? itemId) {
     if (itemId == null) {
@@ -384,8 +410,7 @@ class GameController extends ChangeNotifier {
           if (item.kind == ShopItemKind.wallpaper) item
       ];
 
-  String get wallpaperId =>
-      shop.activeWallpaperId ?? room.defaultWallpaperId;
+  String get wallpaperId => shop.activeWallpaperId ?? room.defaultWallpaperId;
 
   void applyWallpaper(String id) {
     if (shop.applyWallpaper(id)) changed();
@@ -463,8 +488,8 @@ class GameController extends ChangeNotifier {
 
   PetNeed? needOf(ShopItem item) => content.economy.pet.needFor(item.id);
 
-  String needTitle(PetNeed need) => fillTemplate(
-      need.occasion?.title ?? need.title, {'name': petName});
+  String needTitle(PetNeed need) =>
+      fillTemplate(need.occasion?.title ?? need.title, {'name': petName});
 
   void chooseTitle(String id) {
     progress = titles.choose(progress, id);
@@ -590,11 +615,8 @@ class GameController extends ChangeNotifier {
         'lines': celebration!['lines'],
         'changes': celebration!['changes'],
         'stageUp': result.stageUp == null ? null : stageLabel,
-        'titles': [
-          for (final earned in awarded.earned) earned.title.title
-        ],
-        if (todayEvent case final event?)
-          'event': event.title,
+        'titles': [for (final earned in awarded.earned) earned.title.title],
+        if (todayEvent case final event?) 'event': event.title,
       },
       ...dayHistory,
     ].take(30).toList();
@@ -701,17 +723,15 @@ class GameController extends ChangeNotifier {
           t.category == category)
       .fold(0, (sum, t) => sum + t.amount);
 
-  int get _savedToday => wallet.journal
-      .where((t) => t.dayNumber == day)
-      .fold(
-          0,
-          (sum, t) =>
-              sum +
-              (t.type == TransactionType.toSavings
-                  ? t.amount
-                  : t.type == TransactionType.fromSavings
-                      ? -t.amount
-                      : 0));
+  int get _savedToday => wallet.journal.where((t) => t.dayNumber == day).fold(
+      0,
+      (sum, t) =>
+          sum +
+          (t.type == TransactionType.toSavings
+              ? t.amount
+              : t.type == TransactionType.fromSavings
+                  ? -t.amount
+                  : 0));
 
   int planLeft(PlanDirection direction) {
     final full = fullPlan;
@@ -784,8 +804,7 @@ class GameController extends ChangeNotifier {
 
   GameEventDef? get todayEvent => eventPicker.pick(day, _stageOn);
 
-  bool get eventPending =>
-      todayEvent != null && !eventChoices.containsKey(day);
+  bool get eventPending => todayEvent != null && !eventChoices.containsKey(day);
 
   String get eventHeader => content.events.texts['header']!;
 
@@ -826,7 +845,8 @@ class GameController extends ChangeNotifier {
           dayNumber: day);
       if (paid is WalletNotEnough) {
         return EventShort(
-            gap: paid.gap, text: eventText('notEnough', {'gap': '${paid.gap}'}));
+            gap: paid.gap,
+            text: eventText('notEnough', {'gap': '${paid.gap}'}));
       }
     } else if (option.coins > 0) {
       wallet.earn(
@@ -923,7 +943,8 @@ class GameController extends ChangeNotifier {
     if (first == BedtimeTodo.plan && plan.isConfirmed) {
       return 'Разложим заработанные монеты по плану.';
     }
-    return fillTemplate(texts.todos[first]!, {'items': _itemsText(unpaidNeeds)});
+    return fillTemplate(
+        texts.todos[first]!, {'items': _itemsText(unpaidNeeds)});
   }
 
   String? get bedtimeReminder {
@@ -1050,14 +1071,15 @@ class GameController extends ChangeNotifier {
     if (pinned == null || pinned['date'] != todayKey) {
       throw StateError('задание дня не начато');
     }
-    return _start(pinned['taskId'] as String, TaskDifficulty.hard, TaskPool.daily);
+    return _start(
+        pinned['taskId'] as String, TaskDifficulty.hard, TaskPool.daily);
   }
 
   GameReward finishDaily(TaskSession session) {
     if (dailyDoneToday) throw StateError('задание дня уже выполнено');
     final played = _afterGame(session);
-    final coins = dailyRules.coins +
-        (played.withMistakes ? 0 : dailyRules.perfectBonus);
+    final coins =
+        dailyRules.coins + (played.withMistakes ? 0 : dailyRules.perfectBonus);
     final now = clock.now();
     wallet.earn(
         amount: coins,
@@ -1135,8 +1157,7 @@ class GameController extends ChangeNotifier {
     } else {
       levelRun = next;
       say('task_done',
-          facts: {'firstTry': !reward.withMistakes},
-          values: {'reward': share});
+          facts: {'firstTry': !reward.withMistakes}, values: {'reward': share});
     }
     changed();
     return LevelStep(reward: reward, finished: finished);
@@ -1176,7 +1197,8 @@ class GameController extends ChangeNotifier {
 
   CoachCatalog get coach => content.coach;
 
-  bool coachSeen(String id) => seenCoach.contains(_allCoach) || seenCoach.contains(id);
+  bool coachSeen(String id) =>
+      seenCoach.contains(_allCoach) || seenCoach.contains(id);
 
   void markCoachSeen(Iterable<String> ids) {
     var added = false;
@@ -1457,6 +1479,30 @@ class GameController extends ChangeNotifier {
     changed();
   }
 
+  void toggleRoomItem(String id) {
+    final room = content.rooms.byId('main');
+    if (room == null ||
+        room.spotFor(id)?.type != RoomSpotType.item ||
+        !shop.isOwned(id)) {
+      return;
+    }
+    if (!hiddenRoomItems.remove(id)) hiddenRoomItems.add(id);
+    changed();
+  }
+
+  void selectRoomItem(String place, String? id) {
+    final options = roomPlaces[place];
+    if (options == null) return;
+    if (id != null &&
+        (!options.contains(id) ||
+            !(shop.isOwned(id) || goals.reachedGoalIds.contains(id)))) {
+      return;
+    }
+    roomSelection[place] = id ?? '';
+    if (id != null) hiddenRoomItems.remove(id);
+    changed();
+  }
+
   void setMotion(bool value) {
     motion = value;
     changed();
@@ -1510,13 +1556,17 @@ class GameController extends ChangeNotifier {
     changed();
   }
 
-  void createPet(String name, bool simple, {String? goalId}) {
+  void createPet(String name, bool simple,
+      {String? goalId, PetAppearance pet = PetAppearance.moni}) {
     if (petNameProblem(name) != null) throw ArgumentError.value(name);
     if (goalId != null && goalId != this.goalId) {
       final ask = askGoal(goalId);
       if (ask is GoalSelectConfirm) goals.confirmSelect(ask);
     }
     petName = normalizePetName(name);
+    appearance = pet;
+    phrases = PhraseService(
+        catalog: content.phrases, clock: clock, character: character);
     simpleMode = simple;
     onboarded = true;
     progress =
@@ -1568,11 +1618,14 @@ class GameController extends ChangeNotifier {
         'simpleMode': simpleMode,
         'onboarded': onboarded,
         'petName': petName,
+        'character': character,
         'stage': stage.name,
         'goalId': goals.current?.id,
         'reachedGoals': goals.reachedGoalIds.toList(),
         'owned': shop.owned.toList(),
         'wallpaper': shop.activeWallpaperId,
+        'hiddenRoomItems': hiddenRoomItems.toList(),
+        'roomSelection': Map<String, String>.of(roomSelection),
         'wishlist': wishlist.toList(),
         'outfit': outfit,
         'completedTasks': tasks.completedTaskIds.toList(),

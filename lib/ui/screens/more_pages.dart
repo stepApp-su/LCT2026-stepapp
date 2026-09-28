@@ -57,20 +57,20 @@ class _RoomPageState extends State<_RoomPage> {
           CoachTarget(
             id: 'room.tabs',
             child: SegmentedButton<int>(
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(
-                  value: 0,
-                  label: Text('👕 Наряды',
-                      maxLines: 1, overflow: TextOverflow.ellipsis)),
-              ButtonSegment(
-                  value: 1,
-                  label: Text('🛋️ Комната',
-                      maxLines: 1, overflow: TextOverflow.ellipsis)),
-            ],
-            selected: {tab},
-            onSelectionChanged: (value) => setState(() => tab = value.first),
-          ),
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(
+                    value: 0,
+                    label: Text('👕 Наряды',
+                        maxLines: 1, overflow: TextOverflow.ellipsis)),
+                ButtonSegment(
+                    value: 1,
+                    label: Text('🛋️ Комната',
+                        maxLines: 1, overflow: TextOverflow.ellipsis)),
+              ],
+              selected: {tab},
+              onSelectionChanged: (value) => setState(() => tab = value.first),
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -108,8 +108,8 @@ class _RoomPageState extends State<_RoomPage> {
             Text('Отложенные желания',
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            for (final item in s.content.shop.items
-                .where((i) => s.wishlist.contains(i.id)))
+            for (final item
+                in s.content.shop.items.where((i) => s.wishlist.contains(i.id)))
               ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: ItemArt(item.id, size: 44),
@@ -147,7 +147,8 @@ class _RoomPageState extends State<_RoomPage> {
           if (item.slot == slot && item.showInShop) item
       ];
 
-  Widget _wardrobe(BuildContext context) => LayoutBuilder(builder: (context, c) {
+  Widget _wardrobe(BuildContext context) =>
+      LayoutBuilder(builder: (context, c) {
         final width = c.maxWidth;
         final height = math.min(width * 1.02, 380.0);
         const bubble = 66.0;
@@ -161,7 +162,10 @@ class _RoomPageState extends State<_RoomPage> {
               bottom: height * .14,
               child: IgnorePointer(
                 child: MoniScene(
-                    stage: s.stage, motion: s.motion, outfit: s.outfit),
+                    appearance: s.appearance,
+                    stage: s.stage,
+                    motion: s.motion,
+                    outfit: s.outfit),
               ),
             ),
             for (final (i, (slot, label, emoji)) in _slots.indexed)
@@ -184,11 +188,14 @@ class _RoomPageState extends State<_RoomPage> {
             : _SpotState.locked;
     return Semantics(
       button: state != _SpotState.locked,
-      label: '$label: ${worn == null ? (owned ? 'можно надеть' : 'пока нет вещей') : s.content.shop.byId(worn)?.title ?? ''}',
+      label:
+          '$label: ${worn == null ? (owned ? 'можно надеть' : 'пока нет вещей') : s.content.shop.byId(worn)?.title ?? ''}',
       excludeSemantics: true,
       child: Squish(
         enabled: state != _SpotState.locked,
-        onTap: state == _SpotState.locked ? null : () => _chooseFor(slot, label, emoji),
+        onTap: state == _SpotState.locked
+            ? null
+            : () => _chooseFor(slot, label, emoji),
         child: _SpotBubble(
           state: state,
           size: size,
@@ -206,35 +213,37 @@ class _RoomPageState extends State<_RoomPage> {
         animation: s,
         builder: (context, _) {
           final worn = s.outfit[slot];
-          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _TileGrid(children: [
-              for (final item in _slotItems(slot))
-                if (s.owned.contains(item.id))
-                  _ThingTile(
-                    art: RoomArt(item.id, size: 52),
-                    title: item.title,
-                    selected: worn == item.id,
-                    onTap: () => s.equip(item.id),
-                  )
-                else
-                  _ThingTile(
-                    art: RoomArt(item.id, size: 52),
-                    title: item.title,
-                    tag: _lockTag(s, item),
-                  ),
-              if (worn != null)
-                _ThingTile(
-                  art: const Center(
-                      child: Text('🚫', style: TextStyle(fontSize: 30))),
-                  title: 'Снять',
-                  onTap: () => s.equip(worn),
-                ),
-            ]),
-            const SizedBox(height: 12),
-            const _Notice(
-                icon: Icons.checkroom_outlined,
-                text: 'Надевать и снимать вещи можно бесплатно.'),
-          ]);
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _TileGrid(children: [
+                  for (final item in _slotItems(slot))
+                    if (s.owned.contains(item.id))
+                      _ThingTile(
+                        art: RoomArt(item.id, size: 52),
+                        title: item.title,
+                        selected: worn == item.id,
+                        onTap: () => s.equip(item.id),
+                      )
+                    else
+                      _ThingTile(
+                        art: RoomArt(item.id, size: 52),
+                        title: item.title,
+                        tag: _lockTag(s, item),
+                      ),
+                  if (worn != null)
+                    _ThingTile(
+                      art: const Center(
+                          child: Text('🚫', style: TextStyle(fontSize: 30))),
+                      title: 'Снять',
+                      onTap: () => s.equip(worn),
+                    ),
+                ]),
+                const SizedBox(height: 12),
+                const _Notice(
+                    icon: Icons.checkroom_outlined,
+                    text: 'Надевать и снимать вещи можно бесплатно.'),
+              ]);
         },
       ),
     );
@@ -243,53 +252,15 @@ class _RoomPageState extends State<_RoomPage> {
   Widget _room(BuildContext context) => LayoutBuilder(builder: (context, c) {
         final width = c.maxWidth;
         final roomHeight = width / 1.25;
-        final size = Size(width, roomHeight);
+        final size = Size(width, roomHeight + 26);
         final pieces = widget.shell.roomPieces;
         return SizedBox(
           height: roomHeight + 26,
           child: Stack(clipBehavior: Clip.none, children: [
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 26,
-              height: roomHeight,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Stack(children: [
-                  Positioned.fill(
-                    child: RoomLayer(
-                        pieces: const [],
-                        wallpaperId: s.wallpaperId,
-                        window: true),
-                  ),
-                  Positioned.fill(child: RoomLayer(pieces: pieces)),
-                ]),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 14,
-              height: roomHeight + 8,
-              child: IgnorePointer(
-                child: MoniScene(
-                    stage: s.stage, motion: s.motion, outfit: s.outfit),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 26,
-              height: roomHeight,
-              child: IgnorePointer(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: RoomLayer(pieces: pieces, front: true),
-                ),
-              ),
-            ),
+            Positioned.fill(child: RoomScene(state: s, pieces: pieces)),
             for (final spot in s.itemSpots)
-              _spotBubble(spot, RoomLayer.rectOf(spot, size).shift(const Offset(0, 26))),
+              _spotBubble(spot, Rect.fromCenter(
+                  center: RoomLayer.markerOf(spot, size), width: 36, height: 36)),
             Positioned(
               right: 8,
               top: 34,
@@ -484,12 +455,16 @@ class _TileGrid extends StatelessWidget {
   final List<Widget> children;
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
-        final columns =
-            MediaQuery.textScalerOf(context).scale(16) > 22 ? 2 : 3;
+        final columns = MediaQuery.textScalerOf(context).scale(16) > 22 ? 2 : 3;
         final width = (c.maxWidth - (columns - 1) * 8) / columns;
-        return EqualGrid(columns: columns, spacing: 8, runSpacing: 8, children: [
-          for (final child in children) SizedBox(width: width, child: child),
-        ]);
+        return EqualGrid(
+            columns: columns,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final child in children)
+                SizedBox(width: width, child: child),
+            ]);
       });
 }
 
@@ -533,7 +508,9 @@ class _ThingTile extends StatelessWidget {
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800, height: 1.1)),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          height: 1.1)),
                   if (tag != null) ...[const SizedBox(height: 4), tag!],
                 ]),
               ),
@@ -544,7 +521,8 @@ class _ThingTile extends StatelessWidget {
 }
 
 class _RoomButton extends StatelessWidget {
-  const _RoomButton({required this.news, required this.onTap});
+  const _RoomButton({required this.news, required this.onTap, this.compact = false});
+  final bool compact;
   final bool news;
   final VoidCallback onTap;
   @override
@@ -567,7 +545,12 @@ class _RoomButton extends StatelessWidget {
               ],
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Text('🛋️ Обустроить',
+              if (compact)
+                const SizedBox(
+                    width: 24, height: 32,
+                    child: Center(child: Icon(Icons.weekend_outlined, size: 26,
+                        color: FinniColors.primary)))
+              else const Text('🛋️ Обустроить',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
               if (news) ...[const SizedBox(width: 6), const _NewDot()],
             ]),
@@ -805,20 +788,26 @@ class _DayChip extends StatelessWidget {
                     color: selected ? FinniColors.primary : FinniColors.line,
                     width: 1.5),
               ),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text('$day',
-                    textScaler: TextScaler.noScaling,
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: selected ? FinniColors.paper : FinniColors.ink)),
-                Text(today ? 'сегодня' : 'день',
-                    textScaler: TextScaler.noScaling,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: selected ? FinniColors.mint : FinniColors.muted)),
-              ]),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('$day',
+                        textScaler: TextScaler.noScaling,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: selected
+                                ? FinniColors.paper
+                                : FinniColors.ink)),
+                    Text(today ? 'сегодня' : 'день',
+                        textScaler: TextScaler.noScaling,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: selected
+                                ? FinniColors.mint
+                                : FinniColors.muted)),
+                  ]),
             ),
           ),
         ),
@@ -842,14 +831,27 @@ class _DiaryRow extends StatelessWidget {
     final (sign, ink, tint) = switch (t.type) {
       TransactionType.income => ('+', FinniColors.primary, FinniColors.mint),
       TransactionType.expense => ('−', FinniColors.alert, FinniColors.peach),
-      TransactionType.toSavings => ('🐷 ', FinniColors.purple, FinniColors.lavender),
-      TransactionType.fromSavings => ('⬆️ ', FinniColors.purple, FinniColors.lavender),
+      TransactionType.toSavings => (
+          '🐷 ',
+          FinniColors.purple,
+          FinniColors.lavender
+        ),
+      TransactionType.fromSavings => (
+          '⬆️ ',
+          FinniColors.purple,
+          FinniColors.lavender
+        ),
     };
     final (String tag, TagTone tone) = switch (t.type) {
-      TransactionType.income when source.startsWith('task:') => ('награда', TagTone.gold),
+      TransactionType.income when source.startsWith('task:') => (
+          'награда',
+          TagTone.gold
+        ),
       TransactionType.income => ('доход', TagTone.green),
-      TransactionType.expense when t.category == ExpenseCategory.mandatory =>
-        ('нужное', TagTone.green),
+      TransactionType.expense when t.category == ExpenseCategory.mandatory => (
+          'нужное',
+          TagTone.green
+        ),
       TransactionType.expense => ('желаемое', TagTone.purple),
       TransactionType.toSavings => ('в копилку', TagTone.purple),
       TransactionType.fromSavings => ('из копилки', TagTone.purple),
@@ -873,15 +875,17 @@ class _DiaryRow extends StatelessWidget {
             width: 40,
             height: 40,
             alignment: Alignment.center,
-            decoration:
-                BoxDecoration(color: tint, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+                color: tint, borderRadius: BorderRadius.circular(12)),
             child: icon,
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(t.reasonText,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w800)),
               const SizedBox(height: 3),
               if (t.type == TransactionType.expense)
                 TagRow([TagChip(tag, tone: tone), const TagChip('🧾 чек')])
@@ -1119,7 +1123,8 @@ class _TitlesView extends StatelessWidget {
   String _iconOf(TitleDef title) => switch (title.condition) {
         StartCondition() => '🌱',
         DaysCondition(:final marks) when marks.contains(DayMark.saved) => '🐷',
-        DaysCondition(:final marks) when marks.contains(DayMark.planMade) => '📋',
+        DaysCondition(:final marks) when marks.contains(DayMark.planMade) =>
+          '📋',
         DaysCondition(:final marks) when marks.contains(DayMark.onPlan) => '🎯',
         DaysCondition() => '📅',
         ThemeCondition() => '🛍️',
@@ -1148,126 +1153,151 @@ class _TitlesView extends StatelessWidget {
       for (final title in s.content.titles.titles)
         if (!s.progress.earnedTitles.contains(title.id)) title
     ];
-    return ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 24), children: [
-      CoachTarget(
-        id: 'titles.stages',
-        child: _Panel(
-        padding: 12,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (final stage in PetStage.values)
-                Expanded(child: _StageStep(state: s, stage: stage)),
-            ],
+    return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          CoachTarget(
+            id: 'titles.stages',
+            child: _Panel(
+              padding: 12,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        for (final stage in PetStage.values)
+                          Expanded(child: _StageStep(state: s, stage: stage)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          Text('${s.progress.growthPoints} опыта',
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w900)),
+                          if (status.next != null)
+                            TagChip(
+                                'до «${status.nextLabel}» ещё ${status.pointsToNext}')
+                          else
+                            const TagChip('взрослый друг', tone: TagTone.green),
+                        ]),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child:
+                          LinearProgressIndicator(value: share, minHeight: 12),
+                    ),
+                  ]),
+            ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
+          Text('Как получить опыт',
+              style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 4),
+          const Text('Опыт считаем вечером, по итогам дня.',
+              style: TextStyle(color: FinniColors.muted)),
+          const SizedBox(height: 8),
+          CoachTarget(
+            id: 'titles.xp',
+            child: LayoutBuilder(builder: (context, c) {
+              final columns =
+                  MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
+              final width = (c.maxWidth - (columns - 1) * 8) / columns;
+              return EqualGrid(
+                  columns: columns,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final MapEntry(key: factor, value: (label, color))
+                        in _factors.entries)
+                      SizedBox(
+                        width: width,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 9),
+                          decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(16)),
+                          child: Row(children: [
+                            Expanded(
+                                child: Text(label,
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800))),
+                            Text('+${s.growth.rules.points[factor] ?? 0}',
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.w900)),
+                          ]),
+                        ),
+                      ),
+                  ]);
+            }),
+          ),
+          const SizedBox(height: 16),
+          if (current != null)
+            CoachTarget(
+              id: 'titles.current',
+              child: _Panel(
+                color: FinniColors.honey.withValues(alpha: .6),
+                padding: 12,
+                child: Row(children: [
+                  Text(_iconOf(current), style: const TextStyle(fontSize: 34)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Твоё звание',
+                              style: TextStyle(
+                                  color: FinniColors.muted,
+                                  fontWeight: FontWeight.w700)),
+                          Text(current.title,
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.w900)),
+                        ]),
+                  ),
+                  if (s.progress.earnedTitles.length > 1)
+                    TextButton(
+                        onPressed: onChange, child: const Text('Сменить')),
+                ]),
+              ),
+            ),
+          const SizedBox(height: 16),
           Wrap(
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
               spacing: 8,
               runSpacing: 4,
               children: [
-            Text('${s.progress.growthPoints} опыта',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-            if (status.next != null)
-              TagChip('до «${status.nextLabel}» ещё ${status.pointsToNext}')
-            else
-              const TagChip('взрослый друг', tone: TagTone.green),
-          ]),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(value: share, minHeight: 12),
-          ),
-        ]),
-      ),
-      ),
-      const SizedBox(height: 16),
-      Text('Как получить опыт', style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 4),
-      const Text('Опыт считаем вечером, по итогам дня.',
-          style: TextStyle(color: FinniColors.muted)),
-      const SizedBox(height: 8),
-      CoachTarget(
-        id: 'titles.xp',
-        child: LayoutBuilder(builder: (context, c) {
-        final columns = MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2;
-        final width = (c.maxWidth - (columns - 1) * 8) / columns;
-        return EqualGrid(columns: columns, spacing: 8, runSpacing: 8, children: [
-          for (final MapEntry(key: factor, value: (label, color)) in _factors.entries)
-            SizedBox(
-              width: width,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                decoration: BoxDecoration(
-                    color: color, borderRadius: BorderRadius.circular(16)),
-                child: Row(children: [
-                  Expanded(
-                      child: Text(label,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w800))),
-                  Text('+${s.growth.rules.points[factor] ?? 0}',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w900)),
-                ]),
-              ),
+                Text('Следующие звания',
+                    style: Theme.of(context).textTheme.titleLarge),
+                TagChip(
+                    '${s.progress.earnedTitles.length} из ${s.content.titles.titles.length}',
+                    tone: TagTone.gold),
+              ]),
+          const SizedBox(height: 8),
+          if (next.isEmpty)
+            const _Notice(
+                icon: Icons.workspace_premium_outlined,
+                text: 'Все звания получены! Ты настоящий мастер.'),
+          for (final (i, title) in next.indexed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _maybeTarget(
+                  i == 0 ? 'titles.next' : null,
+                  _NextTitle(
+                    icon: _iconOf(title),
+                    title: title.title,
+                    reason: s.titles.reasonOf(title),
+                    progress: s.titles.progressOf(title, s.progress, facts),
+                  )),
             ),
         ]);
-      }),
-      ),
-      const SizedBox(height: 16),
-      if (current != null)
-        CoachTarget(
-          id: 'titles.current',
-          child: _Panel(
-          color: FinniColors.honey.withValues(alpha: .6),
-          padding: 12,
-          child: Row(children: [
-            Text(_iconOf(current), style: const TextStyle(fontSize: 34)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Твоё звание',
-                    style: TextStyle(color: FinniColors.muted, fontWeight: FontWeight.w700)),
-                Text(current.title,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-              ]),
-            ),
-            if (s.progress.earnedTitles.length > 1)
-              TextButton(onPressed: onChange, child: const Text('Сменить')),
-          ]),
-        ),
-        ),
-      const SizedBox(height: 16),
-      Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 4,
-          children: [
-        Text('Следующие звания',
-            style: Theme.of(context).textTheme.titleLarge),
-        TagChip(
-            '${s.progress.earnedTitles.length} из ${s.content.titles.titles.length}',
-            tone: TagTone.gold),
-      ]),
-      const SizedBox(height: 8),
-      if (next.isEmpty)
-        const _Notice(
-            icon: Icons.workspace_premium_outlined,
-            text: 'Все звания получены! Ты настоящий мастер.'),
-      for (final (i, title) in next.indexed)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: _maybeTarget(i == 0 ? 'titles.next' : null, _NextTitle(
-            icon: _iconOf(title),
-            title: title.title,
-            reason: s.titles.reasonOf(title),
-            progress: s.titles.progressOf(title, s.progress, facts),
-          )),
-        ),
-    ]);
   }
 }
 
@@ -1284,7 +1314,9 @@ class _StageStep extends StatelessWidget {
         state.content.economy.growth.texts.stageLabels[stage] ?? stage.name;
     final Widget art = stage == PetStage.egg
         ? const Center(child: Text('🥚', style: TextStyle(fontSize: 26)))
-        : IgnorePointer(child: MoniScene(stage: stage, motion: false));
+        : IgnorePointer(
+            child: MoniScene(
+                appearance: state.appearance, stage: stage, motion: false));
     return Semantics(
       label: '$label${now ? ', сейчас' : done ? ', пройдено' : ''}',
       excludeSemantics: true,
@@ -1306,10 +1338,26 @@ class _StageStep extends StatelessWidget {
                   opacity: .35,
                   child: ColorFiltered(
                     colorFilter: const ColorFilter.matrix([
-                      .33, .33, .33, 0, 0,
-                      .33, .33, .33, 0, 0,
-                      .33, .33, .33, 0, 0,
-                      0, 0, 0, 1, 0,
+                      .33,
+                      .33,
+                      .33,
+                      0,
+                      0,
+                      .33,
+                      .33,
+                      .33,
+                      0,
+                      0,
+                      .33,
+                      .33,
+                      .33,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      1,
+                      0,
                     ]),
                     child: art,
                   ),
@@ -1352,14 +1400,17 @@ class _NextTitle extends StatelessWidget {
             height: 44,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-                color: FinniColors.sky, borderRadius: BorderRadius.circular(14)),
+                color: FinniColors.sky,
+                borderRadius: BorderRadius.circular(14)),
             child: Text(icon, style: const TextStyle(fontSize: 24)),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(title,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w900)),
               Text(reason, style: const TextStyle(color: FinniColors.muted)),
               const SizedBox(height: 6),
               TagRow([
@@ -1402,8 +1453,7 @@ class _GlossaryPageState extends State<_GlossaryPage> {
   void _learn([String? startId]) {
     Navigator.of(context).push<void>(MaterialPageRoute(
       settings: const RouteSettings(name: 'Учим слова'),
-      builder: (context) =>
-          _FlashcardsPage(state: s, startId: startId),
+      builder: (context) => _FlashcardsPage(state: s, startId: startId),
     ));
   }
 
@@ -1412,87 +1462,97 @@ class _GlossaryPageState extends State<_GlossaryPage> {
     final glossary = s.content.glossary;
     final texts = glossary.texts;
     final terms = [
-      for (final term in query.trim().isEmpty ? glossary.terms : glossary.search(query))
+      for (final term
+          in query.trim().isEmpty ? glossary.terms : glossary.search(query))
         if (topic.isEmpty || term.topic == topic) term
     ];
     return Column(children: [
       Expanded(
-        child: ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 16), children: [
-          CoachTarget(
-            id: 'glossary.search',
-            child: TextField(
-            onChanged: (value) => setState(() => query = value),
-            decoration: InputDecoration(
-              hintText: texts['search'],
-              prefixIcon: const Icon(Icons.search_rounded),
-              filled: true,
-              fillColor: FinniColors.paper,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none),
-            ),
-          ),
-          ),
-          const SizedBox(height: 10),
-          CoachTarget(
-            id: 'glossary.topics',
-            child: Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final id in ['', ..._topics])
-              ChoiceChip(
-                label: Text(id.isEmpty ? texts['topicAll'] ?? 'Все' : texts['topic_$id'] ?? id),
-                selected: topic == id,
-                showCheckmark: false,
-                onSelected: (_) => setState(() => topic = id),
-                labelStyle: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: topic == id ? FinniColors.paper : FinniColors.ink),
-                selectedColor: FinniColors.primary,
-                backgroundColor: FinniColors.paper,
-                side: BorderSide.none,
-              ),
-          ]),
-          ),
-          const SizedBox(height: 10),
-          TagRow([
-            TagChip('${glossary.terms.length} слов'),
-            TagChip('знаю ⭐ ${s.knownWords.length}', tone: TagTone.gold),
-          ]),
-          const SizedBox(height: 10),
-          if (terms.isEmpty)
-            const _Notice(
-                icon: Icons.search_off_rounded,
-                text: 'Такого слова пока нет. Попробуй другое.'),
-          for (final (i, term) in terms.indexed)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _maybeTarget(i == 0 ? 'glossary.list' : null, _Panel(
-                padding: 4,
-                child: ListTile(
-                  onTap: () => _learn(term.id),
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                        color: s.knownWords.contains(term.id)
-                            ? FinniColors.honey
-                            : FinniColors.mint,
-                        borderRadius: BorderRadius.circular(14)),
-                    child: Text(kEmoji[term.iconId] ?? '💡',
-                        style: const TextStyle(fontSize: 22)),
+        child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            children: [
+              CoachTarget(
+                id: 'glossary.search',
+                child: TextField(
+                  onChanged: (value) => setState(() => query = value),
+                  decoration: InputDecoration(
+                    hintText: texts['search'],
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    filled: true,
+                    fillColor: FinniColors.paper,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none),
                   ),
-                  title: Text(term.term,
-                      style: const TextStyle(fontWeight: FontWeight.w900)),
-                  subtitle: Text(term.definition,
-                      maxLines: 2, overflow: TextOverflow.ellipsis),
-                  trailing: s.knownWords.contains(term.id)
-                      ? const Text('⭐', style: TextStyle(fontSize: 20))
-                      : const Icon(Icons.chevron_right_rounded),
                 ),
-              )),
-            ),
-        ]),
+              ),
+              const SizedBox(height: 10),
+              CoachTarget(
+                id: 'glossary.topics',
+                child: Wrap(spacing: 8, runSpacing: 8, children: [
+                  for (final id in ['', ..._topics])
+                    ChoiceChip(
+                      label: Text(id.isEmpty
+                          ? texts['topicAll'] ?? 'Все'
+                          : texts['topic_$id'] ?? id),
+                      selected: topic == id,
+                      showCheckmark: false,
+                      onSelected: (_) => setState(() => topic = id),
+                      labelStyle: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: topic == id
+                              ? FinniColors.paper
+                              : FinniColors.ink),
+                      selectedColor: FinniColors.primary,
+                      backgroundColor: FinniColors.paper,
+                      side: BorderSide.none,
+                    ),
+                ]),
+              ),
+              const SizedBox(height: 10),
+              TagRow([
+                TagChip('${glossary.terms.length} слов'),
+                TagChip('знаю ⭐ ${s.knownWords.length}', tone: TagTone.gold),
+              ]),
+              const SizedBox(height: 10),
+              if (terms.isEmpty)
+                const _Notice(
+                    icon: Icons.search_off_rounded,
+                    text: 'Такого слова пока нет. Попробуй другое.'),
+              for (final (i, term) in terms.indexed)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _maybeTarget(
+                      i == 0 ? 'glossary.list' : null,
+                      _Panel(
+                        padding: 4,
+                        child: ListTile(
+                          onTap: () => _learn(term.id),
+                          leading: Container(
+                            width: 44,
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                                color: s.knownWords.contains(term.id)
+                                    ? FinniColors.honey
+                                    : FinniColors.mint,
+                                borderRadius: BorderRadius.circular(14)),
+                            child: Text(kEmoji[term.iconId] ?? '💡',
+                                style: const TextStyle(fontSize: 22)),
+                          ),
+                          title: Text(term.term,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w900)),
+                          subtitle: Text(term.definition,
+                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                          trailing: s.knownWords.contains(term.id)
+                              ? const Text('⭐', style: TextStyle(fontSize: 20))
+                              : const Icon(Icons.chevron_right_rounded),
+                        ),
+                      )),
+                ),
+            ]),
       ),
       SafeArea(
         top: false,
@@ -1501,14 +1561,15 @@ class _GlossaryPageState extends State<_GlossaryPage> {
           child: CoachTarget(
             id: 'glossary.learn',
             child: SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-              onPressed: () => _learn(),
-              icon: const Icon(Icons.style_outlined),
-              label: Text(texts['learn'] ?? 'Учить слова'),
+              width: double.infinity,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(54)),
+                onPressed: () => _learn(),
+                icon: const Icon(Icons.style_outlined),
+                label: Text(texts['learn'] ?? 'Учить слова'),
+              ),
             ),
-          ),
           ),
         ),
       ),
@@ -1596,70 +1657,78 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
       CoachTarget(
         id: 'flash.card',
         child: PopIn(
-        key: ValueKey(term.id),
-        motion: s.motion,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [FinniColors.honey, FinniColors.morning],
+          key: ValueKey(term.id),
+          motion: s.motion,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [FinniColors.honey, FinniColors.morning],
+              ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: const [
+                BoxShadow(
+                    color: FinniColors.shadow,
+                    blurRadius: 18,
+                    offset: Offset(0, 8))
+              ],
             ),
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: const [
-              BoxShadow(
-                  color: FinniColors.shadow, blurRadius: 18, offset: Offset(0, 8))
-            ],
-          ),
-          child: Column(children: [
-            Text(kEmoji[term.iconId] ?? '💡', style: const TextStyle(fontSize: 56)),
-            const SizedBox(height: 8),
-            Text(term.term,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 8),
-            Text(term.definition,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                  color: FinniColors.mint, borderRadius: BorderRadius.circular(16)),
-              child: Text('🎮 ${term.inGame}',
+            child: Column(children: [
+              Text(kEmoji[term.iconId] ?? '💡',
+                  style: const TextStyle(fontSize: 56)),
+              const SizedBox(height: 8),
+              Text(term.term,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: FinniColors.primary)),
-            ),
-          ]),
+                      fontSize: 28, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 8),
+              Text(term.definition,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    color: FinniColors.mint,
+                    borderRadius: BorderRadius.circular(16)),
+                child: Text('🎮 ${term.inGame}',
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: FinniColors.primary)),
+              ),
+            ]),
+          ),
         ),
-      ),
       ),
       const SizedBox(height: 16),
       CoachTarget(
         id: 'flash.buttons',
         child: Row(children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-            onPressed: () => _answer(false),
-            icon: const Icon(Icons.replay_rounded),
-            label: const Text('Повторить'),
+          Expanded(
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(54)),
+              onPressed: () => _answer(false),
+              icon: const Icon(Icons.replay_rounded),
+              label: const Text('Повторить'),
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: FilledButton.icon(
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-            onPressed: () => _answer(true),
-            icon: const Icon(Icons.star_rounded),
-            label: const Text('Знаю'),
+          const SizedBox(width: 10),
+          Expanded(
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(54)),
+              onPressed: () => _answer(true),
+              icon: const Icon(Icons.star_rounded),
+              label: const Text('Знаю'),
+            ),
           ),
-        ),
-      ]),
+        ]),
       ),
     ]);
   }
@@ -1682,7 +1751,8 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
               ? 'Ты знаешь все слова. Здорово!'
               : 'Знаешь ${s.knownWords.length} из ${s.content.glossary.terms.length}. Эти слова повторим в следующий раз:',
           textAlign: TextAlign.center,
-          style: const TextStyle(color: FinniColors.muted, fontWeight: FontWeight.w700)),
+          style: const TextStyle(
+              color: FinniColors.muted, fontWeight: FontWeight.w700)),
       const SizedBox(height: 12),
       for (final term in again)
         Padding(
@@ -1690,7 +1760,8 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
           child: _Panel(
             padding: 12,
             child: Row(children: [
-              Text(kEmoji[term.iconId] ?? '💡', style: const TextStyle(fontSize: 24)),
+              Text(kEmoji[term.iconId] ?? '💡',
+                  style: const TextStyle(fontSize: 24)),
               const SizedBox(width: 10),
               Expanded(
                   child: Text(term.term,
@@ -1740,206 +1811,240 @@ class _AdultView extends StatelessWidget {
     final spent = report.mandatory + report.optional;
     final whole = report.mandatory + report.optional + report.saved;
     final closed = s.progress.growthDays.length;
-    return ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 24), children: [
-      Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [FinniColors.mint, FinniColors.paper]),
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('За ${report.days} ${ruDays(report.days)}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 10),
-          IntrinsicHeight(
-            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            for (final (i, (value, label, ink)) in [
-              ('${report.earned}', 'заработано', FinniColors.primary),
-              ('$spent', 'потрачено', FinniColors.alert),
-              ('${report.saved}', 'отложено', FinniColors.purple),
-            ].indexed) ...[
-              if (i > 0) const SizedBox(width: 6),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  decoration: BoxDecoration(
-                      color: FinniColors.paper,
-                      borderRadius: BorderRadius.circular(14)),
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text(value,
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w900, color: ink)),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(label,
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: FinniColors.muted)),
-                    ),
-                  ]),
-                ),
-              ),
-            ],
-          ])),
-          if (whole > 0) ...[
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                height: 14,
-                child: Row(children: [
-                  for (final (value, color) in [
-                    (report.mandatory, FinniColors.primary),
-                    (report.optional, FinniColors.purple),
-                    (report.saved, FinniColors.gold),
-                  ])
-                    if (value > 0)
-                      Expanded(flex: value, child: ColoredBox(color: color)),
-                ]),
-              ),
+    return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  colors: [FinniColors.mint, FinniColors.paper]),
+              borderRadius: BorderRadius.circular(24),
             ),
-            const SizedBox(height: 8),
-            TagRow([
-              TagChip('нужное ${report.mandatory}', tone: TagTone.green),
-              TagChip('желаемое ${report.optional}', tone: TagTone.purple),
-              TagChip('копилка ${report.saved}', tone: TagTone.gold),
-            ]),
-          ],
-        ]),
-      ),
-      const SizedBox(height: 16),
-      Text('Что уже получается', style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 8),
-      if (closed == 0)
-        const _Notice(
-            icon: Icons.bedtime_outlined,
-            text: 'Привычки появятся после первого вечера, когда питомец уснёт.')
-      else
-        _Panel(
-          padding: 12,
-          child: Column(children: [
-            for (final MapEntry(key: factor, value: label) in _habits.entries)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                  Text(label,
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
-                  TagChip('${s.habitDays(factor)} из $closed ${ruDays(closed)}',
-                      tone: s.habitDays(factor) * 2 >= closed
-                          ? TagTone.green
-                          : TagTone.gold),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('За ${report.days} ${ruDays(report.days)}',
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 10),
+                  IntrinsicHeight(
+                      child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                        for (final (i, (value, label, ink)) in [
+                          (
+                            '${report.earned}',
+                            'заработано',
+                            FinniColors.primary
+                          ),
+                          ('$spent', 'потрачено', FinniColors.alert),
+                          ('${report.saved}', 'отложено', FinniColors.purple),
+                        ].indexed) ...[
+                          if (i > 0) const SizedBox(width: 6),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 4),
+                              decoration: BoxDecoration(
+                                  color: FinniColors.paper,
+                                  borderRadius: BorderRadius.circular(14)),
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(value,
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w900,
+                                            color: ink)),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(label,
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                              color: FinniColors.muted)),
+                                    ),
+                                  ]),
+                            ),
+                          ),
+                        ],
+                      ])),
+                  if (whole > 0) ...[
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: SizedBox(
+                        height: 14,
+                        child: Row(children: [
+                          for (final (value, color) in [
+                            (report.mandatory, FinniColors.primary),
+                            (report.optional, FinniColors.purple),
+                            (report.saved, FinniColors.gold),
+                          ])
+                            if (value > 0)
+                              Expanded(
+                                  flex: value, child: ColoredBox(color: color)),
+                        ]),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TagRow([
+                      TagChip('нужное ${report.mandatory}',
+                          tone: TagTone.green),
+                      TagChip('желаемое ${report.optional}',
+                          tone: TagTone.purple),
+                      TagChip('копилка ${report.saved}', tone: TagTone.gold),
+                    ]),
+                  ],
                 ]),
+          ),
+          const SizedBox(height: 16),
+          Text('Что уже получается',
+              style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          if (closed == 0)
+            const _Notice(
+                icon: Icons.bedtime_outlined,
+                text:
+                    'Привычки появятся после первого вечера, когда питомец уснёт.')
+          else
+            _Panel(
+              padding: 12,
+              child: Column(children: [
+                for (final MapEntry(key: factor, value: label)
+                    in _habits.entries)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          Text(label,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w800)),
+                          TagChip(
+                              '${s.habitDays(factor)} из $closed ${ruDays(closed)}',
+                              tone: s.habitDays(factor) * 2 >= closed
+                                  ? TagTone.green
+                                  : TagTone.gold),
+                        ]),
+                  ),
+              ]),
+            ),
+          const SizedBox(height: 16),
+          Text('Настройки', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          _Panel(
+            padding: 4,
+            child: Column(children: [
+              ListTile(
+                title: const Text('Имя питомца',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+                subtitle: Text(s.petName),
+                trailing: TextButton.icon(
+                    onPressed: shell.renamePet,
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Изменить')),
               ),
-          ]),
-        ),
-      const SizedBox(height: 16),
-      Text('Настройки', style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 8),
-      _Panel(
-        padding: 4,
-        child: Column(children: [
-          ListTile(
-            title: const Text('Имя питомца',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-            subtitle: Text(s.petName),
-            trailing: TextButton.icon(
-                onPressed: shell.renamePet,
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Изменить')),
+              SwitchListTile(
+                  title: const Text('Звук',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: const Text('Озвучка и звуковые эффекты'),
+                  value: s.sound,
+                  onChanged: s.setSound),
+              SwitchListTile(
+                  title: const Text('Анимации питомца',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: const Text(
+                      'Системное отключение движений тоже учитывается'),
+                  value: s.motion,
+                  onChanged: s.setMotion),
+              SwitchListTile(
+                  title: const Text('Попроще',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: const Text('Меньше карточек и чисел в играх'),
+                  value: s.simpleMode,
+                  onChanged: s.setSimple),
+            ]),
           ),
-          SwitchListTile(
-              title: const Text('Звук',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
-              subtitle: const Text('Озвучка и звуковые эффекты'),
-              value: s.sound,
-              onChanged: s.setSound),
-          SwitchListTile(
-              title: const Text('Анимации питомца',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
-              subtitle:
-                  const Text('Системное отключение движений тоже учитывается'),
-              value: s.motion,
-              onChanged: s.setMotion),
-          SwitchListTile(
-              title:
-                  const Text('Попроще', style: TextStyle(fontWeight: FontWeight.w800)),
-              subtitle: const Text('Меньше карточек и чисел в играх'),
-              value: s.simpleMode,
-              onChanged: s.setSimple),
-        ]),
-      ),
-      const SizedBox(height: 16),
-      Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 4,
-          children: [
-        Text('Темы подробно',
-            style: Theme.of(context).textTheme.titleLarge),
-        TagChip(
-            '${s.tasks.completedTaskIds.length} из ${s.content.tasks.tasks.length} игр',
-            tone: TagTone.green),
-      ]),
-      const SizedBox(height: 4),
-      const Text(
-          'Число справа — сколько раз игра пройдена. Полоски — сколько её вариантов уже решено.',
-          style: TextStyle(color: FinniColors.muted)),
-      const SizedBox(height: 8),
-      for (final theme in s.content.tasks.themes) _theme(context, theme),
-      const SizedBox(height: 12),
-      _Panel(
-        padding: 4,
-        child: Column(children: [
-          ListTile(
-            leading: const Icon(Icons.restart_alt_rounded, color: FinniColors.alert),
-            title: const Text('Начать заново',
-                style: TextStyle(
-                    fontWeight: FontWeight.w800, color: FinniColors.alert)),
-            subtitle: const Text('Прогресс на этом устройстве будет заменён'),
-            onTap: () => shell.confirmProfileAction(false),
+          const SizedBox(height: 16),
+          Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                Text('Темы подробно',
+                    style: Theme.of(context).textTheme.titleLarge),
+                TagChip(
+                    '${s.tasks.completedTaskIds.length} из ${s.content.tasks.tasks.length} игр',
+                    tone: TagTone.green),
+              ]),
+          const SizedBox(height: 4),
+          const Text(
+              'Число справа — сколько раз игра пройдена. Полоски — сколько её вариантов уже решено.',
+              style: TextStyle(color: FinniColors.muted)),
+          const SizedBox(height: 8),
+          for (final theme in s.content.tasks.themes) _theme(context, theme),
+          const SizedBox(height: 12),
+          _Panel(
+            padding: 4,
+            child: Column(children: [
+              ListTile(
+                leading: const Icon(Icons.restart_alt_rounded,
+                    color: FinniColors.alert),
+                title: const Text('Начать заново',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800, color: FinniColors.alert)),
+                subtitle:
+                    const Text('Прогресс на этом устройстве будет заменён'),
+                onTap: () => shell.confirmProfileAction(false),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline_rounded,
+                    color: FinniColors.alert),
+                title: const Text('Удалить профиль',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800, color: FinniColors.alert)),
+                subtitle: const Text('Всё будет удалено с этого устройства'),
+                onTap: () => shell.confirmProfileAction(true),
+              ),
+            ]),
           ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline_rounded, color: FinniColors.alert),
-            title: const Text('Удалить профиль',
-                style: TextStyle(
-                    fontWeight: FontWeight.w800, color: FinniColors.alert)),
-            subtitle: const Text('Всё будет удалено с этого устройства'),
-            onTap: () => shell.confirmProfileAction(true),
-          ),
-        ]),
-      ),
-    ]);
+        ]);
   }
 
   Widget _theme(BuildContext context, TaskTheme theme) {
     final tasks = s.content.tasks.byTheme(theme.id);
     final done = tasks.where((t) => s.tasks.isCompleted(t.id)).length;
-    final (tint, ink) = _themeColors[theme.id] ?? (FinniColors.mint, FinniColors.primary);
+    final (tint, ink) =
+        _themeColors[theme.id] ?? (FinniColors.mint, FinniColors.primary);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: _Panel(
         padding: 12,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
             EmojiBadge(theme.iconId, size: 42, color: tint),
             const SizedBox(width: 10),
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(theme.title,
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 4),
-                TagRow([
-                  TagChip('🎮 $done из ${tasks.length} игр', tone: TagTone.green),
-                  if (theme.skill.isNotEmpty) TagChip(theme.skill),
-                ]),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(theme.title,
+                        style: const TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    TagRow([
+                      TagChip('🎮 $done из ${tasks.length} игр',
+                          tone: TagTone.green),
+                      if (theme.skill.isNotEmpty) TagChip(theme.skill),
+                    ]),
+                  ]),
             ),
           ]),
           const SizedBox(height: 8),
@@ -1963,7 +2068,8 @@ class _AdultView extends StatelessWidget {
     final variants = task.variantKeys.length;
     final solved = s.passedOf(task);
     return Semantics(
-      label: '${task.title}: ${times == 0 ? 'не играли' : 'пройдено $times ${_times(times)}'}, вариантов $solved из $variants',
+      label:
+          '${task.title}: ${times == 0 ? 'не играли' : 'пройдено $times ${_times(times)}'}, вариантов $solved из $variants',
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 7),
@@ -1971,8 +2077,10 @@ class _AdultView extends StatelessWidget {
             border: Border(top: BorderSide(color: FinniColors.line))),
         child: Row(children: [
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(task.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(task.title,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
               Row(children: [
                 for (var i = 0; i < variants; i++)
@@ -1992,10 +2100,13 @@ class _AdultView extends StatelessWidget {
           else
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text('$times',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w900)),
               Text(_times(times),
                   style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.muted)),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: FinniColors.muted)),
             ]),
         ]),
       ),

@@ -240,7 +240,8 @@ class _PlanLeft extends StatelessWidget {
 
   Widget _row(String emoji, String label, int left, int planned, Color color) {
     final shown = left < 0 ? 0 : left;
-    final spent = planned <= 0 ? 0.0 : ((planned - left) / planned).clamp(0.0, 1.0);
+    final spent =
+        planned <= 0 ? 0.0 : ((planned - left) / planned).clamp(0.0, 1.0);
     return Semantics(
       label: planned <= 0
           ? '$label: не планировали'
@@ -360,7 +361,9 @@ class _StatBar extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w800, color: tint)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: tint)),
               ),
               Text(next == null ? '$value' : '$value → $next',
                   style: TextStyle(
@@ -414,6 +417,7 @@ class _ShopPet extends StatelessWidget {
               width: 64,
               height: 72,
               child: MoniScene(
+                appearance: state.appearance,
                 stage: state.stage,
                 outfit: state.outfit,
                 motion: false,
@@ -423,10 +427,10 @@ class _ShopPet extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: LayoutBuilder(builder: (context, c) {
-              final columns =
-                  c.maxWidth >= 250 && MediaQuery.textScalerOf(context).scale(16) <= 20
-                      ? 2
-                      : 1;
+              final columns = c.maxWidth >= 250 &&
+                      MediaQuery.textScalerOf(context).scale(16) <= 20
+                  ? 2
+                  : 1;
               final width = (c.maxWidth - (columns - 1) * 14) / columns;
               return Wrap(
                 spacing: 14,
@@ -474,8 +478,8 @@ class _StatPreview extends StatelessWidget {
                   child: _StatBar(
                     label: label,
                     value: stats.of(stat),
-                    after: (stats.of(stat) + effect.delta).clamp(
-                        petStatFloor(stat), petStatCap(stat) ?? 1 << 20),
+                    after: (stats.of(stat) + effect.delta)
+                        .clamp(petStatFloor(stat), petStatCap(stat) ?? 1 << 20),
                     icon: icon,
                     color: color,
                   ),
@@ -645,7 +649,9 @@ class _NeedOption extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800, height: 1.1)),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          height: 1.1)),
                 ),
               ),
               if (effect != null)
@@ -773,66 +779,72 @@ class _Navigation extends StatelessWidget {
   });
   final int index;
   final ValueChanged<int> onSelect;
-  static const _ids = ['nav.home', 'nav.plan', 'nav.shop', 'nav.games', 'nav.more'];
+  static const _ids = [
+    'nav.home',
+    'nav.plan',
+    'nav.shop',
+    'nav.games',
+    'nav.more'
+  ];
 
   @override
   Widget build(BuildContext context) => CoachTarget(
         id: 'nav',
         child: Container(
-        decoration: const BoxDecoration(
-          color: FinniColors.paper,
-          border: Border(top: BorderSide(color: FinniColors.line)),
+          decoration: const BoxDecoration(
+            color: FinniColors.paper,
+            border: Border(top: BorderSide(color: FinniColors.line)),
+          ),
+          padding: const EdgeInsets.fromLTRB(7, 8, 7, 10),
+          child: Row(
+            children: [
+              nav('Дом', GameIconKind.navHome, 0),
+              const SizedBox(width: 3),
+              nav('План', GameIconKind.navPlan, 1),
+              const SizedBox(width: 3),
+              nav('Магазин', GameIconKind.navShop, 2),
+              const SizedBox(width: 3),
+              nav('Игры', GameIconKind.navGames, 3),
+              const SizedBox(width: 3),
+              nav('Ещё', GameIconKind.navMore, 4),
+            ],
+          ),
         ),
-        padding: const EdgeInsets.fromLTRB(7, 8, 7, 10),
-        child: Row(
-          children: [
-            nav('Дом', GameIconKind.navHome, 0),
-            const SizedBox(width: 3),
-            nav('План', GameIconKind.navPlan, 1),
-            const SizedBox(width: 3),
-            nav('Магазин', GameIconKind.navShop, 2),
-            const SizedBox(width: 3),
-            nav('Игры', GameIconKind.navGames, 3),
-            const SizedBox(width: 3),
-            nav('Ещё', GameIconKind.navMore, 4),
-          ],
-        ),
-      ),
       );
   Widget nav(String label, GameIconKind icon, int value) => Expanded(
         flex: value == 2 ? 5 : 4,
         child: CoachTarget(
           id: _ids[value],
           child: Semantics(
-          selected: index == value,
-          child: TextButton(
-            onPressed: () => onSelect(value),
-            style: TextButton.styleFrom(
-              minimumSize: const Size(0, 60),
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 1),
-              backgroundColor: index == value
-                  ? const Color(0xFFE7F0E1)
-                  : FinniColors.transparent,
-              foregroundColor:
-                  index == value ? FinniColors.primary : FinniColors.muted,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            selected: index == value,
+            child: TextButton(
+              onPressed: () => onSelect(value),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, 60),
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 1),
+                backgroundColor: index == value
+                    ? const Color(0xFFE7F0E1)
+                    : FinniColors.transparent,
+                foregroundColor:
+                    index == value ? FinniColors.primary : FinniColors.muted,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GameIcon(icon, size: 33),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w800),
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GameIcon(icon, size: 33),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
           ),
-        ),
         ),
       );
 }
@@ -1143,10 +1155,9 @@ class _NeedsToday extends StatelessWidget {
                     ItemArt((state.boughtFor(need) ?? primary).id, size: 36),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                          need.occasion == null
-                              ? (need.title.isEmpty ? primary.title : need.title)
-                              : '${need.title} — ${state.needTitle(need)}'),
+                      child: Text(need.occasion == null
+                          ? (need.title.isEmpty ? primary.title : need.title)
+                          : '${need.title} — ${state.needTitle(need)}'),
                     ),
                     Text(
                         state.needOptions(need).length > 1

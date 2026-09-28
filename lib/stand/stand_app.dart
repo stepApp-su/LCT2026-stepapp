@@ -5,6 +5,8 @@ import '../domain/services/phrase_service.dart';
 import '../domain/services/plan_service.dart';
 import '../ui/app.dart';
 import '../ui/game_controller.dart';
+import '../ui/pet_appearance.dart';
+import '../ui/widgets/sprite_sheet.dart';
 import 'download.dart';
 import 'stand_style.dart';
 import 'stand_repository.dart';
@@ -31,7 +33,8 @@ class _StandAppState extends State<StandApp> {
     Icons.chat_bubble_outline,
     Icons.workspace_premium_outlined,
     Icons.wb_sunny_outlined,
-    Icons.checkroom
+    Icons.checkroom,
+    Icons.weekend_outlined,
   ];
   final messengerKey = GlobalKey<ScaffoldMessengerState>();
   final playRepository = StandRepository(persistent: true);
@@ -43,7 +46,8 @@ class _StandAppState extends State<StandApp> {
     'Реплики',
     'Награды',
     'День',
-    'Одежда'
+    'Одежда',
+    'Комната',
   ];
   static const ink = Color(0xff202b3a), line = Color(0xffdbe1e8);
 
@@ -119,7 +123,9 @@ class _StandAppState extends State<StandApp> {
         'celebration': {
           'from': from.name,
           'to': to.name,
-          'headline': from == PetStage.egg ? 'Привет, Мони!' : 'Мони подрос!',
+          'headline': from == PetStage.egg
+              ? 'Привет, ${game.petName}!'
+              : '${game.petName} подрос!',
           'reason': from == PetStage.egg
               ? 'Теперь будем учиться и расти вместе.'
               : 'Ты заботился о друге, учился планировать и копить.',
@@ -227,6 +233,7 @@ class _StandAppState extends State<StandApp> {
       'Награды' => Icons.workspace_premium_outlined,
       'День' => Icons.wb_sunny_outlined,
       'Одежда' => Icons.checkroom_outlined,
+      'Комната' => Icons.weekend_outlined,
       _ => Icons.tune,
     };
   }
@@ -288,6 +295,21 @@ class _StandAppState extends State<StandApp> {
 
   List<Widget> controls(String group) => switch (group) {
         'Рост' => [
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final pet in PetAppearance.values)
+                ChoiceChip(
+                    label: Text(pet.name),
+                    selected: game.appearance == pet,
+                    onSelected: busy
+                        ? null
+                        : (_) => run(
+                            'Выбор питомца',
+                            () => scenario({
+                                  'character': pet.character,
+                                  'petName': pet.name
+                                }))),
+            ]),
+            const SizedBox(height: 16),
             note(
                 'Прямой просмотр стадии или полный переход с анимацией. Яйцо — только появление питомца.'),
             action('Появление из яйца',
@@ -308,7 +330,7 @@ class _StandAppState extends State<StandApp> {
                 'Все потребности закрыты',
                 () => scenario({
                       'stats': PetState.create(
-                              satiety: 100, care: 100, mood: 100, cozy: 50)
+                              satiety: 100, care: 100, mood: 100, cozy: 100)
                           .toJson()
                     })),
             action(
@@ -378,21 +400,68 @@ class _StandAppState extends State<StandApp> {
               }
             }),
           ],
+        'Комната' => [
+            note(
+                'В разделе «Комната» игры можно выбрать вещи для каждого места.'),
+            action(
+                'Вся мебель и игрушки',
+                () => scenario({
+                      'owned':
+                          {...game.shop.owned, ...furnitureCells.keys}.toList(),
+                      'hiddenRoomItems': <String>[],
+                      'roomSelection': <String, String>{},
+                      'placed': {
+                        for (final spot in game.itemSpots)
+                          if (spot.accepts.any(furnitureCells.containsKey))
+                            spot.id: spot.accepts
+                                .firstWhere(furnitureCells.containsKey),
+                      },
+                    })),
+            action(
+                'Убрать мебель',
+                () => scenario({
+                      'hiddenRoomItems': furnitureCells.keys.toList(),
+                      'placed': <String, String>{},
+                    })),
+            action(
+                'Все сбывшиеся мечты',
+                () => scenario({
+                      'reachedGoals': widget.content.goals.goals.map((g) => g.id).toList(),
+                    })),
+            for (final id in wallpaperCells.keys)
+              action(
+                  switch (id) {
+                    'wp_plain' => 'Фон: детская',
+                    'wp_leaves' => 'Фон: сад',
+                    'wp_space' => 'Фон: космос',
+                    _ => widget.content.shop.byId(id)!.title,
+                  },
+                  () => scenario({
+                        'owned': {...game.shop.owned, id}.toList(),
+                        'wallpaper': id,
+                      })),
+          ],
         _ => [
             note(
                 'Посадка аксессуаров на текущей стадии. Сначала выберите возраст в разделе «Рост».'),
             for (final entry in {
-              'cap': 'Шапка',
+              'cap': 'Кепка',
               'bow': 'Бант',
               'glasses': 'Очки',
               'scarf': 'Шарф',
-              'balloon': 'Шарик'
+              'balloon': 'Шарик',
+              'bowtie': 'Бабочка',
+              'tshirt': 'Футболка',
+              'raincoat': 'Дождевик',
+              'backpack': 'Рюкзак',
             }.entries)
               action(
                   entry.value,
                   () => scenario({
                         'owned': {...game.shop.owned, entry.key}.toList(),
-                        'outfit': {'stand': entry.key}
+                        'outfit': {
+                          widget.content.shop.byId(entry.key)!.slot: entry.key
+                        }
                       })),
             action('Снять всё', () => scenario({'outfit': <String, String>{}})),
           ],

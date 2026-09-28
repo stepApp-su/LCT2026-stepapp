@@ -37,12 +37,17 @@ class BedtimeScreen extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [FinniColors.dawnTop, FinniColors.nightMid, FinniColors.nightLow],
+                colors: [
+                  FinniColors.dawnTop,
+                  FinniColors.nightMid,
+                  FinniColors.nightLow
+                ],
               ),
             ),
             child: Stack(children: [
               const Positioned.fill(
-                child: IgnorePointer(child: CustomPaint(painter: NightSky(stars: .7))),
+                child: IgnorePointer(
+                    child: CustomPaint(painter: NightSky(stars: .7))),
               ),
               SafeArea(
                 child: Center(
@@ -88,7 +93,9 @@ class BedtimeScreen extends StatelessWidget {
             child: Text('Спокойной ночи',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w900, color: FinniColors.nightInk)),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: FinniColors.nightInk)),
           ),
           IconButton(
             tooltip: 'Подсказка',
@@ -108,7 +115,9 @@ class BedtimeScreen extends StatelessWidget {
               'Полоска — сколько монет вышло на самом деле. Белая чёрточка — сколько ты планировал утром. Если дела остались, их можно доделать или уложить питомца спать и так.',
               style: TextStyle(fontSize: 17)),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Понятно')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Понятно')),
           ],
         ),
       );
@@ -122,7 +131,9 @@ class BedtimeScreen extends StatelessWidget {
   }
 
   String get _petLine {
-    if (state.bedtimeTodos.isNotEmpty) return 'Я почти засыпаю… Но у нас остались дела.';
+    if (state.bedtimeTodos.isNotEmpty) {
+      return 'Я почти засыпаю… Но у нас остались дела.';
+    }
     return _allOnPlan
         ? 'Я устал! Пойдём спать? Сегодня всё по плану.'
         : 'Я устал! Пойдём спать? Завтра попробуем ещё точнее по плану.';
@@ -136,6 +147,7 @@ class BedtimeScreen extends StatelessWidget {
             height: 150,
             child: ExcludeSemantics(
               child: MoniScene(
+                appearance: state.appearance,
                 stage: state.stage,
                 sleeping: true,
                 motion: state.motion,
@@ -161,7 +173,10 @@ class BedtimeScreen extends StatelessWidget {
                 ),
                 child: Text(_petLine,
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.ink, height: 1.3)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: FinniColors.ink,
+                        height: 1.3)),
               ),
             ),
           ),
@@ -185,7 +200,9 @@ class BedtimeScreen extends StatelessWidget {
     return switch (index) {
       0 => fact < plan ? 'По плану ещё $gap' : 'Вышло на $gap больше плана',
       1 => fact < plan ? 'Сэкономил $gap' : 'Потратил на $gap больше плана',
-      _ => fact > plan ? 'Отложил на $gap больше!' : 'Отложил на $gap меньше плана',
+      _ => fact > plan
+          ? 'Отложил на $gap больше!'
+          : 'Отложил на $gap меньше плана',
     };
   }
 
@@ -195,9 +212,12 @@ class BedtimeScreen extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Как прошёл день',
             style: TextStyle(
-                fontSize: 19, fontWeight: FontWeight.w900, color: FinniColors.nightInk)),
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+                color: FinniColors.nightInk)),
         const SizedBox(height: 4),
-        for (final (i, row) in rows.indexed) _planRow(i, row.$1, row.$2, row.$3, first: i == 0),
+        for (final (i, row) in rows.indexed)
+          _planRow(i, row.$1, row.$2, row.$3, first: i == 0),
         const SizedBox(height: 8),
         const Row(children: [
           _Legend(bar: true, text: 'сколько вышло'),
@@ -208,17 +228,34 @@ class BedtimeScreen extends StatelessWidget {
     );
   }
 
-  Widget _planRow(int index, String label, int plan, int fact, {required bool first}) {
+  Widget _planRow(int index, String label, int plan, int fact,
+      {required bool first}) {
     final look = index < _rows.length ? _rows[index] : ('•', FinniColors.honey);
     final tone = _tone(index, plan, fact);
     final top = plan > fact ? plan : fact;
     final factShare = top == 0 ? 0.0 : fact / top;
     final planShare = top == 0 ? 0.0 : plan / top;
     final (icon, fg, bg) = switch (tone) {
-      _Tone.ok => (Icons.check_rounded, FinniColors.nightMint, FinniColors.glass),
-      _Tone.bonus => (Icons.star_rounded, FinniColors.nightMood, FinniColors.glass),
-      _Tone.warn => (Icons.info_outline_rounded, FinniColors.nightPeach, FinniColors.glass),
-      _Tone.calm => (Icons.nightlight_round, FinniColors.nightSoft, FinniColors.glass),
+      _Tone.ok => (
+          Icons.check_rounded,
+          FinniColors.nightMint,
+          FinniColors.glass
+        ),
+      _Tone.bonus => (
+          Icons.star_rounded,
+          FinniColors.nightMood,
+          FinniColors.glass
+        ),
+      _Tone.warn => (
+          Icons.info_outline_rounded,
+          FinniColors.nightPeach,
+          FinniColors.glass
+        ),
+      _Tone.calm => (
+          Icons.nightlight_round,
+          FinniColors.nightSoft,
+          FinniColors.glass
+        ),
     };
     final tag = _tagText(index, plan, fact);
     return Semantics(
@@ -236,11 +273,15 @@ class BedtimeScreen extends StatelessWidget {
             Expanded(
               child: Text('${look.$1} $label',
                   style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.nightInk)),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: FinniColors.nightInk)),
             ),
             Text('$fact из $plan',
                 style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w900, color: FinniColors.nightInk)),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: FinniColors.nightInk)),
           ]),
           const SizedBox(height: 8),
           LayoutBuilder(builder: (context, constraints) {
@@ -255,7 +296,8 @@ class BedtimeScreen extends StatelessWidget {
                   height: 14,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                        color: FinniColors.glassStrong, borderRadius: BorderRadius.circular(8)),
+                        color: FinniColors.glassStrong,
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
                 Positioned(
@@ -276,7 +318,8 @@ class BedtimeScreen extends StatelessWidget {
                     width: 3,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                          color: FinniColors.nightInk, borderRadius: BorderRadius.circular(2)),
+                          color: FinniColors.nightInk,
+                          borderRadius: BorderRadius.circular(2)),
                     ),
                   ),
               ]),
@@ -285,13 +328,15 @@ class BedtimeScreen extends StatelessWidget {
           const SizedBox(height: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-            decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+                color: bg, borderRadius: BorderRadius.circular(10)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               Icon(icon, size: 16, color: fg),
               const SizedBox(width: 5),
               Flexible(
                 child: Text(tag,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: fg)),
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w800, color: fg)),
               ),
             ]),
           ),
@@ -303,7 +348,9 @@ class BedtimeScreen extends StatelessWidget {
   (String, String) _todoLook(BedtimeTodo todo) => switch (todo) {
         BedtimeTodo.plan => (
             '📝',
-            state.plan.isConfirmed ? 'Разложить заработанные монеты' : 'Составить план на день'
+            state.plan.isConfirmed
+                ? 'Разложить заработанные монеты'
+                : 'Составить план на день'
           ),
         BedtimeTodo.needs => (
             '🍲',
@@ -352,13 +399,16 @@ class BedtimeScreen extends StatelessWidget {
               Expanded(
                 child: Text(_todoLook(todo).$2,
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.nightInk)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: FinniColors.nightInk)),
               ),
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: FinniColors.honey),
                 onPressed: () => onTodo(context, todo),
                 child: Text(_actionLabel(todo),
-                    style: const TextStyle(decoration: TextDecoration.underline)),
+                    style:
+                        const TextStyle(decoration: TextDecoration.underline)),
               ),
             ]),
         ]),
@@ -366,7 +416,8 @@ class BedtimeScreen extends StatelessWidget {
 
   Widget _footer(BuildContext context) {
     final todos = state.bedtimeTodos;
-    final points = state.growth.pointsFor(state.growth.factorsOf(state.dayFacts));
+    final points =
+        state.growth.pointsFor(state.growth.factorsOf(state.dayFacts));
     final style = FilledButton.styleFrom(
       backgroundColor: FinniColors.honey,
       foregroundColor: FinniColors.honeyInk,
@@ -381,12 +432,15 @@ class BedtimeScreen extends StatelessWidget {
               const TextSpan(text: '✨ За сегодня можно получить '),
               TextSpan(
                   text: '+$points',
-                  style: const TextStyle(color: FinniColors.honey, fontWeight: FontWeight.w900)),
+                  style: const TextStyle(
+                      color: FinniColors.honey, fontWeight: FontWeight.w900)),
               const TextSpan(text: ' к росту'),
             ]),
             textAlign: TextAlign.center,
             style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.nightSoft),
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: FinniColors.nightSoft),
           ),
           const SizedBox(height: 8),
           FilledButton.icon(
@@ -437,7 +491,9 @@ class _Legend extends StatelessWidget {
           Flexible(
             child: Text(text,
                 style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.nightDim)),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: FinniColors.nightDim)),
           ),
         ]),
       );
