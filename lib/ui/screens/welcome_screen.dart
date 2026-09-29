@@ -195,7 +195,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               appearance: pet,
               motion: s.motion,
               stage: PetStage.baby,
-              onPet: () => s.fx('pet_tap')),
+              onPet: s.petVoice),
         ),
       );
 

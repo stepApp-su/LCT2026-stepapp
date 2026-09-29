@@ -39,16 +39,8 @@ flutter:
     - assets/pets/shared/
     - assets/audio/sfx/
     - assets/audio/music/
+    - assets/audio/pets/
     - assets/audio/voice/
-    - assets/audio/babble/fox/
-    - assets/audio/babble/robot/
-    - assets/audio/babble/puppy/
-    - assets/audio/babble/dragon/
-    - assets/audio/babble/rabbit/
-    - assets/audio/babble/raccoon/
-    - assets/audio/babble/red_panda/
-    - assets/audio/babble/bear/
-    - assets/audio/babble/lion/
   fonts:
     - family: Nunito
       fonts:

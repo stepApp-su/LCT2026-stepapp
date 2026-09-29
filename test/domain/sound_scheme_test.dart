@@ -42,14 +42,20 @@ void main() {
       }
     });
 
-    test('у каждого питомца свой набор бормотания', () {
+    test('у каждого питомца свой голосок', () {
       final characters = (_phrases()['characters'] as Map).keys.toSet();
-      expect(scheme.babble.keys.toSet(), characters);
+      expect(scheme.pets.keys.toSet(), characters);
       final all = <String>[];
-      for (final files in scheme.babble.values) {
+      for (final files in scheme.pets.values) {
         all.addAll(files);
       }
       expect(all.toSet().length, all.length);
+    });
+
+    test('в звуке нет синтетики: только mp3', () {
+      for (final file in scheme.allFiles) {
+        expect(file, endsWith('.mp3'), reason: file);
+      }
     });
 
     test('без события нет схемы', () {
@@ -69,9 +75,9 @@ void main() {
           throwsArgumentError);
     });
 
-    test('питомец без сэмплов не принимается', () {
+    test('питомец без голоска не принимается', () {
       final broken = _raw();
-      (broken['babble'] as Map)['fox'] = ['babble/fox/fox_1.wav'];
+      (broken['pets'] as Map)['fox'] = <String>[];
       expect(() => SoundScheme.fromJson(broken), throwsArgumentError);
     });
   });
@@ -127,34 +133,18 @@ void main() {
           isNull);
     });
 
-    test('бормотание: по сэмплу на слог, в тембре питомца', () {
-      final chain = service.babbleFor('Привет! Как дела?',
-          species: 'puppy', seed: 5, soundOn: true);
-      expect(chain.length, 5);
-      for (final path in chain) {
-        expect(path, startsWith('assets/audio/babble/puppy/'));
-      }
+    test('голосок своего вида, варианты чередуются', () {
+      final first = service.petSound('puppy', turn: 0, soundOn: true);
+      final second = service.petSound('puppy', turn: 1, soundOn: true);
+      expect(first, startsWith('assets/audio/pets/puppy_'));
+      expect(second, startsWith('assets/audio/pets/puppy_'));
+      expect(first, isNot(second));
+      expect(service.petSound('puppy', turn: 2, soundOn: true), first);
     });
 
-    test('длинная реплика не бормочет дольше лимита', () {
-      final chain = service.babbleFor(
-          'Очень длинная реплика про планирование бюджета и накопления на мечту',
-          species: 'fox',
-          seed: 1,
-          soundOn: true);
-      expect(chain.length, scheme.babbleMaxSyllables);
-    });
-
-    test('один сид — одна и та же цепочка', () {
-      List<String> chain() => service.babbleFor('Привет, дружок!',
-          species: 'dragon', seed: 42, soundOn: true);
-      expect(chain(), chain());
-    });
-
-    test('выключенный звук — пустое бормотание', () {
-      expect(
-          service.babbleFor('Привет', species: 'fox', seed: 1, soundOn: false),
-          isEmpty);
+    test('незнакомый вид и выключенный звук — тишина', () {
+      expect(service.petSound('unicorn', turn: 0, soundOn: true), isNull);
+      expect(service.petSound('fox', turn: 0, soundOn: false), isNull);
     });
   });
 }

@@ -1487,17 +1487,26 @@ class GameController extends ChangeNotifier {
     if (path != null) soundPlayer?.effect(path);
   }
 
-  // реплика: записанный голос, а без записи — бормотание по слогам
+  /// Питомец отзывается своим голоском: смешок лисёнка, писк робота…
+  void petVoice() {
+    final path = sounds?.petSound(character, turn: _petTurn++, soundOn: sound);
+    if (path != null) soundPlayer?.effect(path);
+  }
+
+  int _petTurn = 0;
+
+  // реплика: записанный голос, а без записи — голосок питомца
   void _speak(PhraseLine line) {
     final scheme = sounds;
     final player = soundPlayer;
     if (scheme == null || player == null || !sound) return;
     final voice = scheme.voiceFor(line.id, species: character, soundOn: sound);
     player.stopSpeech();
-    player.speak(voice != null
-        ? [voice]
-        : scheme.babbleFor(line.textRu,
-            species: character, seed: line.id.hashCode, soundOn: sound));
+    if (voice != null) {
+      player.speak([voice]);
+    } else {
+      petVoice();
+    }
   }
 
   void greet() {

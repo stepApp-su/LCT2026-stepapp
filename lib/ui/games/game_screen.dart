@@ -281,7 +281,7 @@ class _GameScreenState extends State<GameScreen> {
                 stage: s.stage,
                 motion: s.motion,
                 outfit: s.outfit,
-                onPet: () => s.fx('pet_tap')),
+                onPet: s.petVoice),
           ),
           const SizedBox(width: 6),
           Expanded(

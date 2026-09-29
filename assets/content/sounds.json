@@ -3,7 +3,8 @@
   "rules": {
     "canBeMuted": "Звук отключается тумблером в разделе для взрослого",
     "textAlways": "Всё озвученное дублируется текстом на экране: без звука ничего не теряется",
-    "pregenerated": "Озвучка записана заранее и лежит в assets — на лету ничего не синтезируется"
+    "pregenerated": "Озвучка записана заранее и лежит в assets — на лету ничего не синтезируется",
+    "petVoices": "Реплика без записи и поглаживание — живой голосок своего питомца"
   },
   "events": {
     "coin": "sfx/coin.mp3",
@@ -12,58 +13,63 @@
     "goal_reached": "sfx/goal_reached.mp3",
     "stage_up": "sfx/stage_up.mp3",
     "title_earned": "sfx/title_earned.mp3",
-    "pet_tap": "sfx/pet_tap.mp3",
-    "sleep": "sfx/sleep.wav",
+    "sleep": "sfx/sleep.mp3",
     "snap": "sfx/snap.mp3",
     "round_win": "sfx/round_win.mp3",
     "miss": "sfx/miss.mp3",
     "not_enough": "sfx/not_enough.mp3",
-    "dice": "sfx/dice.wav",
+    "dice": "sfx/dice.mp3",
     "level_done": "sfx/level_done.mp3",
     "goal_select": "sfx/goal_select.mp3",
-    "equip": "sfx/equip.wav",
+    "equip": "sfx/equip.mp3",
     "knock": "sfx/knock.mp3",
-    "page_turn": "sfx/page_turn.wav",
-    "egg_crack": "sfx/egg_crack.wav",
+    "page_turn": "sfx/page_turn.mp3",
+    "egg_crack": "sfx/egg_crack.mp3",
     "stat_up": "sfx/stat_up.mp3",
-    "stat_down": "sfx/stat_down.wav",
+    "stat_down": "sfx/stat_down.mp3",
     "bubble": "sfx/bubble.mp3",
-    "tally": "sfx/tally.wav",
+    "tally": "sfx/tally.mp3",
     "cozy_up": "sfx/cozy_up.mp3",
     "ui_tick": "sfx/ui_tick.mp3",
     "retry": "sfx/retry.mp3",
     "tap": "sfx/tap.mp3"
   },
-  "babbleMaxSyllables": 8,
-  "babble": {
+  "pets": {
     "fox": [
-      "babble/fox/fox_1.wav",
-      "babble/fox/fox_2.wav",
-      "babble/fox/fox_3.wav",
-      "babble/fox/fox_4.wav"
+      "pets/fox_1.mp3",
+      "pets/fox_2.mp3"
     ],
     "robot": [
-      "babble/robot/robot_1.wav",
-      "babble/robot/robot_2.wav",
-      "babble/robot/robot_3.wav",
-      "babble/robot/robot_4.wav"
+      "pets/robot_1.mp3",
+      "pets/robot_2.mp3"
     ],
     "puppy": [
-      "babble/puppy/puppy_1.wav",
-      "babble/puppy/puppy_2.wav",
-      "babble/puppy/puppy_3.wav",
-      "babble/puppy/puppy_4.wav"
+      "pets/puppy_1.mp3",
+      "pets/puppy_2.mp3"
     ],
-    "rabbit": ["babble/rabbit/rabbit_1.wav", "babble/rabbit/rabbit_2.wav", "babble/rabbit/rabbit_3.wav", "babble/rabbit/rabbit_4.wav"],
-    "raccoon": ["babble/raccoon/raccoon_1.wav", "babble/raccoon/raccoon_2.wav", "babble/raccoon/raccoon_3.wav", "babble/raccoon/raccoon_4.wav"],
-    "red_panda": ["babble/red_panda/red_panda_1.wav", "babble/red_panda/red_panda_2.wav", "babble/red_panda/red_panda_3.wav", "babble/red_panda/red_panda_4.wav"],
-    "bear": ["babble/bear/bear_1.wav", "babble/bear/bear_2.wav", "babble/bear/bear_3.wav", "babble/bear/bear_4.wav"],
-    "lion": ["babble/lion/lion_1.wav", "babble/lion/lion_2.wav", "babble/lion/lion_3.wav", "babble/lion/lion_4.wav"],
+    "rabbit": [
+      "pets/rabbit_1.mp3",
+      "pets/rabbit_2.mp3"
+    ],
+    "raccoon": [
+      "pets/raccoon_1.mp3",
+      "pets/raccoon_2.mp3"
+    ],
+    "red_panda": [
+      "pets/red_panda_1.mp3",
+      "pets/red_panda_2.mp3"
+    ],
+    "bear": [
+      "pets/bear_1.mp3",
+      "pets/bear_2.mp3"
+    ],
+    "lion": [
+      "pets/lion_1.mp3",
+      "pets/lion_2.mp3"
+    ],
     "dragon": [
-      "babble/dragon/dragon_1.wav",
-      "babble/dragon/dragon_2.wav",
-      "babble/dragon/dragon_3.wav",
-      "babble/dragon/dragon_4.wav"
+      "pets/dragon_1.mp3",
+      "pets/dragon_2.mp3"
     ]
   },
   "voice": {

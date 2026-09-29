@@ -1,13 +1,12 @@
 import 'content_json.dart';
 
-/// Звуковая схема из sounds.json: события, «бормотание» питомцев
+/// Звуковая схема из sounds.json: события, голоски питомцев
 /// и заранее записанная озвучка реплик. Пути — внутри assets/audio.
 final class SoundScheme {
   const SoundScheme._({
     required this.schemaVersion,
     required this.events,
-    required this.babble,
-    required this.babbleMaxSyllables,
+    required this.pets,
     required this.voice,
     required this.music,
   });
@@ -20,29 +19,28 @@ final class SoundScheme {
     'goal_reached',
     'stage_up',
     'title_earned',
-    'pet_tap',
     'sleep',
   ];
 
   factory SoundScheme.fromJson(Map<String, Object?> json) {
     final events = jsonTexts(json['events'], 'events',
         required: {...requiredEvents});
-    final rawBabble = jsonMap(json['babble'], 'babble');
-    final babble = <String, List<String>>{};
-    for (final entry in rawBabble.entries) {
-      final files = jsonStrings(entry.value, 'babble.${entry.key}');
-      if (files.length < 3) {
-        throw ArgumentError.value(files, 'babble.${entry.key}',
-            'у питомца минимум 3 сэмпла бормотания');
+    final rawPets = jsonMap(json['pets'], 'pets');
+    final pets = <String, List<String>>{};
+    for (final entry in rawPets.entries) {
+      final files = jsonStrings(entry.value, 'pets.${entry.key}');
+      if (files.isEmpty) {
+        throw ArgumentError.value(
+            files, 'pets.${entry.key}', 'у питомца нет голоска');
       }
       if (files.toSet().length != files.length) {
         throw ArgumentError.value(
-            files, 'babble.${entry.key}', 'сэмплы не повторяются');
+            files, 'pets.${entry.key}', 'файлы не повторяются');
       }
-      babble[entry.key] = files;
+      pets[entry.key] = files;
     }
-    if (babble.isEmpty) {
-      throw ArgumentError.value(rawBabble, 'babble', 'нет ни одного питомца');
+    if (pets.isEmpty) {
+      throw ArgumentError.value(rawPets, 'pets', 'нет ни одного питомца');
     }
     final music = jsonTexts(json['music'] ?? const {}, 'music');
     final rawVoice = jsonMap(json['voice'] ?? const {}, 'voice');
@@ -53,9 +51,7 @@ final class SoundScheme {
     return SoundScheme._(
       schemaVersion: jsonInt(json['schemaVersion'] ?? 1, 'schemaVersion', min: 1),
       events: events,
-      babble: Map.unmodifiable(babble),
-      babbleMaxSyllables:
-          jsonInt(json['babbleMaxSyllables'] ?? 8, 'babbleMaxSyllables', min: 1),
+      pets: Map.unmodifiable(pets),
       voice: Map.unmodifiable(voice),
       music: music,
     );
@@ -66,10 +62,8 @@ final class SoundScheme {
   /// Событие -> файл эффекта.
   final Map<String, String> events;
 
-  /// Вид питомца -> сэмплы бормотания в его тембре.
-  final Map<String, List<String>> babble;
-
-  final int babbleMaxSyllables;
+  /// Вид питомца -> его голоски (смешок, писк, «гав»), по очереди.
+  final Map<String, List<String>> pets;
 
   /// Вид питомца -> (id реплики -> файл озвучки).
   final Map<String, Map<String, String>> voice;
@@ -81,7 +75,7 @@ final class SoundScheme {
   List<String> get allFiles => List.unmodifiable([
         ...events.values,
         ...music.values,
-        for (final files in babble.values) ...files,
+        for (final files in pets.values) ...files,
         for (final byPhrase in voice.values) ...byPhrase.values,
       ]);
 }
