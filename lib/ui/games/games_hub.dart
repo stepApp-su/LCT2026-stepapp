@@ -1,3 +1,4 @@
+import '../widgets/game_text.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
@@ -36,10 +37,10 @@ class GamesHub extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('Учимся на маленьких решениях',
+        GameText('Учимся на маленьких решениях',
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 4),
-        Text(
+        GameText(
           'Пройдено уровней: ${state.levelsDone}',
           style: const TextStyle(color: FinniColors.muted),
         ),
@@ -57,11 +58,11 @@ class GamesHub extends StatelessWidget {
                 children: [
                   const Icon(Icons.fitness_center_rounded, color: FinniColors.primary),
                   const SizedBox(width: 8),
-                  Text('Тренировка', style: Theme.of(context).textTheme.titleLarge),
+                  GameText('Тренировка', style: Theme.of(context).textTheme.titleLarge),
                 ],
               ),
               const SizedBox(height: 6),
-              const Text(
+              const GameText(
                 'Здесь монеты не начисляются — это разминка для ума. Звёзды копятся! Игра попадает сюда, когда ты сыграешь её в уровне.',
                 style: TextStyle(color: FinniColors.muted),
               ),
@@ -163,7 +164,7 @@ class _NextUnlock extends StatelessWidget {
                           size: 56, color: FinniColors.transparent),
                     ),
                   ),
-                  const Text('?',
+                  const GameText('?',
                       style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.w900,
@@ -176,10 +177,10 @@ class _NextUnlock extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Скоро новая игра!',
+                  const GameText('Скоро новая игра!',
                       style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 2),
-                  Text(_levelsLeft(left)),
+                  GameText(_levelsLeft(left)),
                 ],
               ),
             ),
@@ -238,13 +239,13 @@ class _LockedTile extends StatelessWidget {
               const SizedBox(height: 8),
               _Reserve(
                 style: _titleStyle,
-                child: Text('???',
+                child: GameText('???',
                     style: _titleStyle.copyWith(color: FinniColors.muted)),
               ),
               const SizedBox(height: 6),
               _Reserve(
                 style: _noteStyle,
-                child: Text(_levelsLeft(left),
+                child: GameText(_levelsLeft(left),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: _noteStyle.copyWith(color: FinniColors.muted)),
@@ -311,7 +312,7 @@ class _ThemeHeader extends StatelessWidget {
           EmojiBadge(theme.iconId, size: 40),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(theme.title,
+            child: GameText(theme.title,
                 style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
           ),
           TagPill(
@@ -339,7 +340,7 @@ class _Reserve extends StatelessWidget {
           children: [
             ExcludeSemantics(
               child: Opacity(
-                  opacity: 0, child: Text('A\nA', maxLines: 2, style: style)),
+                  opacity: 0, child: GameText('A\nA', maxLines: 2, style: style)),
             ),
             Positioned.fill(child: child),
           ],
@@ -397,7 +398,7 @@ class _GameTile extends StatelessWidget {
                 const SizedBox(height: 8),
                 _Reserve(
                   style: _titleStyle,
-                  child: Text(task.title,
+                  child: GameText(task.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: _titleStyle),
@@ -408,7 +409,7 @@ class _GameTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(all ? 'Всё пройдено!' : 'Пройдено $passed из $total',
+                      GameText(all ? 'Всё пройдено!' : 'Пройдено $passed из $total',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: _noteStyle.copyWith(

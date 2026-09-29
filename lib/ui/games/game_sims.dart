@@ -35,9 +35,9 @@ class _HudChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 20)),
+              GameText(emoji, style: const TextStyle(fontSize: 20)),
               const SizedBox(width: 6),
-              Text(text,
+              GameText(text,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             ],
           ),
@@ -104,7 +104,7 @@ class _Die extends StatelessWidget {
               BoxShadow(color: FinniColors.shadow, blurRadius: 8, offset: Offset(0, 4)),
             ],
           ),
-          child: Text(
+          child: GameText(
             face == null ? '🎲' : '$face',
             textScaler: TextScaler.noScaling,
             style: TextStyle(
@@ -315,16 +315,16 @@ class _BoardGameState extends State<BoardGame> {
             Expanded(
               child: run.isFinished
                   ? (board.locked || !submitted
-                      ? Text(texts['finish'],
+                      ? GameText(texts['finish'],
                           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900))
                       : OutlinedButton.icon(
                           onPressed: _restart,
                           icon: const Icon(Icons.replay_rounded),
-                          label: Text(texts['again'])))
+                          label: GameText(texts['again'])))
                   : FilledButton.icon(
                       onPressed: run.canRoll && !spinning && !board.locked ? _roll : null,
                       icon: const Icon(Icons.casino_outlined),
-                      label: Text(texts['roll'])),
+                      label: GameText(texts['roll'])),
             ),
           ],
         ),
@@ -372,11 +372,11 @@ class _BoardGameState extends State<BoardGame> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(kEmoji[cell.iconId] ?? '⬜',
+                  GameText(kEmoji[cell.iconId] ?? '⬜',
                       textScaler: TextScaler.noScaling,
                       style: const TextStyle(fontSize: 24)),
                   if (amount.isNotEmpty)
-                    Text(amount,
+                    GameText(amount,
                         textScaler: TextScaler.noScaling,
                         style: const TextStyle(
                             fontSize: 13, fontWeight: FontWeight.w900)),
@@ -389,7 +389,7 @@ class _BoardGameState extends State<BoardGame> {
                   child: PopIn(
                     key: ValueKey('token-${run.turn}'),
                     motion: board.motion,
-                    child: const Text('🦊',
+                    child: const GameText('🦊',
                         textScaler: TextScaler.noScaling,
                         style: TextStyle(fontSize: 26)),
                   ),
@@ -417,7 +417,7 @@ class _BoardGameState extends State<BoardGame> {
                 EmojiBadge(cell.iconId, size: 52, color: FinniColors.paper),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text('${cell.label} — ${cell.amount} ${ruCoins(cell.amount)}. Купим?',
+                  child: GameText('${cell.label} — ${cell.amount} ${ruCoins(cell.amount)}. Купим?',
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 ),
               ]),
@@ -426,14 +426,14 @@ class _BoardGameState extends State<BoardGame> {
                 Expanded(
                   child: FilledButton(
                     onPressed: options.contains(1) && !board.locked ? () => _decide(1) : null,
-                    child: Text(fillText(texts['buy'], {'cost': '${cell.amount}'})),
+                    child: GameText(fillText(texts['buy'], {'cost': '${cell.amount}'})),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton(
                     onPressed: board.locked ? null : () => _decide(0),
-                    child: Text(texts['skip']),
+                    child: GameText(texts['skip']),
                   ),
                 ),
               ]),
@@ -454,10 +454,10 @@ class _BoardGameState extends State<BoardGame> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Row(children: [
-                Text('🐷', style: TextStyle(fontSize: 40)),
+                GameText('🐷', style: TextStyle(fontSize: 40)),
                 SizedBox(width: 10),
                 Expanded(
-                  child: Text('Копилка! Сколько отложим?',
+                  child: GameText('Копилка! Сколько отложим?',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 ),
               ]),
@@ -482,7 +482,7 @@ class _BoardGameState extends State<BoardGame> {
               const SizedBox(height: 8),
               FilledButton(
                 onPressed: board.locked ? null : () => _decide(piggyAmount),
-                child: Text(piggyAmount == 0
+                child: GameText(piggyAmount == 0
                     ? texts['keep']
                     : fillText(texts['save'], {'amount': '$piggyAmount'})),
               ),
@@ -508,7 +508,7 @@ class _BoardGameState extends State<BoardGame> {
           EmojiBadge(cell.iconId, size: 48, color: FinniColors.paper),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(text,
+            child: GameText(text,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           ),
         ]),
@@ -637,7 +637,7 @@ class _StallGameState extends State<StallGame> {
           child: FinniCard(
             color: FinniColors.sky,
             child: Row(children: [
-              Text(kEmoji[current.iconId] ?? '🌤️',
+              GameText(kEmoji[current.iconId] ?? '🌤️',
                   textScaler: TextScaler.noScaling,
                   style: const TextStyle(fontSize: 52)),
               const SizedBox(width: 12),
@@ -645,9 +645,9 @@ class _StallGameState extends State<StallGame> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(current.label,
+                    GameText(current.label,
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                    Text(current.forecast),
+                    GameText(current.forecast),
                   ],
                 ),
               ),
@@ -681,9 +681,9 @@ class _StallGameState extends State<StallGame> {
             ),
             Expanded(
               child: Column(children: [
-                Text(fillText(texts['portions'], {'portions': '$portions'}),
+                GameText(fillText(texts['portions'], {'portions': '$portions'}),
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                Text(fillText(texts['spent'], {'spent': '${portions * payload.costPerPortion}'}),
+                GameText(fillText(texts['spent'], {'spent': '${portions * payload.costPerPortion}'}),
                     style: const TextStyle(color: FinniColors.muted)),
               ]),
             ),
@@ -705,13 +705,13 @@ class _StallGameState extends State<StallGame> {
                 PopIn(
                   key: ValueKey('portion-$i'),
                   motion: board.motion,
-                  child: const Text('🍦',
+                  child: const GameText('🍦',
                       textScaler: TextScaler.noScaling, style: TextStyle(fontSize: 22)),
                 ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(texts['price'], style: const TextStyle(fontWeight: FontWeight.w800)),
+          GameText(texts['price'], style: const TextStyle(fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
@@ -731,7 +731,7 @@ class _StallGameState extends State<StallGame> {
           FilledButton.icon(
             onPressed: board.locked ? null : _open,
             icon: const Icon(Icons.storefront_outlined),
-            label: Text(texts['open']),
+            label: GameText(texts['open']),
           ),
         ],
       ),
@@ -755,14 +755,14 @@ class _StallGameState extends State<StallGame> {
                   key: ValueKey('buyer-$day-$i'),
                   motion: board.motion,
                   delay: i * 60,
-                  child: Text('${faces[i % faces.length]}🍦',
+                  child: GameText('${faces[i % faces.length]}🍦',
                       textScaler: TextScaler.noScaling,
                       style: const TextStyle(fontSize: 22)),
                 ),
             ],
           ),
           const SizedBox(height: 10),
-          Text(
+          GameText(
             fillText(texts['dayResult'], {
               'n': '${result.day}',
               'sold': '${result.sold}',
@@ -772,27 +772,27 @@ class _StallGameState extends State<StallGame> {
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
           if (result.leftover > 0)
-            Text(fillText(texts['leftover'], {'leftover': '${result.leftover}'})),
+            GameText(fillText(texts['leftover'], {'leftover': '${result.leftover}'})),
           if (result.missed > 0)
-            Text(fillText(texts['missed'], {'missed': '${result.missed}'})),
+            GameText(fillText(texts['missed'], {'missed': '${result.missed}'})),
           const SizedBox(height: 6),
           Row(children: [
             CoinAmount(result.revenue, prefix: '+', size: 18),
             const SizedBox(width: 12),
-            Text('−${result.spent}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            GameText('−${result.spent}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           ]),
           const SizedBox(height: 12),
           if (!submitted)
             FilledButton.icon(
               onPressed: board.locked ? null : _next,
               icon: Icon(last ? Icons.flag_outlined : Icons.arrow_forward_rounded),
-              label: Text(last ? 'Подвести итог' : texts['next']),
+              label: GameText(last ? 'Подвести итог' : texts['next']),
             )
           else if (!board.locked)
             OutlinedButton.icon(
               onPressed: _restart,
               icon: const Icon(Icons.replay_rounded),
-              label: Text(texts['again']),
+              label: GameText(texts['again']),
             ),
         ],
       ),
@@ -903,7 +903,7 @@ class _CashierGameState extends State<CashierGame> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(children: [
-                  Text(kEmoji[customer.iconId] ?? '🐾',
+                  GameText(kEmoji[customer.iconId] ?? '🐾',
                       textScaler: TextScaler.noScaling,
                       style: const TextStyle(fontSize: 56)),
                   const SizedBox(width: 12),
@@ -911,9 +911,9 @@ class _CashierGameState extends State<CashierGame> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(customer.name,
+                        GameText(customer.name,
                             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                        Text(
+                        GameText(
                           answered
                               ? (lastRight!
                                   ? texts['right']
@@ -933,13 +933,13 @@ class _CashierGameState extends State<CashierGame> {
                       EmojiBadge(item.iconId, size: 36),
                       const SizedBox(width: 8),
                       Expanded(
-                          child: Text(item.label,
+                          child: GameText(item.label,
                               style: const TextStyle(fontWeight: FontWeight.w700))),
                       CoinAmount(item.price, size: 16),
                     ]),
                   ),
                 const Divider(),
-                Text(
+                GameText(
                   payload.showTotal || answered
                       ? fillText(texts['total'], {'total': '${customer.total}'})
                       : texts['askTotal'],
@@ -963,13 +963,13 @@ class _CashierGameState extends State<CashierGame> {
           color: const Color(0xFFF3E3C4),
           child: Column(
             children: [
-              Text(fillText(texts['change'], {'given': '$given'}),
+              GameText(fillText(texts['change'], {'given': '$given'}),
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
               const SizedBox(height: 8),
               if (tray.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Text('Нажимай на монеты внизу',
+                  child: GameText('Нажимай на монеты внизу',
                       style: TextStyle(color: FinniColors.muted)),
                 )
               else
@@ -1025,13 +1025,13 @@ class _CashierGameState extends State<CashierGame> {
           FilledButton.icon(
             onPressed: tray.isEmpty || board.locked ? null : _give,
             icon: const Icon(Icons.front_hand_outlined),
-            label: Text(texts['give']),
+            label: GameText(texts['give']),
           )
         else if (!submitted)
           FilledButton.icon(
             onPressed: board.locked ? null : _next,
             icon: const Icon(Icons.arrow_forward_rounded),
-            label: Text(index + 1 >= payload.customers.length
+            label: GameText(index + 1 >= payload.customers.length
                 ? 'Закрыть смену'
                 : 'Следующий покупатель'),
           )
@@ -1039,7 +1039,7 @@ class _CashierGameState extends State<CashierGame> {
           OutlinedButton.icon(
             onPressed: _restart,
             icon: const Icon(Icons.replay_rounded),
-            label: Text(texts['again']),
+            label: GameText(texts['again']),
           ),
       ],
     );
@@ -1105,7 +1105,7 @@ class _StickerState extends State<_Sticker> with SingleTickerProviderStateMixin 
               BoxShadow(color: FinniColors.shadow, blurRadius: 6, offset: Offset(0, 3)),
             ],
           ),
-          child: Text(
+          child: GameText(
             widget.text,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
           ),
@@ -1202,10 +1202,10 @@ class _PriceTagGameState extends State<PriceTagGame> {
           child: FinniCard(
             color: FinniColors.honey,
             child: Row(children: [
-              const Text('🎯', style: TextStyle(fontSize: 34)),
+              const GameText('🎯', style: TextStyle(fontSize: 34)),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(round.need,
+                child: GameText(round.need,
                     style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
               ),
             ]),
@@ -1213,7 +1213,7 @@ class _PriceTagGameState extends State<PriceTagGame> {
         ),
         ),
         const SizedBox(height: 8),
-        Text(texts['pick'], style: const TextStyle(color: FinniColors.muted)),
+        GameText(texts['pick'], style: const TextStyle(color: FinniColors.muted)),
         const SizedBox(height: 10),
         CoachTarget(
           id: 'pricetag.offers',
@@ -1249,15 +1249,15 @@ class _PriceTagGameState extends State<PriceTagGame> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
+                  GameText(
                     picked.id == best.id ? '🎉 ${texts['best']}' : '🤔 ${texts['tricky']}',
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 6),
-                  Text(picked.why, style: const TextStyle(fontSize: 16)),
+                  GameText(picked.why, style: const TextStyle(fontSize: 16)),
                   if (picked.id != best.id) ...[
                     const SizedBox(height: 6),
-                    Text('✓ ${best.label}: ${best.why}',
+                    GameText('✓ ${best.label}: ${best.why}',
                         style: const TextStyle(fontWeight: FontWeight.w700)),
                   ],
                 ],
@@ -1269,7 +1269,7 @@ class _PriceTagGameState extends State<PriceTagGame> {
             FilledButton.icon(
               onPressed: board.locked ? null : _next,
               icon: const Icon(Icons.arrow_forward_rounded),
-              label: Text(index + 1 >= payload.rounds.length
+              label: GameText(index + 1 >= payload.rounds.length
                   ? texts['finish']
                   : texts['next']),
             )
@@ -1277,7 +1277,7 @@ class _PriceTagGameState extends State<PriceTagGame> {
             OutlinedButton.icon(
               onPressed: _restart,
               icon: const Icon(Icons.replay_rounded),
-              label: Text(texts['again']),
+              label: GameText(texts['again']),
             ),
         ],
       ],
@@ -1342,7 +1342,7 @@ class _PriceTagGameState extends State<PriceTagGame> {
                     EmojiBadge(offer.iconId, size: 48),
                   ]),
                   const SizedBox(height: 8),
-                  Text(offer.label,
+                  GameText(offer.label,
                       style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
                   Row(
@@ -1351,14 +1351,14 @@ class _PriceTagGameState extends State<PriceTagGame> {
                       const Icon(Icons.search_rounded, size: 16, color: FinniColors.muted),
                       const SizedBox(width: 4),
                       Expanded(
-                        child: Text(offer.detail,
+                        child: GameText(offer.detail,
                             style: const TextStyle(fontSize: 14, color: FinniColors.muted)),
                       ),
                     ],
                   ),
                   if (revealed) ...[
                     const SizedBox(height: 6),
-                    Text(fillText(texts['total'], {'pay': '${offer.pay}'}),
+                    GameText(fillText(texts['total'], {'pay': '${offer.pay}'}),
                         style: const TextStyle(fontWeight: FontWeight.w900)),
                   ],
                 ],

@@ -8,7 +8,7 @@ extension _GameSections on _GameShellState {
       builder: (context) => Scaffold(
         appBar: AppBar(
             toolbarHeight: MediaQuery.textScalerOf(context).scale(22) * 2.7 + 8,
-            title: Text(title, maxLines: 2),
+            title: GameText(title, maxLines: 2),
             leading: CoachTarget(
                 id: 'section.back',
                 child: IconButton(
@@ -43,17 +43,17 @@ extension _GameSections on _GameShellState {
             _Panel(
                 color: FinniColors.lavender,
                 child: Column(children: [
-                  const Text('✨', style: TextStyle(fontSize: 56)),
+                  const GameText('✨', style: TextStyle(fontSize: 56)),
                   const SizedBox(height: 8),
-                  Text('Выбери мечту',
+                  GameText('Выбери мечту',
                       style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 8),
-                  Text(s.goals.starterHint, textAlign: TextAlign.center),
+                  GameText(s.goals.starterHint, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                       onPressed: chooseGoal,
                       icon: const Icon(Icons.flag_outlined),
-                      label: const Text('Выбрать мечту')),
+                      label: const GameText('Выбрать мечту')),
                 ]))
           else ...[
             _Panel(
@@ -63,17 +63,17 @@ extension _GameSections on _GameShellState {
                       motion: s.motion,
                       child: ItemArt(view.goal.id, size: 120)),
                   const SizedBox(height: 12),
-                  Text(view.goal.title,
+                  GameText(view.goal.title,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineMedium),
                   if (view.goal.description.isNotEmpty) ...[
                     const SizedBox(height: 4),
-                    Text(view.goal.description,
+                    GameText(view.goal.description,
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: FinniColors.muted)),
                   ],
                   const SizedBox(height: 12),
-                  Text(view.progressText,
+                  GameText(view.progressText,
                       style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   _MilestoneBar(
@@ -81,7 +81,7 @@ extension _GameSections on _GameShellState {
                       milestones: s.content.goals.milestones,
                       motion: s.motion),
                   const SizedBox(height: 12),
-                  Text(view.leftText,
+                  GameText(view.leftText,
                       style: const TextStyle(fontWeight: FontWeight.w700)),
                 ])),
             const SizedBox(height: 16),
@@ -94,14 +94,14 @@ extension _GameSections on _GameShellState {
               FilledButton.icon(
                   onPressed: claimGoal,
                   icon: const Icon(Icons.celebration_outlined),
-                  label: Text(view.reachedButton)),
+                  label: GameText(view.reachedButton)),
               const SizedBox(height: 8),
             ],
             FilledButton.tonalIcon(
                 onPressed:
                     s.wallet.wallet.balance > 0 ? () => transfer(false) : null,
                 icon: const Icon(Icons.add_rounded),
-                label: const Text('Пополнить копилку')),
+                label: const GameText('Пополнить копилку')),
             const SizedBox(height: 8),
             CoachTarget(
                 id: 'savings.withdraw',
@@ -110,18 +110,18 @@ extension _GameSections on _GameShellState {
                         ? () => transfer(true)
                         : null,
                     icon: const Icon(Icons.arrow_upward_rounded),
-                    label: const Text('Взять из копилки'))),
+                    label: const GameText('Взять из копилки'))),
             const SizedBox(height: 8),
             CoachTarget(
                 id: 'savings.change',
                 child: TextButton.icon(
                     onPressed: chooseGoal,
                     icon: const Icon(Icons.flag_outlined),
-                    label: const Text('Выбрать другую мечту'))),
+                    label: const GameText('Выбрать другую мечту'))),
           ],
           if (reached.isNotEmpty) ...[
             const SizedBox(height: 20),
-            Text('Сбывшиеся мечты',
+            GameText('Сбывшиеся мечты',
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
             EqualGrid(columns: 3, spacing: 12, runSpacing: 12, children: [
@@ -129,7 +129,7 @@ extension _GameSections on _GameShellState {
                 Column(mainAxisSize: MainAxisSize.min, children: [
                   ItemArt(goal.id, size: 76),
                   const SizedBox(height: 4),
-                  Text(goal.title,
+                  GameText(goal.title,
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                 ]),
             ]),
@@ -147,7 +147,7 @@ extension _GameSections on _GameShellState {
           Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Center(child: ItemArt(outcome.goal.id, size: 140)),
             const SizedBox(height: 16),
-            Text(outcome.reachedText,
+            GameText(outcome.reachedText,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge),
             if (outcome.unlockedText != null) ...[
@@ -163,7 +163,7 @@ extension _GameSections on _GameShellState {
                   chooseGoal();
                 },
                 icon: const Icon(Icons.flag_outlined),
-                label: const Text('Выбрать новую мечту')),
+                label: const GameText('Выбрать новую мечту')),
           ]));
     } else if (outcome is GoalRefused) {
       toast(outcome.textRu);
@@ -176,14 +176,15 @@ extension _GameSections on _GameShellState {
     sheet(
         'Сначала план на день',
         Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Center(child: Text('📋', style: TextStyle(fontSize: 56))),
+          const Center(child: GameText('📋', style: TextStyle(fontSize: 56))),
           const SizedBox(height: 12),
-          Text(
+          GameText(
               'Прежде чем тратить и копить, разложим $income ${ruCoins(income)}: на обязательное, на желаемое и в копилку.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 17)),
           const SizedBox(height: 8),
-          const Text('Так в начале дня делают и взрослые — это и есть план.',
+          const GameText(
+              'Так в начале дня делают и взрослые — это и есть план.',
               textAlign: TextAlign.center,
               style: TextStyle(color: FinniColors.muted)),
           const SizedBox(height: 20),
@@ -193,7 +194,7 @@ extension _GameSections on _GameShellState {
                 go(1);
               },
               icon: const Icon(Icons.edit_note_rounded),
-              label: const Text('Составить план')),
+              label: const GameText('Составить план')),
         ]));
     return true;
   }
@@ -215,7 +216,7 @@ extension _GameSections on _GameShellState {
       final after = before + (withdrawal ? -amount : amount);
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Center(
-            child: Text(withdrawal ? '🐷➡️🪙' : '🪙➡️🐷',
+            child: GameText(withdrawal ? '🐷➡️🪙' : '🪙➡️🐷',
                 style: const TextStyle(fontSize: 44))),
         const SizedBox(height: 12),
         _Panel(
@@ -226,7 +227,7 @@ extension _GameSections on _GameShellState {
                 children: [
                   Row(children: [
                     Expanded(
-                        child: Text(
+                        child: GameText(
                             withdrawal
                                 ? 'Сейчас в копилке'
                                 : 'Сейчас в кошельке',
@@ -236,7 +237,7 @@ extension _GameSections on _GameShellState {
                   ]),
                   if (!withdrawal && s.plan.isConfirmed) ...[
                     const SizedBox(height: 6),
-                    Text(
+                    GameText(
                         s.planLeft(PlanDirection.savings) > 0
                             ? 'По плану сегодня отложить ещё ${s.planLeft(PlanDirection.savings)}.'
                             : 'По плану на сегодня уже отложено. Можно добавить ещё, если хочется.',
@@ -254,11 +255,12 @@ extension _GameSections on _GameShellState {
                   s.savingsToDeposit != max)
                 OutlinedButton(
                     onPressed: () => update(() => amount = s.savingsToDeposit),
-                    child: Text('По плану: ${s.savingsToDeposit}')),
+                    child: GameText('По плану: ${s.savingsToDeposit}')),
               if (max > 0)
                 OutlinedButton(
                     onPressed: () => update(() => amount = max),
-                    child: Text(withdrawal ? 'Всё: $max' : 'Все монеты: $max')),
+                    child: GameText(
+                        withdrawal ? 'Всё: $max' : 'Все монеты: $max')),
             ]),
         const SizedBox(height: 12),
         Row(children: [
@@ -277,13 +279,13 @@ extension _GameSections on _GameShellState {
         ]),
         const SizedBox(height: 16),
         if (preview is WithdrawPreview) ...[
-          Text(preview.question,
+          GameText(preview.question,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Text(preview.savedChangeText, textAlign: TextAlign.center),
+          GameText(preview.savedChangeText, textAlign: TextAlign.center),
           const SizedBox(height: 4),
-          Text(preview.etaChangeText, textAlign: TextAlign.center),
+          GameText(preview.etaChangeText, textAlign: TextAlign.center),
           const SizedBox(height: 20),
           FilledButton.icon(
               onPressed: () {
@@ -292,14 +294,14 @@ extension _GameSections on _GameShellState {
                 }
               },
               icon: const Icon(Icons.arrow_upward_rounded),
-              label: Text(preview.confirmLabel)),
+              label: GameText(preview.confirmLabel)),
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(preview.cancelLabel)),
+              child: GameText(preview.cancelLabel)),
         ] else if (preview is GoalRefused) ...[
           _Notice(icon: Icons.info_outline_rounded, text: preview.textRu),
         ] else if (!withdrawal) ...[
-          Text('В копилке: $before → $after монет',
+          GameText('В копилке: $before → $after монет',
               textAlign: TextAlign.center),
           const SizedBox(height: 20),
           FilledButton.icon(
@@ -324,10 +326,10 @@ extension _GameSections on _GameShellState {
                     }
                   : null,
               icon: const Icon(Icons.savings_outlined),
-              label: Text('Отложить $amount')),
+              label: GameText('Отложить $amount')),
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Отмена')),
+              child: const GameText('Отмена')),
         ],
       ]);
     }));
@@ -358,10 +360,10 @@ extension _GameSections on _GameShellState {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Text(goal.title,
+                        GameText(goal.title,
                             style: Theme.of(context).textTheme.titleLarge),
                         if (goal.description.isNotEmpty)
-                          Text(goal.description,
+                          GameText(goal.description,
                               style: const TextStyle(color: FinniColors.muted)),
                         const SizedBox(height: 6),
                         _Coins(goal.price),
@@ -373,7 +375,7 @@ extension _GameSections on _GameShellState {
                             icon: Icon(goal.id == s.goalId
                                 ? Icons.check_rounded
                                 : Icons.flag_outlined),
-                            label: Text(goal.id == s.goalId
+                            label: GameText(goal.id == s.goalId
                                 ? 'Текущая мечта'
                                 : 'Выбрать')),
                       ])),
@@ -391,14 +393,14 @@ extension _GameSections on _GameShellState {
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                            Text(goal.title,
+                            GameText(goal.title,
                                 style: Theme.of(context).textTheme.titleLarge),
                             const SizedBox(height: 6),
                             Row(children: [
                               const Icon(Icons.lock_outline_rounded, size: 18),
                               const SizedBox(width: 6),
                               Expanded(
-                                  child: Text(
+                                  child: GameText(
                                       'Откроется после ${goal.minGoalsReached} ${ruPlural(goal.minGoalsReached, 'достигнутой цели', 'достигнутых целей', 'достигнутых целей')}')),
                             ]),
                           ])),
@@ -418,7 +420,7 @@ extension _GameSections on _GameShellState {
         Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Center(child: ItemArt(ask.goal.id, size: 120)),
           const SizedBox(height: 12),
-          Text(ask.keepSavingsText, textAlign: TextAlign.center),
+          GameText(ask.keepSavingsText, textAlign: TextAlign.center),
           const SizedBox(height: 16),
           FilledButton.icon(
               onPressed: () {
@@ -430,10 +432,10 @@ extension _GameSections on _GameShellState {
                 }
               },
               icon: const Icon(Icons.check_rounded),
-              label: Text(ask.confirmLabel)),
+              label: GameText(ask.confirmLabel)),
           TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(ask.cancelLabel)),
+              child: GameText(ask.cancelLabel)),
         ]));
   }
 
@@ -472,7 +474,11 @@ extension _GameSections on _GameShellState {
                 width: 180,
                 child: IgnorePointer(
                   child: MoniScene(
-                      stage: s.stage, motion: s.motion, outfit: s.outfit),
+                      appearance: s.appearance,
+                      sad: s.petIsSad,
+                      stage: s.stage,
+                      motion: s.motion,
+                      outfit: s.outfit),
                 ),
               ),
             ),
@@ -483,7 +489,7 @@ extension _GameSections on _GameShellState {
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Text(s.petName,
+                  GameText(s.petName,
                       style: const TextStyle(
                           fontSize: 24, fontWeight: FontWeight.w900)),
                   TagChip(s.stageLabel, tone: TagTone.green),
@@ -517,28 +523,28 @@ extension _GameSections on _GameShellState {
                     (
                       'more.titles',
                       'Звания',
-                      const Text('🏅', style: TextStyle(fontSize: 34)),
+                      const GameText('🏅', style: TextStyle(fontSize: 34)),
                       titles,
                       false
                     ),
                     (
                       'more.diary',
                       'Дневник',
-                      const Text('📒', style: TextStyle(fontSize: 34)),
+                      const GameText('📒', style: TextStyle(fontSize: 34)),
                       history,
                       false
                     ),
                     (
                       'more.summary',
                       'Итоги',
-                      const Text('🌙', style: TextStyle(fontSize: 34)),
+                      const GameText('🌙', style: TextStyle(fontSize: 34)),
                       daySummary,
                       false
                     ),
                     (
                       'more.glossary',
                       'Словарик',
-                      const Text('💡', style: TextStyle(fontSize: 34)),
+                      const GameText('💡', style: TextStyle(fontSize: 34)),
                       glossary,
                       false
                     ),
@@ -558,7 +564,8 @@ extension _GameSections on _GameShellState {
                       id: 'more.coach',
                       child: _MoreTile(
                         label: 'Обучение',
-                        art: const Text('🎓', style: TextStyle(fontSize: 34)),
+                        art: const GameText('🎓',
+                            style: TextStyle(fontSize: 34)),
                         onTap: () {
                           s.resetCoach();
                           toast('Хорошо! Сейчас я всё покажу.');
@@ -579,9 +586,9 @@ extension _GameSections on _GameShellState {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             leading:
                 const Icon(Icons.lock_outline_rounded, color: FinniColors.blue),
-            title: const Text('Для взрослого',
+            title: const GameText('Для взрослого',
                 style: TextStyle(fontWeight: FontWeight.w800)),
-            subtitle: const Text('Настройки и успехи ребёнка'),
+            subtitle: const GameText('Настройки и успехи ребёнка'),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: adults,
           ),
@@ -606,7 +613,7 @@ extension _GameSections on _GameShellState {
         builder: (context, _) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Выбери звание, оно появится рядом с именем.',
+            const GameText('Выбери звание, оно появится рядом с именем.',
                 style: TextStyle(color: FinniColors.muted)),
             const SizedBox(height: 10),
             for (final title in s.content.titles.titles)
@@ -619,9 +626,9 @@ extension _GameSections on _GameShellState {
                         ? FinniColors.honey
                         : FinniColors.paper,
                     child: ListTile(
-                      title: Text(title.title,
+                      title: GameText(title.title,
                           style: const TextStyle(fontWeight: FontWeight.w900)),
-                      subtitle: Text(s.titles.reasonOf(title)),
+                      subtitle: GameText(s.titles.reasonOf(title)),
                       trailing: s.progress.currentTitleId == title.id
                           ? const TagChip('✓ выбрано', tone: TagTone.green)
                           : const TagChip('выбрать', tone: TagTone.gold),
@@ -679,8 +686,8 @@ extension _GameSections on _GameShellState {
     showDialog<void>(
         context: sheetContext,
         builder: (dialogContext) => AlertDialog(
-              icon: const Text('🛒', style: TextStyle(fontSize: 40)),
-              title: Text(reminder, textAlign: TextAlign.center),
+              icon: const GameText('🛒', style: TextStyle(fontSize: 40)),
+              title: GameText(reminder, textAlign: TextAlign.center),
               actionsAlignment: MainAxisAlignment.center,
               actionsOverflowDirection: VerticalDirection.down,
               actions: [
@@ -692,21 +699,20 @@ extension _GameSections on _GameShellState {
                         go(2);
                       },
                       icon: const Icon(Icons.storefront_outlined),
-                      label: Text(texts.goShopping)),
+                      label: GameText(texts.goShopping)),
                 OutlinedButton.icon(
                     onPressed: () {
                       Navigator.pop(dialogContext);
                       sleep();
                     },
                     icon: const Icon(Icons.nightlight_round),
-                    label: Text(texts.sleepAnyway)),
+                    label: GameText(texts.sleepAnyway)),
               ],
             ));
   }
 
-  void glossary() =>
-      section('Словарик', (context) => _GlossaryPage(state: s),
-          tour: 'glossary');
+  void glossary() => section('Словарик', (context) => _GlossaryPage(state: s),
+      tour: 'glossary');
 
   void adults() {
     final answer = TextEditingController();
@@ -721,7 +727,8 @@ extension _GameSections on _GameShellState {
             builder: (context, update) => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('Чтобы открыть настройки, решите пример: $a × $b.'),
+                      GameText(
+                          'Чтобы открыть настройки, решите пример: $a × $b.'),
                       const SizedBox(height: 16),
                       TextField(
                           controller: answer,
@@ -749,7 +756,7 @@ extension _GameSections on _GameShellState {
                             }
                           },
                           icon: const Icon(Icons.lock_open_rounded),
-                          label: const Text('Открыть настройки')),
+                          label: const GameText('Открыть настройки')),
                     ]))).whenComplete(answer.dispose);
   }
 
@@ -774,11 +781,11 @@ extension _GameSections on _GameShellState {
             builder: (context, update) => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(delete
+                      GameText(delete
                           ? 'Покупки, монеты и учебный прогресс будут удалены с этого устройства. Отменить это действие нельзя.'
                           : 'Текущий прогресс будет заменён новым профилем. Отменить это действие нельзя.'),
                       const SizedBox(height: 16),
-                      if (error != null) Text(error!),
+                      if (error != null) GameText(error!),
                       FilledButton.icon(
                           onPressed: busy
                               ? null
@@ -805,14 +812,14 @@ extension _GameSections on _GameShellState {
                                   }
                                 },
                           icon: const Icon(Icons.check_rounded),
-                          label: Text(busy
+                          label: GameText(busy
                               ? 'Сохраняем…'
                               : delete
                                   ? 'Да, удалить'
                                   : 'Да, начать заново')),
                       TextButton(
                           onPressed: busy ? null : () => Navigator.pop(context),
-                          child: const Text('Отмена')),
+                          child: const GameText('Отмена')),
                     ])));
   }
 }
@@ -843,7 +850,7 @@ class _MoreTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(label,
+                  child: GameText(label,
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w900)),
                 ),

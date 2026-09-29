@@ -1,3 +1,4 @@
+import '../widgets/game_text.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -147,11 +148,11 @@ class _GameScreenState extends State<GameScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(hint.ready ? '👍' : '💡',
+            GameText(hint.ready ? '👍' : '💡',
                 style: const TextStyle(fontSize: 48),
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Text(hint.text,
+            GameText(hint.text,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge),
             if (showGeneral) ...[
@@ -164,7 +165,7 @@ class _GameScreenState extends State<GameScreen> {
             ],
             if (line != null) ...[
               const SizedBox(height: 12),
-              Text(line.textRu,
+              GameText(line.textRu,
                   textAlign: TextAlign.center,
                   style:
                       const TextStyle(fontSize: 16, color: FinniColors.muted)),
@@ -172,7 +173,7 @@ class _GameScreenState extends State<GameScreen> {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Понятно'),
+              child: const GameText('Понятно'),
             ),
           ],
         ),
@@ -193,7 +194,7 @@ class _GameScreenState extends State<GameScreen> {
           onPressed: () => Navigator.pop(context, reward),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: Text(task.title, maxLines: 2),
+        title: GameText(task.title, maxLines: 2),
         actions: [
           CoachTarget(
             id: 'game.help',
@@ -332,7 +333,7 @@ class _GameScreenState extends State<GameScreen> {
                 if (petLine != null && !finished)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 6, left: 4),
-                    child: Text(
+                    child: GameText(
                       petLine!.textRu,
                       style: const TextStyle(
                           color: FinniColors.primary,
@@ -353,7 +354,7 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(14),
-                      child: Text(
+                      child: GameText(
                         variant.intro,
                         style: const TextStyle(
                             fontSize: 17,
@@ -396,10 +397,10 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Row(
                 children: [
-                  const Text('🎉', style: TextStyle(fontSize: 36)),
+                  const GameText('🎉', style: TextStyle(fontSize: 36)),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
+                    child: GameText(
                       earned != null && earned.withMistakes
                           ? 'Разобрались!'
                           : 'С первого раза!',
@@ -410,7 +411,7 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              Text(check.explanation, style: const TextStyle(fontSize: 17)),
+              GameText(check.explanation, style: const TextStyle(fontSize: 17)),
               if (earned != null) ...[
                 const SizedBox(height: 12),
                 _rewardLine(earned),
@@ -426,10 +427,10 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Row(
                 children: [
-                  const Text('🤗', style: TextStyle(fontSize: 34)),
+                  const GameText('🤗', style: TextStyle(fontSize: 34)),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
+                    child: GameText(
                       petLine?.textRu ?? 'Давай посмотрим вместе',
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.w800),
@@ -438,15 +439,15 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              Text(check.explanation, style: const TextStyle(fontSize: 17)),
+              GameText(check.explanation, style: const TextStyle(fontSize: 17)),
               for (final line in check.details.skip(1).take(3))
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('💭 '),
-                      Expanded(child: Text(line)),
+                      const GameText('💭 '),
+                      Expanded(child: GameText(line)),
                     ],
                   ),
                 ),
@@ -474,7 +475,7 @@ class _GameScreenState extends State<GameScreen> {
               CoinAmount(earned.coins, prefix: '+', size: 24),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(switch (step?.finished) {
+                child: GameText(switch (step?.finished) {
                   final LevelRecord done =>
                     'Уровень пройден! За весь уровень — ${done.coins} ${ruCoins(done.coins)}.',
                   _ when inLevel =>
@@ -484,7 +485,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ] else
               const Expanded(
-                child: Text(
+                child: GameText(
                     'Это тренировка: монет нет, зато звёзды и опыт остаются.'),
               ),
           ],
@@ -502,7 +503,7 @@ class _GameScreenState extends State<GameScreen> {
         icon: Icon(inLevel && step?.finished == null
             ? Icons.arrow_forward_rounded
             : Icons.celebration_outlined),
-        label: Text(!inLevel
+        label: GameText(!inLevel
             ? texts.next
             : step?.finished != null
                 ? 'Открыть конверт'
@@ -514,7 +515,7 @@ class _GameScreenState extends State<GameScreen> {
           Expanded(
             child: OutlinedButton(
               onPressed: _giveUp,
-              child: const Text('Дальше без ответа'),
+              child: const GameText('Дальше без ответа'),
             ),
           ),
           const SizedBox(width: 10),
@@ -525,7 +526,7 @@ class _GameScreenState extends State<GameScreen> {
                 setState(() => showFeedback = false);
               },
               icon: const Icon(Icons.replay_rounded),
-              label: Text(texts.tryAgain),
+              label: GameText(texts.tryAgain),
             ),
           ),
         ],
@@ -534,13 +535,13 @@ class _GameScreenState extends State<GameScreen> {
         task.type == TaskType.stall ||
         task.type == TaskType.cashier ||
         task.type == TaskType.pricetag) {
-      content = const Text(
+      content = const GameText(
         'Играй до конца — я расскажу, что получилось',
         textAlign: TextAlign.center,
         style: TextStyle(color: FinniColors.muted),
       );
     } else if (task.type == TaskType.choice) {
-      content = const Text(
+      content = const GameText(
         'Выбери вариант — я сразу расскажу, что будет',
         textAlign: TextAlign.center,
         style: TextStyle(color: FinniColors.muted),
@@ -550,7 +551,7 @@ class _GameScreenState extends State<GameScreen> {
       content = FilledButton.icon(
         onPressed: current == null ? null : () => _submit(current),
         icon: const Icon(Icons.check_circle_outline_rounded),
-        label: Text(texts.check),
+        label: GameText(texts.check),
       );
     }
     return CoachTarget(

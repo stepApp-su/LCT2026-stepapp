@@ -1,9 +1,12 @@
+import './game_text.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../domain/models/pet.dart';
 import '../game_controller.dart';
 import '../theme/finni_theme.dart';
 import 'moni_scene.dart';
+import 'pet_sprite_set.dart';
+import 'sprite_sheet.dart';
 
 class PetCelebration extends StatefulWidget {
   const PetCelebration({super.key, required this.state, required this.event});
@@ -21,6 +24,7 @@ class _PetCelebrationState extends State<PetCelebration>
   bool petReady = false;
   bool eggReady = false;
   bool loadingEgg = false;
+  SpriteSheet? eggSheet;
   void startWhenReady() {
     if (!mounted || started || !petReady || !eggReady) return;
     started = true;
@@ -45,7 +49,14 @@ class _PetCelebrationState extends State<PetCelebration>
       animation.value = 1;
     } else if (!loadingEgg) {
       loadingEgg = true;
-      precacheImage(AssetImage(widget.state.appearance.egg), context).then((_) {
+      final pet = widget.state.appearance;
+      final ready = pet.unifiedHead
+          ? PetSpriteSet.bodies(pet).then((sheet) {
+              eggSheet = sheet;
+            })
+          : precacheImage(AssetImage(pet.egg), context);
+      ready.then((_) {
+        if (!mounted) return;
         eggReady = true;
         startWhenReady();
       });
@@ -83,11 +94,11 @@ class _PetCelebrationState extends State<PetCelebration>
                 final glow =
                     math.sin(((t - .32) / .42).clamp(0.0, 1.0) * math.pi);
                 return Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text(event['headline'] as String,
+                  GameText(event['headline'] as String,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 8),
-                  Text(event['reason'] as String, textAlign: TextAlign.center),
+                  GameText(event['reason'] as String, textAlign: TextAlign.center),
                   SizedBox(
                       width: double.infinity,
                       height: 280,
@@ -135,11 +146,20 @@ class _PetCelebrationState extends State<PetCelebration>
                                                           reveal),
                                                   child: ClipPath(
                                                       clipper: _EggHalf(top),
-                                                      child: Image.asset(
-                                                          widget.state
-                                                              .appearance.egg,
-                                                          fit: BoxFit
-                                                              .contain))))),
+                                                      child: widget
+                                                              .state
+                                                              .appearance
+                                                              .unifiedHead
+                                                          ? CustomPaint(
+                                                              painter: _PetEgg(
+                                                                  eggSheet))
+                                                          : Image.asset(
+                                                              widget
+                                                                  .state
+                                                                  .appearance
+                                                                  .egg,
+                                                              fit: BoxFit
+                                                                  .contain))))),
                                   ]))),
                         if (from != to && !hatching && glow > 0)
                           Positioned.fill(
@@ -164,7 +184,7 @@ class _PetCelebrationState extends State<PetCelebration>
                   if (event['points'] != null)
                     Chip(
                         avatar: const Icon(Icons.auto_awesome, size: 19),
-                        label: Text('+${event['points']} к росту')),
+                        label: GameText('+${event['points']} к росту')),
                   for (final id in (event['titles'] as List? ?? []))
                     if (widget.state.content.titles.byId(id as String)
                         case final title?)
@@ -183,23 +203,23 @@ class _PetCelebrationState extends State<PetCelebration>
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                  Text('Новое звание: ${title.title}',
+                                  GameText('Новое звание: ${title.title}',
                                       style: const TextStyle(
                                           fontWeight: FontWeight.w800)),
-                                  Text(widget.state.titles.reasonOf(title)),
+                                  GameText(widget.state.titles.reasonOf(title)),
                                 ]))
                           ])),
                   if (event['lines'] case final List lines)
                     for (final line in lines)
                       Padding(
                           padding: const EdgeInsets.only(top: 7),
-                          child: Text(line as String,
+                          child: GameText(line as String,
                               textAlign: TextAlign.center)),
                   if (event['changes'] case final List changes)
                     for (final change in changes)
                       Padding(
                           padding: const EdgeInsets.only(top: 7),
-                          child: Text(change as String,
+                          child: GameText(change as String,
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                   fontSize: 14, color: FinniColors.muted))),
@@ -207,7 +227,7 @@ class _PetCelebrationState extends State<PetCelebration>
                   FilledButton(
                       onPressed:
                           t < 1 ? null : () => Navigator.of(context).pop(),
-                      child: Text(hatching ? 'Начать дружить' : 'Здорово!')),
+                      child: GameText(hatching ? 'Начать дружить' : 'Здорово!')),
                 ]);
               },
             ),
@@ -216,6 +236,25 @@ class _PetCelebrationState extends State<PetCelebration>
       ),
     );
   }
+}
+
+class _PetEgg extends CustomPainter {
+  _PetEgg(this.sheet);
+  final SpriteSheet? sheet;
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (sheet == null) return;
+    final source = sheet!.cells[4];
+    final fit = applyBoxFit(BoxFit.contain, source.size, size);
+    canvas.drawImageRect(
+        sheet!.image,
+        source,
+        Alignment.center.inscribe(fit.destination, Offset.zero & size),
+        Paint()..filterQuality = FilterQuality.high);
+  }
+
+  @override
+  bool shouldRepaint(_PetEgg old) => old.sheet != sheet;
 }
 
 class _EggHalf extends CustomClipper<Path> {

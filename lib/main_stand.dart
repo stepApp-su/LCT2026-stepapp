@@ -1,24 +1,12 @@
 import 'package:flutter/material.dart';
-import 'content/content_loader.dart';
-import 'content/game_content.dart';
-import 'stand/stand_app.dart';
+import 'package:flutter/services.dart';
+import 'stand/stand_assets.dart';
+import 'stand/stand_launcher.dart';
+import 'ui/widgets/artwork_bundle.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    const loader = ContentLoader();
-    final content = await loader.loadAll();
-    final config = await GameContent.load();
-    runApp(StandApp(
-        content: content,
-        config: config,
-        sounds: await loader.loadSoundScheme()));
-  } catch (_) {
-    runApp(const MaterialApp(
-        home: Scaffold(
-            body: Center(
-                child: SelectableText(
-      'Не удалось загрузить стенд. Обновите страницу. Если ошибка повторяется, проверьте сборку и файлы контента.',
-    )))));
-  }
+  final assets = StandAssetBundle(rootBundle);
+  artworkBundle = assets;
+  runApp(StandLauncher(assets: assets));
 }

@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'artwork_bundle.dart';
 
 const furnitureCells = {
   'rug': 0,
@@ -43,7 +43,6 @@ const accessoryCells = {
   'bowtie': 4,
   'tshirt': 5,
   'raincoat': 6,
-  'backpack': 7,
   'balloon': 8,
 };
 const goalRegions = [
@@ -63,7 +62,7 @@ class SpriteSheet {
   static Future<SpriteSheet> load(String path, int columns, int rows,
           {bool trim = true, List<Rect>? regions}) =>
       _cache.putIfAbsent('$path:$columns:$rows:$trim:$regions', () async {
-        final data = await rootBundle.load(path);
+        final data = await artworkBundle.load(path);
         final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
         final image = (await codec.getNextFrame()).image;
         codec.dispose();
@@ -89,7 +88,8 @@ class SpriteSheet {
                 0,
                 image.width * (cell == 0 ? .507 : .485),
                 image.height.toDouble());
-          } else if (trim) {
+          } else if (trim &&
+              (regions == null || !path.startsWith('assets/images/game/'))) {
             area = area.deflate(5);
           }
           if (pixels != null) {
@@ -123,17 +123,21 @@ class SheetArt extends StatelessWidget {
       required this.cell,
       this.columns = 4,
       this.rows = 4,
+      this.regions,
       this.trim = true,
       this.alignment = Alignment.center,
       this.fit = BoxFit.contain});
   final String path;
   final int cell, columns, rows;
   final bool trim;
+  final List<Rect>? regions;
   final BoxFit fit;
   final Alignment alignment;
   @override
   Widget build(BuildContext context) => FutureBuilder<SpriteSheet>(
-        future: SpriteSheet.load(path, columns, rows, trim: trim),
+        key: ValueKey('$path:$columns:$rows:$trim:$regions'),
+        future:
+            SpriteSheet.load(path, columns, rows, trim: trim, regions: regions),
         builder: (context, snapshot) => snapshot.hasData
             ? CustomPaint(
                 painter: _SheetPainter(snapshot.data!, cell, fit, alignment))

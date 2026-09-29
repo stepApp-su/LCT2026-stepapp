@@ -1,3 +1,4 @@
+import './game_text.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -59,7 +60,7 @@ class CoinAmount extends StatelessWidget {
           children: [
             CoinIcon(size: size + 2),
             SizedBox(width: size * .28),
-            Text(
+            GameText(
               '$prefix$amount',
               style: TextStyle(
                 fontSize: size,
@@ -92,7 +93,7 @@ class SoftNotice extends StatelessWidget {
           children: [
             Icon(icon, color: FinniColors.gold),
             const SizedBox(width: 12),
-            Expanded(child: Text(text)),
+            Expanded(child: GameText(text)),
           ],
         ),
       );
@@ -123,7 +124,7 @@ class TagPill extends StatelessWidget {
             Icon(icon, size: 16, color: FinniColors.ink),
             const SizedBox(width: 6),
             Flexible(
-              child: Text(
+              child: GameText(
                 label,
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
@@ -221,7 +222,7 @@ class SpeechBubble extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      GameText(
                         line.textRu,
                         style: const TextStyle(
                             fontSize: 18,
@@ -241,7 +242,7 @@ class SpeechBubble extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(14)),
                               ),
                               onPressed: onAction,
-                              child: Text(line.action!.label,
+                              child: GameText(line.action!.label,
                                   textAlign: TextAlign.center),
                             )),
                       ],
@@ -397,7 +398,7 @@ class _CelebrationLayerState extends State<_CelebrationLayer>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
+                          GameText(
                             widget.emoji,
                             style: const TextStyle(fontSize: 96, height: 1),
                             textScaler: TextScaler.noScaling,
@@ -411,7 +412,7 @@ class _CelebrationLayerState extends State<_CelebrationLayer>
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20, vertical: 10),
-                                child: Text(
+                                child: GameText(
                                   widget.text!,
                                   style: const TextStyle(
                                       fontFamily: 'Nunito',
@@ -584,7 +585,7 @@ class TagChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
           color: background, borderRadius: BorderRadius.circular(999)),
-      child: Text(label,
+      child: GameText(label,
           style: TextStyle(
               fontSize: 16, fontWeight: FontWeight.w800, color: ink, height: 1.25)),
     );

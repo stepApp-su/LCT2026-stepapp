@@ -1,3 +1,4 @@
+import './game_text.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -498,7 +499,7 @@ class CoachHostState extends State<CoachHost> with SingleTickerProviderStateMixi
       left: left,
       top: below ? hole.bottom + 6 + bob : hole.top - 54 - bob,
       child: IgnorePointer(
-        child: Text(
+        child: GameText(
           below ? '👆' : '👇',
           textScaler: TextScaler.noScaling,
           style: const TextStyle(fontSize: 40),
@@ -583,7 +584,7 @@ class CoachHostState extends State<CoachHost> with SingleTickerProviderStateMixi
                       if (i == 0 && title.contains('·'))
                         TagChip(part, tone: TagTone.green)
                       else
-                        Text(part,
+                        GameText(part,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
@@ -594,12 +595,12 @@ class CoachHostState extends State<CoachHost> with SingleTickerProviderStateMixi
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(step.emoji,
+                  GameText(step.emoji,
                       textScaler: TextScaler.noScaling,
                       style: const TextStyle(fontSize: 34, height: 1.1)),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
+                    child: GameText(
                       _fill(step.text, run.values),
                       style: const TextStyle(
                         fontSize: 18,
@@ -614,7 +615,7 @@ class CoachHostState extends State<CoachHost> with SingleTickerProviderStateMixi
               if (step.action == CoachAction.tap && !_lost)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text(texts.tap,
+                  child: GameText(texts.tap,
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.primary)),
                 ),
@@ -628,18 +629,18 @@ class CoachHostState extends State<CoachHost> with SingleTickerProviderStateMixi
                   if (shown.length > 1)
                     Padding(
                       padding: const EdgeInsets.only(right: 6),
-                      child: Text(
+                      child: GameText(
                         _fill(texts.step, {'n': '$position', 'total': '${shown.length}'}),
                         style: const TextStyle(fontSize: 16, color: FinniColors.muted),
                       ),
                     ),
-                  TextButton(onPressed: skip, child: Text(texts.skip)),
+                  TextButton(onPressed: skip, child: GameText(texts.skip)),
                   if (step.action == CoachAction.wait)
-                    OutlinedButton(onPressed: _next, child: Text(texts.later)),
+                    OutlinedButton(onPressed: _next, child: GameText(texts.later)),
                   if (needsButton)
                     FilledButton(
                       onPressed: _next,
-                      child: Text(last ? texts.done : texts.next),
+                      child: GameText(last ? texts.done : texts.next),
                     ),
                 ],
               ),

@@ -1,3 +1,4 @@
+import '../widgets/game_text.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
@@ -55,12 +56,12 @@ Future<void> showQuestHelp(BuildContext context, String title, String text) =>
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.help_outline_rounded, size: 36),
-        title: Text(title),
-        content: Text(text, style: const TextStyle(fontSize: 17)),
+        title: GameText(title),
+        content: GameText(text, style: const TextStyle(fontSize: 17)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Понятно')),
+              child: const GameText('Понятно')),
         ],
       ),
     );
@@ -138,7 +139,7 @@ class HomeQuests extends StatelessWidget {
                           '${run.slots.length} ${ruGames(run.slots.length)}'
                         ],
                   semantics: 'Уровень дня ${run.number}. Играть',
-                  icon: Text('${run.number}',
+                  icon: GameText('${run.number}',
                       textScaler: TextScaler.noScaling,
                       style: const TextStyle(
                           fontSize: 18,
@@ -177,7 +178,7 @@ class HomeQuests extends StatelessWidget {
                       subtitle: 'Сложное',
                       tags: ['🪙 +${state.dailyRules.coins}', '💪 сложное'],
                       semantics: 'Задание дня: ${daily.title}. Играть',
-                      icon: const Text('☀️',
+                      icon: const GameText('☀️',
                           textScaler: TextScaler.noScaling,
                           style: TextStyle(fontSize: 18)),
                       trailing: Icons.play_circle_fill_rounded,
@@ -256,10 +257,10 @@ class _QuestTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(title,
+                    GameText(title,
                         style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w900)),
-                    Text(subtitle,
+                    GameText(subtitle,
                         style: const TextStyle(
                             fontSize: 16, color: FinniColors.ink)),
                   ],
@@ -289,12 +290,12 @@ class _QuestTile extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 6),
-              Text(title,
+              GameText(title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
               if (tags.isEmpty)
-                Text(subtitle,
+                GameText(subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 16, color: FinniColors.ink))
@@ -382,7 +383,7 @@ class DailyCard extends StatelessWidget {
                     : done
                         ? const Icon(Icons.check_rounded,
                             size: 32, color: FinniColors.primary)
-                        : const Text('☀️',
+                        : const GameText('☀️',
                             textScaler: TextScaler.noScaling,
                             style: TextStyle(fontSize: 28)),
               ),
@@ -391,12 +392,12 @@ class DailyCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
+                    GameText(title,
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 2),
                     if (tags.isEmpty)
-                      Text(subtitle, style: const TextStyle(color: FinniColors.ink))
+                      GameText(subtitle, style: const TextStyle(color: FinniColors.ink))
                     else
                       TagRow([
                         for (final tag in tags)
@@ -459,7 +460,7 @@ class _DailyScreenState extends State<DailyScreen> {
           onPressed: () => Navigator.pop(context, false),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: const Text('Задание дня'),
+        title: const GameText('Задание дня'),
         actions: [
           IconButton(
             tooltip: 'Подсказка',
@@ -476,17 +477,17 @@ class _DailyScreenState extends State<DailyScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               children: [
-                Text(ruDate(now),
+                GameText(ruDate(now),
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 4),
-                const Text(
+                const GameText(
                   'Одно задание на весь день — сложнее, чем в уровне. Завтра будет новое!',
                   style: TextStyle(color: FinniColors.muted),
                 ),
                 const SizedBox(height: 14),
                 _WeekStrip(now: now, done: s.dailyHistory),
                 const SizedBox(height: 6),
-                Text('Всего выполнено: ${s.dailyHistory.length}',
+                GameText('Всего выполнено: ${s.dailyHistory.length}',
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: FinniColors.muted)),
                 const SizedBox(height: 16),
@@ -534,7 +535,7 @@ class _Challenge extends StatelessWidget {
               children: [
                 EmojiBadge(task.iconId, size: 88, color: FinniColors.paper),
                 const SizedBox(height: 10),
-                Text(task.title,
+                GameText(task.title,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
@@ -544,7 +545,7 @@ class _Challenge extends StatelessWidget {
                   color: FinniColors.honey,
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                const GameText(
                   'Эту игру ты уже знаешь. Сегодня в ней больше чисел и хитростей — подумай не спеша.',
                   textAlign: TextAlign.center,
                 ),
@@ -562,7 +563,7 @@ class _Challenge extends StatelessWidget {
                 children: [
                   CoinAmount(rules.coins, prefix: '+', size: 22),
                   const SizedBox(width: 10),
-                  const Expanded(child: Text('за решение — даже если получится не сразу')),
+                  const Expanded(child: GameText('за решение — даже если получится не сразу')),
                 ],
               ),
               if (rules.perfectBonus > 0) ...[
@@ -571,7 +572,7 @@ class _Challenge extends StatelessWidget {
                   children: [
                     CoinAmount(rules.perfectBonus, prefix: '+', size: 22),
                     const SizedBox(width: 10),
-                    const Expanded(child: Text('ещё, если с первой попытки')),
+                    const Expanded(child: GameText('ещё, если с первой попытки')),
                   ],
                 ),
               ],
@@ -582,7 +583,7 @@ class _Challenge extends StatelessWidget {
         FilledButton.icon(
           onPressed: onPlay,
           icon: const Icon(Icons.wb_sunny_rounded),
-          label: const Text('Принять вызов'),
+          label: const GameText('Принять вызов'),
         ),
       ],
     );
@@ -605,9 +606,9 @@ class _DoneCard extends StatelessWidget {
         color: FinniColors.mint,
         child: Column(
           children: [
-            const Text('🌞', style: TextStyle(fontSize: 56)),
+            const GameText('🌞', style: TextStyle(fontSize: 56)),
             const SizedBox(height: 6),
-            Text('Задание дня выполнено!',
+            GameText('Задание дня выполнено!',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge),
             if (reward != null) ...[
@@ -619,14 +620,14 @@ class _DoneCard extends StatelessWidget {
               CoinAmount(coins, prefix: '+', size: 28),
             ],
             const SizedBox(height: 10),
-            const Text('Новое задание появится завтра. Приходи!',
+            const GameText('Новое задание появится завтра. Приходи!',
                 textAlign: TextAlign.center),
             if (onPlan != null) ...[
               const SizedBox(height: 14),
               FilledButton.icon(
                 onPressed: onPlan,
                 icon: const Icon(Icons.pie_chart_outline_rounded),
-                label: const Text('Разложить монеты по плану'),
+                label: const GameText('Разложить монеты по плану'),
               ),
             ],
           ],
@@ -659,7 +660,7 @@ class _WeekStrip extends StatelessWidget {
                 excludeSemantics: true,
                 child: Column(
                   children: [
-                    Text(_weekdaysShort[i],
+                    GameText(_weekdaysShort[i],
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: isToday ? FontWeight.w900 : FontWeight.w600,
@@ -680,7 +681,7 @@ class _WeekStrip extends StatelessWidget {
                       child: isDone
                           ? const Icon(Icons.check_rounded,
                               size: 20, color: FinniColors.primary)
-                          : Text('${day.day}',
+                          : GameText('${day.day}',
                               textScaler: TextScaler.noScaling,
                               style: const TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w700)),

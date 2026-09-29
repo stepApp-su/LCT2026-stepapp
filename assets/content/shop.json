@@ -779,30 +779,6 @@
       "diaryText": "Купили дождевик."
     },
     {
-      "id": "backpack",
-      "title": "Рюкзак",
-      "titleAccusative": "рюкзак",
-      "category": "optional",
-      "kind": "accessory",
-      "group": "accessory",
-      "slot": "back",
-      "price": 35,
-      "effects": [
-        {
-          "stat": "mood",
-          "delta": 10
-        }
-      ],
-      "unlock": {
-        "minStage": "baby"
-      },
-      "iconId": "icon_shop_backpack",
-      "assetId": "acc_backpack",
-      "animation": "happy",
-      "description": "Для самых важных вещей.",
-      "diaryText": "Купили рюкзак."
-    },
-    {
       "id": "cactus",
       "title": "Кактус",
       "titleAccusative": "кактус",

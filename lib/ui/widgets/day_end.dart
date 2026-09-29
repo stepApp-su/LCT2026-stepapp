@@ -1,3 +1,4 @@
+import './game_text.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -207,7 +208,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
                 left: left + 425 * scale,
                 top: top + 150 * scale,
                 child: const ExcludeSemantics(
-                  child: Text('z z Z',
+                  child: GameText('z z Z',
                       textScaler: TextScaler.noScaling,
                       style: TextStyle(
                           fontSize: 24,
@@ -244,11 +245,11 @@ class _DayEndScreenState extends State<DayEndScreen> {
       stars: 1,
       sun: false,
       children: [
-        Text('День $day завершён', style: _kicker),
+        GameText('День $day завершён', style: _kicker),
         const SizedBox(height: 4),
         Padding(
           padding: const EdgeInsets.only(right: 64),
-          child: Text('${s.petName} сладко спит', style: _title),
+          child: GameText('${s.petName} сладко спит', style: _title),
         ),
         const SizedBox(height: 8),
         _pet(sleeping: true),
@@ -260,14 +261,14 @@ class _DayEndScreenState extends State<DayEndScreen> {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text('+$points',
+                  GameText('+$points',
                       style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w900,
                           color: FinniColors.honey)),
                   const SizedBox(width: 8),
                   const Flexible(
-                    child: Text('к росту за день',
+                    child: GameText('к росту за день',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
@@ -286,10 +287,10 @@ class _DayEndScreenState extends State<DayEndScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text('$current из $nextAt до стадии «${e['nextLabel']}»',
+              GameText('$current из $nextAt до стадии «${e['nextLabel']}»',
                   style: _soft),
             ] else
-              Text('${s.petName} уже совсем взрослый!', style: _soft),
+              GameText('${s.petName} уже совсем взрослый!', style: _soft),
           ]),
         ),
         const SizedBox(height: 10),
@@ -314,12 +315,12 @@ class _DayEndScreenState extends State<DayEndScreen> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Новое звание: ${title.title}',
+                          GameText('Новое звание: ${title.title}',
                               style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w900,
                                   color: FinniColors.nightInk)),
-                          Text(s.titles.reasonOf(title), style: _soft),
+                          GameText(s.titles.reasonOf(title), style: _soft),
                         ]),
                   ),
                 ]),
@@ -333,10 +334,10 @@ class _DayEndScreenState extends State<DayEndScreen> {
                 color: FinniColors.honey,
                 borderRadius: BorderRadius.circular(18)),
             child: Row(children: [
-              const Text('⭐', style: TextStyle(fontSize: 20)),
+              const GameText('⭐', style: TextStyle(fontSize: 20)),
               const SizedBox(width: 10),
               Expanded(
-                child: Text('Завтра: ${_lower('${missed.first['text']}')}',
+                child: GameText('Завтра: ${_lower('${missed.first['text']}')}',
                     style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -355,12 +356,12 @@ class _DayEndScreenState extends State<DayEndScreen> {
           ),
           onPressed: _next,
           icon: const Icon(Icons.arrow_forward_rounded),
-          label: const Text('Дальше'),
+          label: const GameText('Дальше'),
         ),
         TextButton(
           style: TextButton.styleFrom(foregroundColor: FinniColors.nightSoft),
           onPressed: _summary,
-          child: const Text('Итоги дня',
+          child: const GameText('Итоги дня',
               style: TextStyle(decoration: TextDecoration.underline)),
         ),
       ],
@@ -379,9 +380,9 @@ class _DayEndScreenState extends State<DayEndScreen> {
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
           radius: 18,
           child: Column(children: [
-            Text(look.$1, style: const TextStyle(fontSize: 22)),
+            GameText(look.$1, style: const TextStyle(fontSize: 22)),
             const SizedBox(height: 2),
-            Text(look.$2,
+            GameText(look.$2,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -412,7 +413,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('Итоги дня ${_int('day')}',
+          GameText('Итоги дня ${_int('day')}',
               style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
@@ -433,11 +434,11 @@ class _DayEndScreenState extends State<DayEndScreen> {
                   Expanded(child: SizedBox()),
                   SizedBox(
                       width: 58,
-                      child: Text('План',
+                      child: GameText('План',
                           textAlign: TextAlign.right, style: _soft)),
                   SizedBox(
                       width: 58,
-                      child: Text('Факт',
+                      child: GameText('Факт',
                           textAlign: TextAlign.right, style: _soft)),
                   SizedBox(width: 34),
                 ]),
@@ -461,7 +462,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Expanded(child: Text('${e['explain']}', style: _body)),
+                Expanded(child: GameText('${e['explain']}', style: _body)),
               ]),
             ),
           ],
@@ -473,7 +474,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
               minimumSize: const Size.fromHeight(56),
             ),
             onPressed: () => Navigator.pop(context),
-            child: const Text('Понятно'),
+            child: const GameText('Понятно'),
           ),
         ]),
       ),
@@ -483,12 +484,12 @@ class _DayEndScreenState extends State<DayEndScreen> {
   Widget _money(String value, String label) => NightGlass(
         radius: 16,
         child: Column(children: [
-          Text(value,
+          GameText(value,
               style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
                   color: FinniColors.nightInk)),
-          Text(label, style: _soft),
+          GameText(label, style: _soft),
         ]),
       );
 
@@ -506,17 +507,17 @@ class _DayEndScreenState extends State<DayEndScreen> {
             border: Border(top: BorderSide(color: FinniColors.glassLine))),
         child: Row(children: [
           Expanded(
-            child: Text('${index < icons.length ? icons[index] : ''} ${row[0]}',
+            child: GameText('${index < icons.length ? icons[index] : ''} ${row[0]}',
                 maxLines: 2, style: _body),
           ),
           SizedBox(
               width: 58,
-              child: Text('$plan',
+              child: GameText('$plan',
                   textAlign: TextAlign.right,
                   style: _body.copyWith(fontWeight: FontWeight.w900))),
           SizedBox(
               width: 58,
-              child: Text('$fact',
+              child: GameText('$fact',
                   textAlign: TextAlign.right,
                   style: _body.copyWith(fontWeight: FontWeight.w900))),
           SizedBox(
@@ -560,26 +561,26 @@ class _DayEndScreenState extends State<DayEndScreen> {
       stars: .35,
       sun: true,
       children: [
-        Text('День ${s.day}', style: _kicker),
+        GameText('День ${s.day}', style: _kicker),
         const SizedBox(height: 4),
-        const Text('Доброе утро!', style: _title),
+        const GameText('Доброе утро!', style: _title),
         const SizedBox(height: 8),
         _pet(sleeping: false),
         const SizedBox(height: 14),
         NightGlass(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Что изменилось за ночь',
+            const GameText('Что изменилось за ночь',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
                     color: FinniColors.nightInk)),
             const SizedBox(height: 4),
             if (night.isEmpty)
-              Text('Ночь прошла спокойно — ${s.petName} отлично выспался.',
+              GameText('Ночь прошла спокойно — ${s.petName} отлично выспался.',
                   style: _soft)
             else ...[
-              Text(reasons.join(' '), style: _soft),
+              GameText(reasons.join(' '), style: _soft),
               const SizedBox(height: 6),
               for (final shift in night) _statRow(shift),
             ],
@@ -591,13 +592,13 @@ class _DayEndScreenState extends State<DayEndScreen> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               const Expanded(
-                child: Text('☀️ Новые монеты на день',
+                child: GameText('☀️ Новые монеты на день',
                     style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
                         color: FinniColors.nightInk)),
               ),
-              Text('+${s.plan.plan.income}',
+              GameText('+${s.plan.plan.income}',
                   style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
@@ -610,7 +611,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
                   ItemArt(entry.key.id, size: 36),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
+                    child: GameText(
                         '${entry.key.title} — вернёт ${entry.value.toLowerCase()}',
                         style: _body),
                   ),
@@ -629,7 +630,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
           onPressed: () => Navigator.pop(context, toPlan ? 'plan' : null),
           icon: Icon(
               toPlan ? Icons.edit_note_rounded : Icons.arrow_forward_rounded),
-          label: Text(toPlan ? 'Составить план на день' : 'Продолжить'),
+          label: GameText(toPlan ? 'Составить план на день' : 'Продолжить'),
         ),
       ],
     );
@@ -670,13 +671,13 @@ class _DayEndScreenState extends State<DayEndScreen> {
             decoration: BoxDecoration(
                 color: FinniColors.glassStrong,
                 borderRadius: BorderRadius.circular(12)),
-            child: Text(look.$1, style: const TextStyle(fontSize: 18)),
+            child: GameText(look.$1, style: const TextStyle(fontSize: 18)),
           ),
           const SizedBox(width: 10),
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(look.$2, style: _body.copyWith(fontWeight: FontWeight.w800)),
+              GameText(look.$2, style: _body.copyWith(fontWeight: FontWeight.w800)),
               const SizedBox(height: 6),
               LayoutBuilder(builder: (context, constraints) {
                 final w = constraints.maxWidth;
@@ -703,7 +704,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
             ]),
           ),
           const SizedBox(width: 10),
-          Text(delta < 0 ? '−${-delta}' : '+$delta',
+          GameText(delta < 0 ? '−${-delta}' : '+$delta',
               style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w900,

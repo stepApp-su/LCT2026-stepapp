@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'artwork_bundle.dart';
 
 enum GameIconKind {
   food,
@@ -26,8 +26,17 @@ class GameIcon extends StatelessWidget {
   final double size;
   static final _images = <String, Future<ui.Image>>{};
 
+  static Future<void> preload() async {
+    for (final kind in GameIconKind.values) {
+      final path = kind.index < 4
+          ? 'assets/images/hud/stats.png'
+          : 'assets/images/hud/resource-${kind.name}.png';
+      await _images.putIfAbsent(path, () => _load(path));
+    }
+  }
+
   static Future<ui.Image> _load(String path) async {
-    final bytes = await rootBundle.load(path);
+    final bytes = await artworkBundle.load(path);
     final codec = await ui.instantiateImageCodec(bytes.buffer.asUint8List());
     try {
       return (await codec.getNextFrame()).image;

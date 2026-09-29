@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:finni/content/content_repository.dart';
 import 'package:finni/domain/models/pet.dart';
 import 'package:finni/ui/game_controller.dart';
+import 'package:finni/ui/app.dart';
 import 'package:finni/ui/pet_appearance.dart';
 import 'package:finni/ui/screens/welcome_screen.dart';
 import 'package:finni/ui/widgets/moni_scene.dart';
@@ -81,7 +82,9 @@ void main() {
     });
 
     test('${pet.name}: production artwork includes all ages and egg', () {
-      for (final art in ['rig', 'rig-baby', 'rig-adult', 'egg']) {
+      for (final art in pet.unifiedHead
+          ? ['heads', 'body']
+          : ['rig', 'rig-baby', 'rig-adult', 'egg', 'sad']) {
         final bytes = File('${pet.assets}/$art.png').readAsBytesSync();
         expect(bytes.take(8), [137, 80, 78, 71, 13, 10, 26, 10]);
       }
@@ -114,6 +117,56 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('more profile keeps the selected pet for every species',
+      (tester) async {
+    for (final pet in PetAppearance.values) {
+      final game = make({
+        'character': pet.character,
+        'petName': pet.name,
+        'onboarded': true,
+        'motion': false
+      });
+      await tester.pumpWidget(FinniApp(key: ValueKey(pet), controller: game));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ещё').last);
+      await tester.pumpAndSettle();
+      expect(tester.widget<MoniScene>(find.byType(MoniScene)).appearance, pet);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      await game.flush();
+      game.dispose();
+    }
+  });
+
+  for (final width in [360.0, 390.0, 430.0]) {
+    testWidgets(
+        'mobile stand at $width fills screen and keeps pet after closing controls',
+        (tester) async {
+      tester.view.physicalSize = Size(width, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(StandApp(content: content, config: config));
+      await tester.pumpAndSettle();
+      expect(tester.getSize(find.byType(FinniApp)), Size(width, 844));
+      expect(find.text('РАЗДЕЛЫ'), findsNothing);
+      await tester.tap(find.byTooltip('Настройки стенда'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Тяпа'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Закрыть настройки'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<MoniScene>(find.byType(MoniScene)).appearance,
+          PetAppearance.tyapa);
+      await tester.tap(find.text('Ещё').last);
+      await tester.pumpAndSettle();
+      expect(tester.widget<MoniScene>(find.byType(MoniScene)).appearance,
+          PetAppearance.tyapa);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
   testWidgets('welcome selects Pix without changing an existing profile',
       (tester) async {
     final game = make();
@@ -127,8 +180,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Дальше'));
     await tester.pump();
-    await tester
-        .tap(find.textContaining(RegExp(r'^Выбрать:|^Дальше$')));
+    await tester.tap(find.textContaining(RegExp(r'^Выбрать:|^Дальше$')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Начать дружить'));
     await tester.pump();

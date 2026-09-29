@@ -1,3 +1,4 @@
+import './widgets/game_text.dart';
 import 'package:flutter/material.dart';
 import 'game_controller.dart';
 import 'screens/game_shell.dart';
@@ -50,12 +51,12 @@ class _FinniAppState extends State<FinniApp> {
                                       const Icon(Icons.folder_open_rounded,
                                           size: 40),
                                       const SizedBox(height: 16),
-                                      const Text('Не удалось открыть профиль',
+                                      const GameText('Не удалось открыть профиль',
                                           style: TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.w800)),
                                       const SizedBox(height: 12),
-                                      const Text(
+                                      const GameText(
                                           'Сохранение не изменено. Попробуй открыть его ещё раз.'),
                                       const SizedBox(height: 24),
                                       FilledButton.icon(
@@ -63,7 +64,7 @@ class _FinniAppState extends State<FinniApp> {
                                               setState(() => loading = _load()),
                                           icon:
                                               const Icon(Icons.refresh_rounded),
-                                          label: const Text('Повторить')),
+                                          label: const GameText('Повторить')),
                                     ])))));
               }
               if (!snapshot.hasData) {

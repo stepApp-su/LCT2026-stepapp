@@ -1,3 +1,4 @@
+import './game_text.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -137,7 +138,7 @@ class _NamePickerState extends State<NamePicker> {
                 excludeSemantics: true,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: Text(
+                  child: GameText(
                     '${controller.text.characters.length}/$petNameMaxLength',
                     style: const TextStyle(
                         fontSize: 16, color: FinniColors.muted),
@@ -147,7 +148,7 @@ class _NamePickerState extends State<NamePicker> {
               IconButton(
                 tooltip: 'Придумай за меня',
                 onPressed: _surprise,
-                icon: const Text('🎲', style: TextStyle(fontSize: 24)),
+                icon: const GameText('🎲', style: TextStyle(fontSize: 24)),
               ),
             ],
           ),
@@ -169,7 +170,7 @@ class _NamePickerState extends State<NamePicker> {
                           color: FinniColors.purple),
                       const SizedBox(width: 10),
                       Expanded(
-                          child: Text(error,
+                          child: GameText(error,
                               style: const TextStyle(fontSize: 16))),
                     ],
                   ),
@@ -183,10 +184,10 @@ class _NamePickerState extends State<NamePicker> {
                   ),
                   child: Row(
                     children: [
-                      const Text('👋', style: TextStyle(fontSize: 22)),
+                      const GameText('👋', style: TextStyle(fontSize: 22)),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
+                        child: GameText(
                           valid ? 'Привет! Меня зовут $name' : 'Придумай имя',
                           style: const TextStyle(
                               fontSize: 17, fontWeight: FontWeight.w800),
@@ -197,7 +198,7 @@ class _NamePickerState extends State<NamePicker> {
                 ),
         ),
         const SizedBox(height: 18),
-        const Text('Или выбери готовое',
+        const GameText('Или выбери готовое',
             style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -209,7 +210,7 @@ class _NamePickerState extends State<NamePicker> {
           children: [
             for (final option in widget.names)
               ChoiceChip(
-                label: Text(option, style: const TextStyle(fontSize: 16)),
+                label: GameText(option, style: const TextStyle(fontSize: 16)),
                 selected: name == option,
                 onSelected: (_) => _set(option),
                 padding: const EdgeInsets.all(10),
@@ -221,7 +222,7 @@ class _NamePickerState extends State<NamePicker> {
           FilledButton.icon(
             onPressed: valid ? () => widget.onDone!(name) : null,
             icon: const Icon(Icons.check_rounded),
-            label: Text(widget.buttonLabel ?? 'Готово'),
+            label: GameText(widget.buttonLabel ?? 'Готово'),
           ),
         ],
       ],
