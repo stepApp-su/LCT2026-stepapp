@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:finni/content/content_repository.dart';
 import 'package:finni/domain/models/models.dart';
+import 'package:finni/domain/services/goal_service.dart';
 import 'package:finni/domain/services/plan_service.dart';
 import 'package:finni/domain/services/shop_service.dart';
 import 'package:finni/ui/game_controller.dart';
@@ -192,6 +193,28 @@ void main() {
       expect(bowtie.gap, 25);
       expect(bowtie.needsShort, greaterThan(0));
       expect(state.planCheck(item('food')).direction, PlanDirection.mandatory);
+    });
+
+    test('мечта из копилки не съедает план дня и не считается желаемым', () {
+      config['savings'] = 500;
+      final state = planned();
+      expect(state.buyNow('treat'), isA<PurchaseDone>());
+      final goal = content.goals.byId('constructor')!;
+      state.changeGoal(goal.id);
+      final balance = state.wallet.wallet.balance;
+      final optional = state.planLeft(PlanDirection.optional);
+      final savings = state.planLeft(PlanDirection.savings);
+      final savedToday = state.savedToday;
+      final report = state.report;
+
+      expect(state.claimGoal(), isA<GoalClaimed>());
+      expect(state.wallet.wallet.balance, balance);
+      expect(state.wallet.wallet.savings, 500 - goal.price);
+      expect(state.planLeft(PlanDirection.optional), optional);
+      expect(state.planLeft(PlanDirection.savings), savings);
+      expect(state.savedToday, savedToday);
+      expect(state.report.optional, report.optional);
+      expect(state.report.saved, report.saved);
     });
 
     test('после покупок и копилки план показывает остаток', () {

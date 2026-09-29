@@ -612,7 +612,11 @@ class _DiaryPageState extends State<_DiaryPage> {
         .where((t) => t.type == type)
         .fold(0, (sum, t) => sum + t.amount);
     final saved = total(TransactionType.toSavings) -
-        total(TransactionType.fromSavings);
+        all
+            .where((t) =>
+                t.type == TransactionType.fromSavings &&
+                !t.sourceId.startsWith('goal:'))
+            .fold(0, (sum, t) => sum + t.amount);
     final recap = [
       for (final entry in s.dayHistory)
         if (entry['day'] == day) entry
@@ -846,6 +850,10 @@ class _DiaryRow extends StatelessWidget {
           TagTone.gold
         ),
       TransactionType.income => ('доход', TagTone.green),
+      TransactionType.expense when source.startsWith('goal:') => (
+          'мечта',
+          TagTone.gold
+        ),
       TransactionType.expense when t.category == ExpenseCategory.mandatory => (
           'нужное',
           TagTone.green
