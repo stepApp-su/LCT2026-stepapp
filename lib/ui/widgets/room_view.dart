@@ -192,28 +192,38 @@ class WallpaperPainter extends CustomPainter {
           canvas.drawCircle(c - Offset(r * .9, -r * .2), r * .7, paint);
         }
       case 'wp_leaves' || 'wp_stars' || 'wp_space':
-        final glyph = switch (id) {
-          'wp_leaves' => '🍃',
-          'wp_stars' => '⭐',
-          _ => '✦',
-        };
-        final painter = TextPainter(
-          text: TextSpan(
-              text: glyph,
-              style: TextStyle(
-                  fontSize: step * .42,
-                  color: id == 'wp_space' ? FinniColors.star : null)),
-          textDirection: TextDirection.ltr,
-        )..layout();
+        final paint = Paint()
+          ..color = id == 'wp_leaves'
+              ? FinniColors.primary.withValues(alpha: .3)
+              : FinniColors.star.withValues(alpha: .6);
         var row = 0;
         for (var y = step / 3; y < size.height; y += step, row++) {
           for (var x = row.isEven ? step / 3 : step;
               x < size.width;
               x += step * 1.4) {
-            painter.paint(canvas, Offset(x, y));
+            final r = step * .21;
+            final path = Path();
+            if (id == 'wp_leaves') {
+              path.moveTo(x - r, y + r);
+              path.quadraticBezierTo(x - r, y - r, x + r, y - r);
+              path.quadraticBezierTo(x + r, y + r, x - r, y + r);
+            } else {
+              for (var point = 0; point < 10; point++) {
+                final angle = point * math.pi / 5 - math.pi / 2;
+                final radius = point.isEven ? r : r * .45;
+                final dx = x + math.cos(angle) * radius;
+                final dy = y + math.sin(angle) * radius;
+                if (point == 0) {
+                  path.moveTo(dx, dy);
+                } else {
+                  path.lineTo(dx, dy);
+                }
+              }
+            }
+            path.close();
+            canvas.drawPath(path, paint);
           }
         }
-        painter.dispose();
     }
   }
 

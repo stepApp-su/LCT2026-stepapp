@@ -1,3 +1,4 @@
+import '../widgets/game_text.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -195,6 +196,8 @@ class _GameShellState extends State<GameShell> {
     setState(() => page = value);
     maybeCoach();
     switch (value) {
+      case 0:
+        s.remindNeed();
       case 1:
         s.openPlanner();
       case 2:
@@ -229,7 +232,7 @@ class _GameShellState extends State<GameShell> {
   }
 
   void toast(String text) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(text), behavior: SnackBarBehavior.floating),
+        SnackBar(content: GameText(text), behavior: SnackBarBehavior.floating),
       );
   Future<void> sheet(String title, Widget body) => showModalBottomSheet<void>(
         context: context,
@@ -251,7 +254,7 @@ class _GameShellState extends State<GameShell> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: GameText(
                       title,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
@@ -271,7 +274,7 @@ class _GameShellState extends State<GameShell> {
       );
   void help() => sheet(
         'Маленькая подсказка',
-        Text(
+        GameText(
           switch (page) {
             0 =>
               'Каждый день начинается с плана: разложи монеты на обязательное, желаемое и копилку. Потом можно играть, покупать и копить. Нажми на питомца, чтобы погладить. Внизу — план, магазин, игры и другие разделы.',
@@ -305,11 +308,11 @@ class _GameShellState extends State<GameShell> {
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: Column(children: [
-                              Text(s.storageError!),
+                              GameText(s.storageError!),
                               TextButton.icon(
                                   onPressed: s.retrySave,
                                   icon: const Icon(Icons.refresh_rounded),
-                                  label: const Text('Повторить сохранение'))
+                                  label: const GameText('Повторить сохранение'))
                             ]),
                           ),
                         if (page != 0)
@@ -394,7 +397,7 @@ class _GameShellState extends State<GameShell> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                      Text(
+                                      GameText(
                                           s.currentGoal == null
                                               ? 'Выбери мечту'
                                               : 'Мечта: ${s.goal}',
@@ -467,7 +470,8 @@ class _GameShellState extends State<GameShell> {
                           top: 0,
                           child: _RoomButton(
                               compact: true,
-                              news: s.hasNewThings, onTap: () => room(1)),
+                              news: s.hasNewThings,
+                              onTap: () => room(1)),
                         ),
                         Positioned(
                             left: 8,
@@ -479,7 +483,7 @@ class _GameShellState extends State<GameShell> {
                                   Row(
                                     children: [
                                       Flexible(
-                                        child: Text(s.petName,
+                                        child: GameText(s.petName,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
@@ -495,7 +499,7 @@ class _GameShellState extends State<GameShell> {
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(s.stageLabel,
+                                  GameText(s.stageLabel,
                                       style: const TextStyle(
                                           fontSize: 19,
                                           color: FinniColors.muted)),
@@ -533,7 +537,7 @@ class _GameShellState extends State<GameShell> {
                                                 size: 30,
                                                 color: FinniColors.paper),
                                             const SizedBox(width: 8),
-                                            Text(s.eventHeader,
+                                            GameText(s.eventHeader,
                                                 style: const TextStyle(
                                                     fontSize: 16,
                                                     fontWeight:
@@ -629,7 +633,7 @@ class _GameShellState extends State<GameShell> {
                       padding: 12,
                       child: Row(children: [
                         const Expanded(
-                            child: Text('Доход дня',
+                            child: GameText('Доход дня',
                                 style: TextStyle(fontWeight: FontWeight.w700))),
                         _Coins(s.plan.plan.income)
                       ])),
@@ -643,7 +647,7 @@ class _GameShellState extends State<GameShell> {
                       padding: 12,
                       child: Row(children: [
                         const Expanded(
-                            child: Text('Заработано сегодня',
+                            child: GameText('Заработано сегодня',
                                 style: TextStyle(fontWeight: FontWeight.w700))),
                         _Coins(s.earnedToday)
                       ])),
@@ -653,7 +657,7 @@ class _GameShellState extends State<GameShell> {
                   _ExtraPlanner(state: s, onDone: toast),
                 ],
                 const SizedBox(height: 12),
-                const Text('Каждый шаг — 5 монет.',
+                const GameText('Каждый шаг — 5 монет.',
                     style: TextStyle(color: FinniColors.muted)),
                 const SizedBox(height: 12),
                 CoachTarget(
@@ -708,7 +712,7 @@ class _GameShellState extends State<GameShell> {
                       : 'Если откладывать по ${s.plan.plan.savings} монет в день, до мечты ещё ${s.daysWithPlan} ${ruDays(s.daysWithPlan ?? 0)}.'),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                const GameText(
                   'План не тратит монеты. Покупки и пополнение копилки ты делаешь отдельно.',
                   style: TextStyle(color: FinniColors.muted),
                 ),
@@ -726,7 +730,7 @@ class _GameShellState extends State<GameShell> {
                   Row(
                     children: [
                       const Expanded(
-                        child: Text(
+                        child: GameText(
                           'Не распределено',
                           style: TextStyle(fontWeight: FontWeight.w700),
                         ),
@@ -752,7 +756,7 @@ class _GameShellState extends State<GameShell> {
                           }
                         },
                         icon: const Icon(Icons.savings_outlined),
-                        label: Text(
+                        label: GameText(
                             'Отложить в копилку ${s.savingsToDeposit} по плану'),
                       ),
                     ),
@@ -777,7 +781,7 @@ class _GameShellState extends State<GameShell> {
                           ? Icons.check_rounded
                           : Icons.check_circle_outline_rounded,
                     ),
-                    label: Text(
+                    label: GameText(
                       s.plan.isConfirmed ? 'План сохранён' : 'Подтвердить план',
                     ),
                   ),
@@ -835,7 +839,7 @@ class _GameShellState extends State<GameShell> {
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
-                  child: Text(
+                  child: GameText(
                     'Можно потратить',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
@@ -860,12 +864,12 @@ class _GameShellState extends State<GameShell> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: GameText(
                       'Нужно ${s.petName} сегодня',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ),
-                  Text(
+                  GameText(
                     '$met из ${needs.length}',
                     style: const TextStyle(
                         fontSize: 16,
@@ -875,7 +879,7 @@ class _GameShellState extends State<GameShell> {
                 ],
               ),
               const SizedBox(height: 4),
-              const Text(
+              const GameText(
                 'Из каждой строки хватит одного — подешевле или побольше.',
                 style: TextStyle(color: FinniColors.muted),
               ),
@@ -894,10 +898,10 @@ class _GameShellState extends State<GameShell> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Для радости',
+              GameText('Для радости',
                   style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 4),
-              const Text(
+              const GameText(
                 'Приятно, но можно и без этого.',
                 style: TextStyle(color: FinniColors.muted),
               ),
@@ -913,7 +917,7 @@ class _GameShellState extends State<GameShell> {
             children: [
               for (final i in filters)
                 ChoiceChip(
-                  label: Text(_wantFilters[i].$2.isEmpty
+                  label: GameText(_wantFilters[i].$2.isEmpty
                       ? _wantFilters[i].$1
                       : '${_wantFilters[i].$2} ${_wantFilters[i].$1}'),
                   selected: active == i,
@@ -1039,17 +1043,17 @@ class _GameShellState extends State<GameShell> {
                 ],
               ),
               const SizedBox(height: 8),
-              Text(item.title,
+              GameText(item.title,
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
               for (final effect in view.effectTexts)
-                Text(effect,
+                GameText(effect,
                     style: const TextStyle(
                         color: FinniColors.muted, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
               view.isOwned
-                  ? const Text('Уже есть',
+                  ? const GameText('Уже есть',
                       style: TextStyle(fontWeight: FontWeight.w800))
                   : _Coins(item.price),
             ],
@@ -1081,7 +1085,7 @@ class _GameShellState extends State<GameShell> {
               ),
               const SizedBox(height: 12),
               if (item.description.isNotEmpty)
-                Text(item.description, textAlign: TextAlign.center),
+                GameText(item.description, textAlign: TextAlign.center),
               const SizedBox(height: 12),
               Wrap(
                 alignment: WrapAlignment.center,
@@ -1102,7 +1106,7 @@ class _GameShellState extends State<GameShell> {
                 ],
               ),
               const SizedBox(height: 8),
-              Text(view.categoryHint,
+              GameText(view.categoryHint,
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: FinniColors.muted)),
               const SizedBox(height: 16),
@@ -1118,7 +1122,7 @@ class _GameShellState extends State<GameShell> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text('Что изменилось',
+                          const GameText('Что изменилось',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.w900)),
                           const SizedBox(height: 10),
@@ -1127,12 +1131,12 @@ class _GameShellState extends State<GameShell> {
                               const CoinIcon(size: 24),
                               const SizedBox(width: 10),
                               const Expanded(
-                                child: Text('Монеты',
+                                child: GameText('Монеты',
                                     style: TextStyle(
                                         fontSize: 17,
                                         fontWeight: FontWeight.w800)),
                               ),
-                              Text('$before → ${s.wallet.wallet.balance}',
+                              GameText('$before → ${s.wallet.wallet.balance}',
                                   style: const TextStyle(fontSize: 17)),
                               const SizedBox(width: 8),
                               _Pill(
@@ -1147,7 +1151,7 @@ class _GameShellState extends State<GameShell> {
                           if (s.plan.isConfirmed &&
                               item.category == ExpenseCategory.optional) ...[
                             const SizedBox(height: 8),
-                            Text(
+                            GameText(
                               s.planLeft(PlanDirection.optional) >= 0
                                   ? 'На желаемое по плану осталось ${s.planLeft(PlanDirection.optional)}.'
                                   : 'На желаемое потрачено на ${-s.planLeft(PlanDirection.optional)} больше плана — сегодня отложим меньше.',
@@ -1162,7 +1166,7 @@ class _GameShellState extends State<GameShell> {
                     FilledButton.icon(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.celebration_outlined),
-                      label: const Text('Ура!'),
+                      label: const GameText('Ура!'),
                     ),
                   ],
                 PurchaseRefused(:final textRu) => [
@@ -1175,7 +1179,7 @@ class _GameShellState extends State<GameShell> {
                           'Копилка — это монеты на мечту. ${takeFromPiggy!.savedChangeText} ${takeFromPiggy!.etaChangeText}',
                     ),
                     const SizedBox(height: 12),
-                    Text(takeFromPiggy!.question,
+                    GameText(takeFromPiggy!.question,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 12),
@@ -1189,11 +1193,11 @@ class _GameShellState extends State<GameShell> {
                         }
                       },
                       icon: const Icon(Icons.arrow_upward_rounded),
-                      label: Text('Взять $gap из копилки'),
+                      label: GameText('Взять $gap из копилки'),
                     ),
                     TextButton(
                       onPressed: () => update(() => takeFromPiggy = null),
-                      child: const Text('Нет, пусть копится'),
+                      child: const GameText('Нет, пусть копится'),
                     ),
                   ],
                 PurchaseNotEnough(:final gap, :final options) => [
@@ -1215,7 +1219,7 @@ class _GameShellState extends State<GameShell> {
                             }
                           },
                           icon: const Icon(Icons.savings_outlined),
-                          label: Text('Взять $gap из копилки'),
+                          label: GameText('Взять $gap из копилки'),
                         ),
                       ),
                     for (final option in options)
@@ -1231,7 +1235,7 @@ class _GameShellState extends State<GameShell> {
                               : option.route == 'postpone'
                                   ? Icons.bookmark_add_outlined
                                   : Icons.sell_outlined),
-                          label: Text(option.textRu),
+                          label: GameText(option.textRu),
                         ),
                       ),
                   ],
@@ -1257,7 +1261,7 @@ class _GameShellState extends State<GameShell> {
                           text: confirm.view.comparisonText!),
                       const SizedBox(height: 12),
                     ],
-                    Text(
+                    GameText(
                       before >= item.price
                           ? 'Было $before → останется ${before - item.price} монет'
                           : 'Сейчас у тебя $before монет',
@@ -1265,7 +1269,7 @@ class _GameShellState extends State<GameShell> {
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 12),
-                    Text(confirm.question,
+                    GameText(confirm.question,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 12),
@@ -1279,11 +1283,11 @@ class _GameShellState extends State<GameShell> {
                         }
                       },
                       icon: const Icon(Icons.shopping_bag_outlined),
-                      label: Text('Купить за ${item.price} монет'),
+                      label: GameText('Купить за ${item.price} монет'),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Подумаю ещё'),
+                      child: const GameText('Подумаю ещё'),
                     ),
                   ],
               },

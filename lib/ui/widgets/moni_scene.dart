@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'artwork_bundle.dart';
 
 import '../theme/finni_theme.dart';
 import '../../domain/models/pet.dart';
@@ -12,6 +12,7 @@ import 'moni_idle.dart';
 import '../pet_appearance.dart';
 import 'pet_rig_layout.dart';
 import 'sprite_sheet.dart';
+import 'pet_sprite_set.dart';
 
 class MoniScene extends StatefulWidget {
   const MoniScene(
@@ -24,6 +25,7 @@ class MoniScene extends StatefulWidget {
       this.equipped,
       this.onPet,
       this.sleeping = false,
+      this.sad = false,
       this.outfit = const {}});
   final bool motion;
   final PetAppearance appearance;
@@ -33,6 +35,7 @@ class MoniScene extends StatefulWidget {
   final String? equipped;
   final VoidCallback? onPet;
   final bool sleeping;
+  final bool sad;
   final Map<String, String> outfit;
   @override
   State<MoniScene> createState() => _MoniSceneState();
@@ -47,11 +50,11 @@ class _MoniSceneState extends State<MoniScene>
   ui.Image? rig, accessories;
   SpriteSheet? clothing;
   SpriteSheet? ears;
-  SpriteSheet? backpack;
   List<Rect> accessoryBounds = [];
   ui.Image? closedFace;
   final Map<PetStage, ui.Image> stageRigs = {};
   final Map<PetStage, ui.Image> stageFaces = {};
+  final Map<PetStage, ui.Image> sadFaces = {};
   Timer? reaction;
   bool happy = false;
   int loadRevision = 0;
@@ -64,11 +67,42 @@ class _MoniSceneState extends State<MoniScene>
   Future<void> _load() async {
     final revision = ++loadRevision;
     final appearance = widget.appearance;
+    if (appearance.unifiedHead) {
+      final set = await PetSpriteSet.load(appearance);
+      final shared =
+          await SpriteSheet.load('assets/pets/shared/accessories.png', 3, 3);
+      if (!mounted || revision != loadRevision) {
+        for (final image in [
+          ...set.rigs.values,
+          ...set.closed.values,
+          ...set.sad.values
+        ]) {
+          image.dispose();
+        }
+        return;
+      }
+      setState(() {
+        rig = set.rigs[PetStage.teen];
+        stageRigs
+          ..addAll(set.rigs)
+          ..remove(PetStage.teen);
+        closedFace = set.closed[PetStage.teen];
+        stageFaces
+          ..addAll(set.closed)
+          ..remove(PetStage.teen);
+        sadFaces.addAll(set.sad);
+        accessories = shared.image.clone();
+        accessoryBounds = shared.cells;
+        clothing = set.clothing;
+      });
+      widget.onReady?.call();
+      return;
+    }
     final images = await Future.wait(
       ['rig', 'accessories', 'rig-baby', 'rig-adult'].map((name) async {
         final folder =
             name == 'accessories' ? 'assets/pets/shared' : appearance.assets;
-        final bytes = await rootBundle.load('$folder/$name.png');
+        final bytes = await artworkBundle.load('$folder/$name.png');
         final codec = await ui.instantiateImageCodec(
           bytes.buffer.asUint8List(),
           targetWidth: name == 'accessories' ? null : 1774,
@@ -84,8 +118,6 @@ class _MoniSceneState extends State<MoniScene>
             .cells;
     final fittedClothing =
         await SpriteSheet.load('${appearance.assets}/outfits.png', 2, 1);
-    final fittedBackpack =
-        await SpriteSheet.load('assets/pets/shared/backpack.png', 1, 1);
     final fittedEars = appearance == PetAppearance.tyapa
         ? await SpriteSheet.load('${appearance.assets}/ears.png', 2, 3,
             regions: const [
@@ -100,10 +132,25 @@ class _MoniSceneState extends State<MoniScene>
     final closed = await _makeClosedFace(images[0], appearance);
     final babyClosed = await _makeClosedFace(images[2], appearance);
     final adultClosed = await _makeClosedFace(images[3], appearance);
+    final sadSheet = await SpriteSheet.load(
+        '${appearance.assets}/sad.png', 1, 1,
+        trim: false);
+    final sadness = <PetStage, ui.Image>{};
+    for (final entry in {
+      PetStage.teen: images[0],
+      PetStage.baby: images[2],
+      PetStage.adult: images[3]
+    }.entries) {
+      sadness[entry.key] = await _makeSadFace(
+          entry.value, sadSheet.image, appearance, entry.key);
+    }
     if (!mounted || revision != loadRevision) {
       closed.dispose();
       babyClosed.dispose();
       adultClosed.dispose();
+      for (final image in sadness.values) {
+        image.dispose();
+      }
       for (final i in images) {
         i.dispose();
       }
@@ -114,17 +161,101 @@ class _MoniSceneState extends State<MoniScene>
       accessories = images[1];
       accessoryBounds = bounds;
       clothing = fittedClothing;
-      backpack = fittedBackpack;
       ears = fittedEars;
       closedFace = closed;
       stageRigs.addAll({PetStage.baby: images[2], PetStage.adult: images[3]});
       stageFaces
           .addAll({PetStage.baby: babyClosed, PetStage.adult: adultClosed});
+      sadFaces.addAll(sadness);
     });
     widget.onReady?.call();
   }
 
   // Keep the neutral outline; replace only the painted facial expression.
+  Future<ui.Image> _makeSadFace(ui.Image neutral, ui.Image sad,
+      PetAppearance appearance, PetStage stage) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    const target = Rect.fromLTWH(0, 0, 510, 434);
+    final source = _headSource(appearance);
+    final paint = Paint()..filterQuality = FilterQuality.high;
+    canvas.drawImageRect(neutral, source, target, paint);
+    // Only eyebrows and mouth change. Eyes, cheeks and silhouette stay original.
+    final patches = switch (appearance) {
+      PetAppearance.moni => const [
+          Rect.fromLTWH(82, 133, 116, 76),
+          Rect.fromLTWH(298, 98, 103, 68),
+          Rect.fromLTWH(188, 285, 187, 88)
+        ],
+      PetAppearance.pix => const [
+          Rect.fromLTWH(102, 184, 109, 78),
+          Rect.fromLTWH(296, 171, 93, 43),
+          Rect.fromLTWH(190, 307, 190, 88)
+        ],
+      PetAppearance.tyapa => const [
+          Rect.fromLTWH(100, 175, 108, 83),
+          Rect.fromLTWH(305, 157, 91, 47),
+          Rect.fromLTWH(193, 309, 187, 88)
+        ],
+      _ => const [
+          Rect.fromLTWH(76, 162, 128, 84),
+          Rect.fromLTWH(292, 119, 110, 68),
+          Rect.fromLTWH(189, 319, 185, 92)
+        ],
+    };
+    final sx = sad.width / 1774, sy = sad.height / 887;
+    final sadSource = Rect.fromLTWH(source.left * sx, source.top * sy,
+        source.width * sx, source.height * sy);
+    final age = stage == PetStage.baby
+        ? 0
+        : stage == PetStage.adult
+            ? 2
+            : 1;
+    final offsets = switch (appearance) {
+      PetAppearance.moni => const [
+          [Offset(8, 0), Offset(19, 16), Offset(1, 12)],
+          [Offset.zero, Offset.zero, Offset(0, 1)],
+          [Offset(8, 0), Offset(9, 2), Offset(6, -1)],
+        ],
+      PetAppearance.pix => const [
+          [Offset(10, 9), Offset(19, 11), Offset(6, 4)],
+          [Offset.zero, Offset.zero, Offset(-1, 0)],
+          [Offset(10, 8), Offset(14, 7), Offset(4, 1)],
+        ],
+      PetAppearance.tyapa => const [
+          [Offset(10, 23), Offset(-3, 17), Offset(7, 20)],
+          [Offset.zero, Offset.zero, Offset(-1, 0)],
+          [Offset(0, 1), Offset(-2, 1), Offset.zero],
+        ],
+      _ => const [
+          [Offset(15, 2), Offset(17, 6), Offset(13, 5)],
+          [Offset.zero, Offset.zero, Offset.zero],
+          [Offset(6, 4), Offset(14, 7), Offset(2, 0)],
+        ],
+    };
+    for (var i = 0; i < patches.length; i++) {
+      final offset = offsets[age][i];
+      final patch = patches[i].shift(offset);
+      canvas.saveLayer(target, Paint());
+      canvas.drawImageRect(sad, sadSource, target.shift(offset), paint);
+      canvas.save();
+      canvas.translate(patch.center.dx, patch.center.dy);
+      canvas.scale(patch.width / 2, patch.height / 2);
+      canvas.drawRect(
+          const Rect.fromLTWH(-20, -20, 40, 40),
+          Paint()
+            ..blendMode = BlendMode.dstIn
+            ..shader = ui.Gradient.radial(Offset.zero, 1,
+                [Colors.white, Colors.white, Colors.transparent], [0, .75, 1]));
+      canvas.restore();
+      canvas.restore();
+    }
+    final picture = recorder.endRecording();
+    final result = await picture.toImage(510, 434);
+    picture.dispose();
+    return result;
+  }
+
   Future<ui.Image> _makeClosedFace(
       ui.Image image, PetAppearance appearance) async {
     final recorder = ui.PictureRecorder();
@@ -176,6 +307,7 @@ class _MoniSceneState extends State<MoniScene>
       ears = null;
       stageRigs.clear();
       stageFaces.clear();
+      sadFaces.clear();
       reaction?.cancel();
       happy = false;
       _load();
@@ -187,7 +319,11 @@ class _MoniSceneState extends State<MoniScene>
     closedFace?.dispose();
     rig?.dispose();
     accessories?.dispose();
-    for (final image in [...stageRigs.values, ...stageFaces.values]) {
+    for (final image in [
+      ...stageRigs.values,
+      ...stageFaces.values,
+      ...sadFaces.values
+    ]) {
       image.dispose();
     }
   }
@@ -233,7 +369,8 @@ class _MoniSceneState extends State<MoniScene>
                 widget.appearance,
                 clothing,
                 ears,
-                backpack,
+                widget.sad,
+                sadFaces[widget.stage] ?? sadFaces[PetStage.teen],
               ),
               size: Size.infinite,
             ),
@@ -261,8 +398,10 @@ class _MoniPainter extends CustomPainter {
       this.appearance,
       this.clothing,
       this.ears,
-      this.backpack);
-  final SpriteSheet? backpack;
+      this.sad,
+      this.sadFace);
+  final bool sad;
+  final ui.Image? sadFace;
   final ui.Image? rig, accessories;
   final double t;
   final bool happy;
@@ -349,13 +488,6 @@ class _MoniPainter extends CustomPainter {
       angle: moniIdleWave(t, 4) * .06 + math.sin(progress * 48) * .20 * joy,
       pivot: const Offset(254, 516),
     );
-    if (selected.contains('backpack') && backpack != null) {
-      final source = backpack!.cells.first;
-      final target = layout.backpackTarget(breath);
-      final fitted = applyBoxFit(BoxFit.contain, source.size, target.size);
-      c.drawImageRect(backpack!.image, source,
-          Alignment.center.inscribe(fitted.destination, target), paint);
-    }
     final bodyTarget = layout.bodyTarget(breath);
     final dressed = selected.contains('raincoat')
         ? 1
@@ -367,24 +499,6 @@ class _MoniPainter extends CustomPainter {
           clothing!.image, clothing!.cells[dressed], bodyTarget, paint);
     } else {
       part(layout.body, bodyTarget);
-    }
-    if (selected.contains('backpack')) {
-      final strap = layout.backpackStrap.shift(Offset(0, breath));
-      c.drawPath(strap.shift(const Offset(1.5, 2)), Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 12
-        ..strokeCap = StrokeCap.round
-        ..color = const Color(0x44372449));
-      c.drawPath(strap, Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 9
-        ..strokeCap = StrokeCap.round
-        ..color = const Color(0xFF9A76BC));
-      c.drawPath(strap, Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
-        ..strokeCap = StrokeCap.round
-        ..color = const Color(0xFFC8A9E3));
     }
     accessory('scarf', Offset(350, 448 + breath), 112, angle: -.10);
     accessory('bowtie', Offset(358, 441 + breath), 62, angle: -.13);
@@ -408,24 +522,39 @@ class _MoniPainter extends CustomPainter {
           face: true,
           image: ears?.image,
         );
-    if (appearance != PetAppearance.tyapa) drawLeftEar();
-    part(
-      ears?.cells[layout.age * 2 + 1] ?? layout.rightSource,
-      rightEar,
-      angle: layout.rightAngle -
-          moniIdleWave(t, 2) * .015 +
-          jump * .12 -
-          encore * .06,
-      pivot: layout.rightPivot,
-      face: true,
-      image: ears?.image,
-    );
+    if (!appearance.unifiedHead && appearance != PetAppearance.tyapa) {
+      drawLeftEar();
+    }
+    if (!appearance.unifiedHead) {
+      part(
+        ears?.cells[layout.age * 2 + 1] ?? layout.rightSource,
+        rightEar,
+        angle: layout.rightAngle -
+            moniIdleWave(t, 2) * .015 +
+            jump * .12 -
+            encore * .06,
+        pivot: layout.rightPivot,
+        face: true,
+        image: ears?.image,
+      );
+    }
     final blink = (t > 2.8 && t < 2.94) ||
         (t > 6.4 && t < 6.54) ||
         (t > 10.1 && t < 10.24);
     if ((blink || happy || jump > .7 || encore > .3) && closedFace != null) {
-      c.drawImageRect(closedFace!, const Rect.fromLTWH(0, 0, 510, 434),
-          layout.headTarget, paint);
+      c.drawImageRect(
+          closedFace!,
+          Rect.fromLTWH(0, 0, closedFace!.width.toDouble(),
+              closedFace!.height.toDouble()),
+          layout.headTarget,
+          paint);
+    } else if (sad && sadFace != null) {
+      c.drawImageRect(
+          sadFace!,
+          Rect.fromLTWH(
+              0, 0, sadFace!.width.toDouble(), sadFace!.height.toDouble()),
+          layout.headTarget,
+          paint);
     } else {
       part(_headSource(appearance), layout.headTarget, face: true);
     }
@@ -437,10 +566,8 @@ class _MoniPainter extends CustomPainter {
             : const Offset(268, 281),
         62,
         angle: -.25);
-    accessory(
-        'cap', layout.capCenter, 148,
-        angle: -.16);
-    accessory('glasses', layout.glassesCenter, 166, angle: -.25);
+    accessory('cap', layout.capCenter, 148, angle: -.16);
+    accessory('glasses', layout.glassesCenter, 166, angle: layout.glassesAngle);
     c.restore();
     c.restore();
   }
@@ -456,6 +583,8 @@ class _MoniPainter extends CustomPainter {
       old.closedFace != closedFace ||
       old.t != t ||
       old.happy != happy ||
+      old.sad != sad ||
+      old.sadFace != sadFace ||
       old.equipped != equipped ||
       !mapEquals(old.outfit, outfit);
 }

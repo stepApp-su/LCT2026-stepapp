@@ -188,9 +188,9 @@ void main() {
       expect(ball.gap, 5);
       expect(ball.delayDays, 1);
       expect(ball.needsShort, 0);
-      final backpack = state.planCheck(item('backpack'));
-      expect(backpack.gap, 25);
-      expect(backpack.needsShort, greaterThan(0));
+      final bowtie = state.planCheck(item('bowtie'));
+      expect(bowtie.gap, 25);
+      expect(bowtie.needsShort, greaterThan(0));
       expect(state.planCheck(item('food')).direction, PlanDirection.mandatory);
     });
 

@@ -1,3 +1,4 @@
+import './game_text.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -5,6 +6,8 @@ import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
 import '../theme/finni_theme.dart';
+import 'game_glyph.dart';
+import 'sprite_sheet.dart';
 
 const double storyWidth = 300;
 const double storyHeight = 250;
@@ -16,28 +19,91 @@ class SceneArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
-      child: CustomPaint(painter: ScenePainter(scene), size: Size.infinite));
+          child: FutureBuilder<Map<String, SpriteSheet>>(
+        future: _sceneIcons,
+        builder: (context, snapshot) => CustomPaint(
+          painter: ScenePainter(scene, snapshot.data ?? const {}),
+          size: Size.infinite,
+        ),
+      ));
 }
 
+final _sceneIcons = Future.wait([
+  for (final sheet in ['food', 'learning', 'actions', 'dreams-a', 'dreams-b'])
+    loadGameArtSheet(sheet).then((value) => MapEntry(sheet, value)),
+]).then((entries) => Map<String, SpriteSheet>.fromEntries(entries));
+
 class ScenePainter extends CustomPainter {
-  const ScenePainter(this.scene);
+  const ScenePainter(this.scene, [this.icons = const {}]);
 
   final String scene;
+  final Map<String, SpriteSheet> icons;
 
-  static void _box(Canvas c, double x, double y, double w, double h, Color color,
+  static void _box(
+      Canvas c, double x, double y, double w, double h, Color color,
       [double r = 0]) {
     final paint = Paint()..color = color;
     if (r == 0) {
       c.drawRect(Rect.fromLTWH(x, y, w, h), paint);
     } else {
       c.drawRRect(
-          RRect.fromRectAndRadius(Rect.fromLTWH(x, y, w, h), Radius.circular(r)),
+          RRect.fromRectAndRadius(
+              Rect.fromLTWH(x, y, w, h), Radius.circular(r)),
           paint);
     }
   }
 
-  static void _text(Canvas c, String text, Offset at, double size,
+  void _text(Canvas c, String text, Offset at, double size,
       {Color color = FinniColors.ink, bool center = false}) {
+    if (gameGlyphPattern.hasMatch(text)) {
+      final parts = <(String, bool)>[];
+      var cursor = 0;
+      for (final match in gameGlyphPattern.allMatches(text)) {
+        if (cursor < match.start) {
+          parts.add((text.substring(cursor, match.start), false));
+        }
+        parts.add((match.group(0)!, true));
+        cursor = match.end;
+      }
+      if (cursor < text.length) parts.add((text.substring(cursor), false));
+      final widths = parts.map((part) {
+        if (part.$2) return size * 1.15;
+        final p = TextPainter(
+            text: TextSpan(
+                text: part.$1,
+                style: TextStyle(fontSize: size, fontWeight: FontWeight.w900)),
+            textDirection: TextDirection.ltr)
+          ..layout();
+        final width = p.width;
+        p.dispose();
+        return width;
+      }).toList();
+      var x = at.dx - (center ? widths.fold(0.0, (a, b) => a + b) / 2 : 0);
+      final y = at.dy - (center ? size / 2 : 0);
+      for (var i = 0; i < parts.length; i++) {
+        final part = parts[i];
+        if (!part.$2) {
+          _text(c, part.$1, Offset(x, y), size, color: color);
+        } else {
+          final id = gameArtId(part.$1);
+          final cell = gameArtCells[id == 'food-stat' ? 'porridge' : id];
+          final sheet = cell == null ? null : icons[cell.sheet];
+          if (sheet != null) {
+            final source = sheet.cells[cell!.index];
+            final target = Rect.fromLTWH(x, y, size * 1.1, size * 1.1);
+            final fitted =
+                applyBoxFit(BoxFit.contain, source.size, target.size);
+            c.drawImageRect(
+                sheet.image,
+                source,
+                Alignment.center.inscribe(fitted.destination, target),
+                Paint()..filterQuality = FilterQuality.high);
+          }
+        }
+        x += widths[i];
+      }
+      return;
+    }
     final painter = TextPainter(
       text: TextSpan(
           text: text,
@@ -50,18 +116,21 @@ class ScenePainter extends CustomPainter {
     )..layout();
     painter.paint(
         c, center ? at - Offset(painter.width / 2, painter.height / 2) : at);
+    painter.dispose();
   }
 
   static void _cloud(Canvas c, Offset at, double r, Color color) {
     final paint = Paint()..color = color;
-    c.drawOval(Rect.fromCenter(center: at, width: r * 2.6, height: r * 1.1), paint);
+    c.drawOval(
+        Rect.fromCenter(center: at, width: r * 2.6, height: r * 1.1), paint);
     c.drawCircle(at + Offset(r * .35, -r * .35), r * .7, paint);
     c.drawCircle(at - Offset(r * .45, r * .15), r * .5, paint);
   }
 
   static void _tree(Canvas c, double x, double ground, double r) {
     _box(c, x - 4, ground - r * 2.2, 8, r * 2.2, FinniColors.storyWoodDark, 3);
-    c.drawCircle(Offset(x, ground - r * 2.4), r, Paint()..color = FinniColors.storyTree);
+    c.drawCircle(
+        Offset(x, ground - r * 2.4), r, Paint()..color = FinniColors.storyTree);
     c.drawCircle(Offset(x - r * .55, ground - r * 2.0), r * .62,
         Paint()..color = FinniColors.storyTreeDark);
   }
@@ -89,9 +158,15 @@ class ScenePainter extends CustomPainter {
     }
   }
 
-  static void _sparkles(Canvas c, Color color) {
-    const spots = [(30.0, 40.0, 12.0), (262.0, 30.0, 16.0), (232.0, 118.0, 10.0),
-      (22.0, 150.0, 14.0), (276.0, 190.0, 12.0), (70.0, 92.0, 9.0)];
+  void _sparkles(Canvas c, Color color) {
+    const spots = [
+      (30.0, 40.0, 12.0),
+      (262.0, 30.0, 16.0),
+      (232.0, 118.0, 10.0),
+      (22.0, 150.0, 14.0),
+      (276.0, 190.0, 12.0),
+      (70.0, 92.0, 9.0)
+    ];
     for (final (x, y, s) in spots) {
       _text(c, '✦', Offset(x, y), s, color: color, center: true);
     }
@@ -163,7 +238,12 @@ class ScenePainter extends CustomPainter {
     }
     _box(c, 14, 12, 272, 58, FinniColors.paper.withValues(alpha: .92), 12);
     _text(c, 'МЕНЮ', const Offset(26, 20), 12, color: FinniColors.gold);
-    const menu = [('🥪 15', 26.0), ('🍎 5', 96.0), ('🥛 6', 152.0), ('🍲 18', 210.0)];
+    const menu = [
+      ('🥪 15', 26.0),
+      ('🍎 5', 96.0),
+      ('🥛 6', 152.0),
+      ('🍲 18', 210.0)
+    ];
     for (final (label, x) in menu) {
       _text(c, label, Offset(x, 42), 15);
     }
@@ -181,7 +261,8 @@ class ScenePainter extends CustomPainter {
           ..shader = ui.Gradient.radial(const Offset(150, 100), 220,
               [FinniColors.storyDreamLight, FinniColors.storyDream]));
     _sparkles(c, FinniColors.storySparkle);
-    c.drawOval(Rect.fromCenter(center: const Offset(150, 240), width: 240, height: 50),
+    c.drawOval(
+        Rect.fromCenter(center: const Offset(150, 240), width: 240, height: 50),
         Paint()..color = FinniColors.storyDreamGround);
   }
 
@@ -189,11 +270,14 @@ class ScenePainter extends CustomPainter {
     c.drawRect(
         const Rect.fromLTWH(0, 0, storyWidth, storyHeight),
         Paint()
-          ..shader = ui.Gradient.linear(const Offset(0, 0), const Offset(0, 180),
+          ..shader = ui.Gradient.linear(
+              const Offset(0, 0),
+              const Offset(0, 180),
               [FinniColors.storyDawn, FinniColors.storyDawnLow]));
     c.drawCircle(const Offset(236, 120), 64,
         Paint()..color = FinniColors.storySunWarm.withValues(alpha: .25));
-    c.drawCircle(const Offset(236, 120), 44, Paint()..color = FinniColors.storySunWarm);
+    c.drawCircle(
+        const Offset(236, 120), 44, Paint()..color = FinniColors.storySunWarm);
     _cloud(c, const Offset(130, 40), 18, FinniColors.paper);
     _box(c, 22, 76, 78, 104, FinniColors.storyBuilding, 4);
     c.drawPath(
@@ -203,7 +287,8 @@ class ScenePainter extends CustomPainter {
           ..lineTo(108, 80)
           ..close(),
         Paint()..color = FinniColors.storyRoof);
-    _text(c, 'ШКОЛА', const Offset(61, 70), 10, color: FinniColors.paper, center: true);
+    _text(c, 'ШКОЛА', const Offset(61, 70), 10,
+        color: FinniColors.paper, center: true);
     _box(c, 32, 94, 20, 20, FinniColors.storyWindow, 3);
     _box(c, 70, 94, 20, 20, FinniColors.storyWindow, 3);
     _box(c, 50, 140, 22, 40, FinniColors.storyWoodDark, 3);
@@ -243,7 +328,8 @@ class ScenePainter extends CustomPainter {
 
   void _street(Canvas c) {
     _box(c, 0, 0, storyWidth, 150, FinniColors.sky);
-    c.drawCircle(const Offset(254, 36), 16, Paint()..color = FinniColors.storySun);
+    c.drawCircle(
+        const Offset(254, 36), 16, Paint()..color = FinniColors.storySun);
     _cloud(c, const Offset(96, 36), 16, FinniColors.paper);
     _box(c, 0, 150, storyWidth, 100, FinniColors.storyGrass);
     _tree(c, 44, 170, 24);
@@ -274,7 +360,8 @@ class ScenePainter extends CustomPainter {
 
   void _park(Canvas c) {
     _box(c, 0, 0, storyWidth, 160, FinniColors.sky);
-    c.drawCircle(const Offset(40, 34), 16, Paint()..color = FinniColors.storySun);
+    c.drawCircle(
+        const Offset(40, 34), 16, Paint()..color = FinniColors.storySun);
     _cloud(c, const Offset(180, 30), 16, FinniColors.paper);
     _box(c, 0, 160, storyWidth, 90, FinniColors.storyHill);
     _tree(c, 30, 176, 22);
@@ -318,7 +405,8 @@ class ScenePainter extends CustomPainter {
       c.drawLine(Offset(x, y), Offset(x - 4, y + 12), drop);
     }
     _box(c, 0, 170, storyWidth, 80, FinniColors.storyGrass);
-    c.drawOval(Rect.fromCenter(center: const Offset(150, 214), width: 110, height: 16),
+    c.drawOval(
+        Rect.fromCenter(center: const Offset(150, 214), width: 110, height: 16),
         Paint()..color = FinniColors.storyDrop.withValues(alpha: .5));
   }
 
@@ -332,7 +420,8 @@ class ScenePainter extends CustomPainter {
     }
     _window(c, 24, 26, 78, 86);
     _box(c, 0, 180, storyWidth, 70, FinniColors.storyFloor);
-    c.drawOval(Rect.fromCenter(center: const Offset(150, 214), width: 220, height: 44),
+    c.drawOval(
+        Rect.fromCenter(center: const Offset(150, 214), width: 220, height: 44),
         Paint()..color = FinniColors.storyRug);
     _box(c, 250, 70, 6, 110, FinniColors.storyWoodDark, 3);
     c.drawPath(
@@ -346,7 +435,8 @@ class ScenePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant ScenePainter old) => old.scene != scene;
+  bool shouldRepaint(covariant ScenePainter old) =>
+      old.scene != scene || old.icons != icons;
 }
 
 class FriendArt extends StatelessWidget {
@@ -357,7 +447,8 @@ class FriendArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
-      child: CustomPaint(painter: FriendPainter(kind, mood), size: Size.infinite));
+      child:
+          CustomPaint(painter: FriendPainter(kind, mood), size: Size.infinite));
 }
 
 class FriendPainter extends CustomPainter {
@@ -413,7 +504,8 @@ class FriendPainter extends CustomPainter {
         c.translate(x, 34);
         c.rotate(tilt);
         c.drawOval(const Rect.fromLTWH(-11, -46, 22, 58), Paint()..color = ear);
-        c.drawOval(const Rect.fromLTWH(-6, -38, 12, 44), Paint()..color = inner);
+        c.drawOval(
+            const Rect.fromLTWH(-6, -38, 12, 44), Paint()..color = inner);
         c.restore();
       }
     } else {
@@ -422,9 +514,11 @@ class FriendPainter extends CustomPainter {
         c.drawCircle(Offset(x, 30), 8, Paint()..color = inner);
       }
     }
-    c.drawOval(const Rect.fromLTWH(22, 20, 84, 80), fur(const Rect.fromLTWH(22, 20, 84, 80)));
+    c.drawOval(const Rect.fromLTWH(22, 20, 84, 80),
+        fur(const Rect.fromLTWH(22, 20, 84, 80)));
     c.drawOval(const Rect.fromLTWH(46, 62, 36, 28), Paint()..color = belly);
-    c.drawOval(const Rect.fromLTWH(57, 65, 14, 10), Paint()..color = FinniColors.faceInk);
+    c.drawOval(const Rect.fromLTWH(57, 65, 14, 10),
+        Paint()..color = FinniColors.faceInk);
     final inkLine = Paint()
       ..color = FinniColors.faceInk
       ..strokeWidth = 3.5
@@ -446,9 +540,11 @@ class FriendPainter extends CustomPainter {
           Paint()..color = FinniColors.faceTear);
     } else {
       for (final x in const [50.0, 78.0]) {
-        c.drawOval(Rect.fromCenter(center: Offset(x, 58), width: 13, height: 15),
+        c.drawOval(
+            Rect.fromCenter(center: Offset(x, 58), width: 13, height: 15),
             Paint()..color = FinniColors.faceInk);
-        c.drawCircle(Offset(x + 2.5, 55), 2.4, Paint()..color = FinniColors.paper);
+        c.drawCircle(
+            Offset(x + 2.5, 55), 2.4, Paint()..color = FinniColors.paper);
       }
     }
     if (mood == StoryMood.sad || mood == StoryMood.ask) {
@@ -472,7 +568,8 @@ class FriendPainter extends CustomPainter {
               ..quadraticBezierTo(64, 77, 71, 83),
             mouthLine);
       case StoryMood.ask:
-        c.drawOval(Rect.fromCenter(center: const Offset(64, 82), width: 10, height: 8),
+        c.drawOval(
+            Rect.fromCenter(center: const Offset(64, 82), width: 10, height: 8),
             Paint()..color = FinniColors.faceMouth);
       case StoryMood.happy:
         c.drawPath(
@@ -481,7 +578,8 @@ class FriendPainter extends CustomPainter {
               ..quadraticBezierTo(64, 92, 73, 78)
               ..close(),
             Paint()..color = FinniColors.faceMouth);
-        c.drawOval(Rect.fromCenter(center: const Offset(64, 84), width: 9, height: 4),
+        c.drawOval(
+            Rect.fromCenter(center: const Offset(64, 84), width: 9, height: 4),
             Paint()..color = FinniColors.faceTongue);
       case StoryMood.calm:
       case StoryMood.none:
@@ -492,8 +590,12 @@ class FriendPainter extends CustomPainter {
             mouthLine);
     }
     final blush = Paint()..color = FinniColors.faceBlush.withValues(alpha: .55);
-    c.drawOval(Rect.fromCenter(center: const Offset(38, 72), width: 14, height: 9), blush);
-    c.drawOval(Rect.fromCenter(center: const Offset(90, 72), width: 14, height: 9), blush);
+    c.drawOval(
+        Rect.fromCenter(center: const Offset(38, 72), width: 14, height: 9),
+        blush);
+    c.drawOval(
+        Rect.fromCenter(center: const Offset(90, 72), width: 14, height: 9),
+        blush);
     c.restore();
   }
 
@@ -532,7 +634,8 @@ class CoinStack extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: FinniColors.coinFace,
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: FinniColors.coinEdge, width: 1.5),
+                        border:
+                            Border.all(color: FinniColors.coinEdge, width: 1.5),
                       ),
                     ),
                   ),
@@ -540,11 +643,14 @@ class CoinStack extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text('${stack.amount}',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: tone)),
-          Text(stack.label,
+          GameText('${stack.amount}',
+              style: TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.w900, color: tone)),
+          GameText(stack.label,
               style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w800, color: FinniColors.muted)),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: FinniColors.muted)),
         ],
       ),
     );
@@ -576,10 +682,12 @@ class StoryBubbleView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (name case final who?)
-                Text(who,
+                GameText(who,
                     style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w900, color: nameColor)),
-              Text(text,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: nameColor)),
+              GameText(text,
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w800, height: 1.25)),
             ],
@@ -597,7 +705,8 @@ class _BubblePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final body = RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.width, size.height - 10), const Radius.circular(18));
+        Rect.fromLTWH(0, 0, size.width, size.height - 10),
+        const Radius.circular(18));
     final tailX = tailLeft ? 28.0 : size.width - 28;
     final path = Path()
       ..addRRect(body)
@@ -637,7 +746,8 @@ class StoryStage extends StatelessWidget {
         aspectRatio: storyWidth / storyHeight,
         child: LayoutBuilder(builder: (context, box) {
           final k = box.maxWidth / storyWidth;
-          final friendShown = friend != null && page.friendMood != StoryMood.none;
+          final friendShown =
+              friend != null && page.friendMood != StoryMood.none;
           final thought = page.thought;
           final alone = !friendShown;
           final bubbles = page.bubbles.take(2).toList();
@@ -651,7 +761,7 @@ class StoryStage extends StatelessWidget {
                   right: 0,
                   bottom: 34 * k,
                   child: Center(
-                      child: Text(prop,
+                      child: GameText(prop,
                           style: TextStyle(fontSize: 40 * k, height: 1))),
                 ),
               Positioned(
@@ -665,7 +775,8 @@ class StoryStage extends StatelessWidget {
                 Positioned(
                   left: (alone ? (storyWidth - 150) / 2 + 106 : 108) * k,
                   bottom: 150 * k,
-                  child: Text(emote, style: TextStyle(fontSize: 28 * k, height: 1)),
+                  child: GameText(emote,
+                      style: TextStyle(fontSize: 28 * k, height: 1)),
                 ),
               if (friendShown)
                 Positioned(
@@ -689,7 +800,8 @@ class StoryStage extends StatelessWidget {
         }),
       );
 
-  Widget _placeBubble(StoryBubble bubble, int index, double k, bool friendShown) {
+  Widget _placeBubble(
+      StoryBubble bubble, int index, double k, bool friendShown) {
     final fromPet = bubble.voice == StoryVoice.pet;
     final name = switch (bubble.voice) {
       StoryVoice.pet => petName,
@@ -725,16 +837,21 @@ class _ThoughtCloud extends StatelessWidget {
           color: FinniColors.paper,
           borderRadius: BorderRadius.circular(24),
           boxShadow: const [
-            BoxShadow(color: FinniColors.shadow, blurRadius: 10, offset: Offset(0, 3)),
+            BoxShadow(
+                color: FinniColors.shadow,
+                blurRadius: 10,
+                offset: Offset(0, 3)),
           ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('💭 ${fill(thought.title)}',
+            GameText('💭 ${fill(thought.title)}',
                 style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w900, color: FinniColors.purple)),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    color: FinniColors.purple)),
             if (thought.stacks.isNotEmpty) ...[
               const SizedBox(height: 6),
               Row(
@@ -744,7 +861,7 @@ class _ThoughtCloud extends StatelessWidget {
                     if (i > 0)
                       const Padding(
                         padding: EdgeInsets.fromLTRB(8, 0, 8, 26),
-                        child: Text('+',
+                        child: GameText('+',
                             style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
@@ -755,7 +872,7 @@ class _ThoughtCloud extends StatelessWidget {
                   if (thought.note case final note?) ...[
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(fill(note),
+                      child: GameText(fill(note),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                               fontSize: 14,
@@ -767,7 +884,7 @@ class _ThoughtCloud extends StatelessWidget {
               ),
             ] else if (thought.note case final note?) ...[
               const SizedBox(height: 4),
-              Text(fill(note),
+              GameText(fill(note),
                   style: const TextStyle(
                       fontSize: 15, fontWeight: FontWeight.w800, height: 1.3)),
             ],

@@ -1,3 +1,4 @@
+import './game_text.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
@@ -90,7 +91,7 @@ class BedtimeScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back_rounded),
           ),
           const Expanded(
-            child: Text('Спокойной ночи',
+            child: GameText('Спокойной ночи',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 20,
@@ -110,14 +111,14 @@ class BedtimeScreen extends StatelessWidget {
         context: context,
         builder: (context) => AlertDialog(
           icon: const Icon(Icons.nightlight_round, size: 36),
-          title: const Text('Перед сном'),
-          content: const Text(
+          title: const GameText('Перед сном'),
+          content: const GameText(
               'Полоска — сколько монет вышло на самом деле. Белая чёрточка — сколько ты планировал утром. Если дела остались, их можно доделать или уложить питомца спать и так.',
               style: TextStyle(fontSize: 17)),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Понятно')),
+                child: const GameText('Понятно')),
           ],
         ),
       );
@@ -171,7 +172,7 @@ class BedtimeScreen extends StatelessWidget {
                     bottomLeft: Radius.circular(6),
                   ),
                 ),
-                child: Text(_petLine,
+                child: GameText(_petLine,
                     style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -210,7 +211,7 @@ class BedtimeScreen extends StatelessWidget {
     final rows = state.planFactRows;
     return NightGlass(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Как прошёл день',
+        const GameText('Как прошёл день',
             style: TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.w900,
@@ -271,13 +272,13 @@ class BedtimeScreen extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Expanded(
-              child: Text('${look.$1} $label',
+              child: GameText('${look.$1} $label',
                   style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: FinniColors.nightInk)),
             ),
-            Text('$fact из $plan',
+            GameText('$fact из $plan',
                 style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
@@ -334,7 +335,7 @@ class BedtimeScreen extends StatelessWidget {
               Icon(icon, size: 16, color: fg),
               const SizedBox(width: 5),
               Flexible(
-                child: Text(tag,
+                child: GameText(tag,
                     style: TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w800, color: fg)),
               ),
@@ -394,10 +395,10 @@ class BedtimeScreen extends StatelessWidget {
         child: Column(children: [
           for (final todo in state.bedtimeTodos)
             Row(children: [
-              Text(_todoLook(todo).$1, style: const TextStyle(fontSize: 20)),
+              GameText(_todoLook(todo).$1, style: const TextStyle(fontSize: 20)),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(_todoLook(todo).$2,
+                child: GameText(_todoLook(todo).$2,
                     style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -406,7 +407,7 @@ class BedtimeScreen extends StatelessWidget {
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: FinniColors.honey),
                 onPressed: () => onTodo(context, todo),
-                child: Text(_actionLabel(todo),
+                child: GameText(_actionLabel(todo),
                     style:
                         const TextStyle(decoration: TextDecoration.underline)),
               ),
@@ -427,7 +428,7 @@ class BedtimeScreen extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         if (todos.isEmpty) ...[
-          Text.rich(
+          GameText.rich(
             TextSpan(children: [
               const TextSpan(text: '✨ За сегодня можно получить '),
               TextSpan(
@@ -447,14 +448,14 @@ class BedtimeScreen extends StatelessWidget {
             style: style,
             onPressed: () => onSleep(context),
             icon: const Icon(Icons.nightlight_round),
-            label: const Text('Уложить спать'),
+            label: const GameText('Уложить спать'),
           ),
         ] else ...[
           FilledButton.icon(
             style: style,
             onPressed: () => onTodo(context, todos.first),
             icon: Icon(_primaryIcon(todos.first)),
-            label: Text(_primaryLabel(todos.first)),
+            label: GameText(_primaryLabel(todos.first)),
           ),
           TextButton(
             style: TextButton.styleFrom(
@@ -462,7 +463,7 @@ class BedtimeScreen extends StatelessWidget {
               minimumSize: const Size.fromHeight(48),
             ),
             onPressed: () => onSleep(context),
-            child: const Text('Всё равно уложить спать'),
+            child: const GameText('Всё равно уложить спать'),
           ),
         ],
       ]),
@@ -489,7 +490,7 @@ class _Legend extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Flexible(
-            child: Text(text,
+            child: GameText(text,
                 style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

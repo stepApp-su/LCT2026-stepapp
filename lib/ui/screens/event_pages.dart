@@ -31,11 +31,11 @@ extension _EventPages on _GameShellState {
                       motion: s.motion,
                       child: EmojiBadge(event.iconId, size: 96))),
               const SizedBox(height: 12),
-              Text(event.title,
+              GameText(event.title,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
-              Text(event.situation,
+              GameText(event.situation,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 17)),
               const SizedBox(height: 16),
@@ -46,12 +46,12 @@ extension _EventPages on _GameShellState {
                 const SizedBox(height: 8),
                 FilledButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(s.eventText('done'))),
+                    child: GameText(s.eventText('done'))),
               ] else ...[
                 if (event.options.length > 1)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(s.eventText('chooseHint'),
+                    child: GameText(s.eventText('chooseHint'),
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: FinniColors.muted)),
                   ),
@@ -72,7 +72,7 @@ extension _EventPages on _GameShellState {
                       child: Row(
                         children: [
                           Expanded(
-                              child: Text(option.label,
+                              child: GameText(option.label,
                                   style: const TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w800))),
@@ -97,7 +97,7 @@ extension _EventPages on _GameShellState {
                   ),
                 TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(s.eventText('postpone'))),
+                    child: GameText(s.eventText('postpone'))),
               ],
             ],
           );
@@ -156,10 +156,10 @@ class _EventScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(state.eventHeader,
+            GameText(state.eventHeader,
                 style: const TextStyle(
                     fontSize: 14, fontWeight: FontWeight.w800, color: FinniColors.muted)),
-            Text(event.title, maxLines: 2),
+            GameText(event.title, maxLines: 2),
           ],
         ),
       ),
@@ -211,17 +211,17 @@ class _ReplyButton extends StatelessWidget {
               child: Row(
                 children: [
                   ExcludeSemantics(
-                      child: Text(emoji, style: const TextStyle(fontSize: 26))),
+                      child: GameText(emoji, style: const TextStyle(fontSize: 26))),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(text,
+                        GameText(text,
                             style: const TextStyle(
                                 fontSize: 17, fontWeight: FontWeight.w800)),
                         if (hint case final small?)
-                          Text(small,
+                          GameText(small,
                               style: const TextStyle(
                                   fontSize: 15, color: FinniColors.muted)),
                       ],
@@ -251,7 +251,7 @@ class _DoneButton extends StatelessWidget {
   Widget build(BuildContext context) => FilledButton(
         onPressed: () => Navigator.pop(context),
         style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-        child: Text(state.eventText('done')),
+        child: GameText(state.eventText('done')),
       );
 }
 
@@ -321,21 +321,21 @@ class _EventOutcomeCard extends StatelessWidget {
               decoration: BoxDecoration(
                   color: FinniColors.honey, borderRadius: BorderRadius.circular(16)),
               child: ExcludeSemantics(
-                  child: Text(option.emoji ?? '✨', style: const TextStyle(fontSize: 28))),
+                  child: GameText(option.emoji ?? '✨', style: const TextStyle(fontSize: 28))),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(state.eventLine(option.show.lesson ?? event.title),
+                  GameText(state.eventLine(option.show.lesson ?? event.title),
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
-                  Text(resolved?.text ?? state.eventLine(option.resultText),
+                  GameText(resolved?.text ?? state.eventLine(option.resultText),
                       style: const TextStyle(fontSize: 16, height: 1.35)),
                   if (note case final rule?) ...[
                     const SizedBox(height: 6),
-                    Text('💡 ${state.eventLine(rule)}',
+                    GameText('💡 ${state.eventLine(rule)}',
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w800, height: 1.3)),
                   ],
@@ -395,7 +395,7 @@ class _ChatBubble extends StatelessWidget {
         ],
       ),
       child: line.typing
-          ? Text(state.eventText('typing'),
+          ? GameText(state.eventText('typing'),
               style: const TextStyle(
                   fontSize: 16, fontStyle: FontStyle.italic, color: FinniColors.muted))
           : Column(
@@ -403,10 +403,10 @@ class _ChatBubble extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (pet)
-                  Text(state.petName,
+                  GameText(state.petName,
                       style: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.w900, color: FinniColors.gold)),
-                Text(line.text,
+                GameText(line.text,
                     style: TextStyle(
                         fontSize: 17, fontWeight: FontWeight.w700, color: ink, height: 1.3)),
               ],
@@ -562,14 +562,14 @@ class _ChatEventState extends State<_ChatEvent> {
                 decoration: const BoxDecoration(
                     color: FinniColors.sky, shape: BoxShape.circle),
                 child: ExcludeSemantics(
-                    child: Text(contact.emoji, style: const TextStyle(fontSize: 28))),
+                    child: GameText(contact.emoji, style: const TextStyle(fontSize: 28))),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(s.eventLine(contact.name),
+                    GameText(s.eventLine(contact.name),
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 4),
                     TagChip('⚠️ ${s.eventLine(contact.note)}', tone: TagTone.peach),
@@ -583,7 +583,7 @@ class _ChatEventState extends State<_ChatEvent> {
         for (final line in lines) _ChatBubble(line: line, state: s),
         if (replies) ...[
           const SizedBox(height: 6),
-          Text(s.eventText('yourMove'),
+          GameText(s.eventText('yourMove'),
               style: const TextStyle(
                   fontSize: 17, fontWeight: FontWeight.w900, color: FinniColors.muted)),
           const SizedBox(height: 8),
@@ -674,12 +674,12 @@ class _BookPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(state.eventLine(page.narration),
+                    child: GameText(state.eventLine(page.narration),
                         style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w700, height: 1.38)),
                   ),
                   const SizedBox(width: 8),
-                  Text('$number/$total',
+                  GameText('$number/$total',
                       style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
@@ -690,7 +690,7 @@ class _BookPage extends StatelessWidget {
             if (hint)
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
-                child: Text('нажми ›',
+                child: GameText('нажми ›',
                     textAlign: TextAlign.right,
                     style: TextStyle(
                         fontSize: 14, fontWeight: FontWeight.w900, color: FinniColors.primary)),
@@ -836,7 +836,7 @@ class _BookEventState extends State<_BookEvent> {
                   child: OutlinedButton(
                     onPressed: _other,
                     style: OutlinedButton.styleFrom(padding: const EdgeInsets.all(16)),
-                    child: Text(s.eventText('other'), textAlign: TextAlign.center),
+                    child: GameText(s.eventText('other'), textAlign: TextAlign.center),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -845,7 +845,7 @@ class _BookEventState extends State<_BookEvent> {
             ],
           ),
         ] else if (asking) ...[
-          Text(s.eventText('askPet', {'pet': s.petName}),
+          GameText(s.eventText('askPet', {'pet': s.petName}),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
           if (short case final gap?) ...[
@@ -862,7 +862,7 @@ class _BookEventState extends State<_BookEvent> {
               onTap: () => _pick(option),
             ),
           if (index > 0)
-            TextButton(onPressed: _back, child: const Text('‹ Назад')),
+            TextButton(onPressed: _back, child: const GameText('‹ Назад')),
         ] else
           Row(
             children: [
@@ -892,7 +892,7 @@ class _BookEventState extends State<_BookEvent> {
               const SizedBox(width: 8),
               FilledButton(
                 onPressed: _next,
-                child: Text('${s.eventText('next')} ›'),
+                child: GameText('${s.eventText('next')} ›'),
               ),
             ],
           ),
@@ -996,7 +996,7 @@ class _PetEventState extends State<_PetEvent> {
                       child: PopIn(
                         key: ValueKey('emote-${picked?.id}'),
                         motion: s.motion,
-                        child: Text(emote, style: TextStyle(fontSize: 34 * k, height: 1)),
+                        child: GameText(emote, style: TextStyle(fontSize: 34 * k, height: 1)),
                       ),
                     ),
                   Positioned(
@@ -1020,7 +1020,7 @@ class _PetEventState extends State<_PetEvent> {
           const SizedBox(height: 12),
           _DoneButton(state: s),
         ] else ...[
-          Text(s.eventText('advice'),
+          GameText(s.eventText('advice'),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
           if (short case final gap?) ...[
@@ -1068,9 +1068,9 @@ class _SwipeCardView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ExcludeSemantics(
-                      child: Text(card.emoji, style: const TextStyle(fontSize: 64))),
+                      child: GameText(card.emoji, style: const TextStyle(fontSize: 64))),
                   const SizedBox(height: 12),
-                  Text(card.text,
+                  GameText(card.text,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.w900, height: 1.25)),
@@ -1092,7 +1092,7 @@ class _SwipeCardView extends StatelessWidget {
                           width: 3),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(word.toUpperCase(),
+                    child: GameText(word.toUpperCase(),
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
@@ -1222,10 +1222,10 @@ class _SwipeEventState extends State<_SwipeEvent> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(score == total ? '🏆' : '🌟',
+                      GameText(score == total ? '🏆' : '🌟',
                           style: const TextStyle(fontSize: 80)),
                       const SizedBox(height: 8),
-                      Text(s.eventText('score', {'score': '$score', 'total': '$total'}),
+                      GameText(s.eventText('score', {'score': '$score', 'total': '$total'}),
                           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
                     ],
                   ),
@@ -1243,7 +1243,7 @@ class _SwipeEventState extends State<_SwipeEvent> {
               child: _Panel(
                 padding: 12,
                 color: lastRight ? FinniColors.mint : FinniColors.peach,
-                child: Text(
+                child: GameText(
                     '${lastRight ? '✅ Верно!' : '❌ Не совсем.'} ${s.eventLine(shown.why)}',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),
@@ -1256,7 +1256,7 @@ class _SwipeEventState extends State<_SwipeEvent> {
                 child: OutlinedButton(
                   onPressed: () => _answer(false),
                   style: OutlinedButton.styleFrom(padding: const EdgeInsets.all(16)),
-                  child: Text('✋ ${show.noLabel}'),
+                  child: GameText('✋ ${show.noLabel}'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1264,13 +1264,13 @@ class _SwipeEventState extends State<_SwipeEvent> {
                 child: FilledButton(
                   onPressed: () => _answer(true),
                   style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-                  child: Text('👍 ${show.yesLabel}'),
+                  child: GameText('👍 ${show.yesLabel}'),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(s.eventText('swipeHint'),
+          GameText(s.eventText('swipeHint'),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 15, color: FinniColors.muted)),
         ],
@@ -1328,7 +1328,7 @@ class _CoinBurst extends StatelessWidget {
                       math.sin(i * math.pi / 4) * 90 * t - 30 * t),
                   child: Opacity(
                     opacity: (1 - t).clamp(0.0, 1.0),
-                    child: const Text('🪙', style: TextStyle(fontSize: 28)),
+                    child: const GameText('🪙', style: TextStyle(fontSize: 28)),
                   ),
                 ),
             ],
@@ -1413,7 +1413,7 @@ class _ChestEventState extends State<_ChestEvent> {
                     child: _Shake(
                       key: ValueKey(hits),
                       active: motion && hits > 0,
-                      child: const Text('🧰', style: TextStyle(fontSize: 120)),
+                      child: const GameText('🧰', style: TextStyle(fontSize: 120)),
                     ),
                   ),
                 )
@@ -1421,7 +1421,7 @@ class _ChestEventState extends State<_ChestEvent> {
                 if (motion) const _CoinBurst(),
                 PopIn(
                   motion: s.motion,
-                  child: Text(show.prize!, style: const TextStyle(fontSize: 110)),
+                  child: GameText(show.prize!, style: const TextStyle(fontSize: 110)),
                 ),
               ],
             ],
@@ -1445,15 +1445,15 @@ class _ChestEventState extends State<_ChestEvent> {
             ],
           ),
           const SizedBox(height: 10),
-          Text(tapText,
+          GameText(tapText,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
-          TextButton(onPressed: _knock, child: const Text('Постучать')),
+          TextButton(onPressed: _knock, child: const GameText('Постучать')),
         ] else ...[
           PopIn(
             motion: s.motion,
-            child: Text(s.eventLine(show.prizeText!),
+            child: GameText(s.eventLine(show.prizeText!),
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900, height: 1.3)),
           ),

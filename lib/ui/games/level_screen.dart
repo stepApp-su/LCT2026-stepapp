@@ -1,3 +1,4 @@
+import '../widgets/game_text.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -87,7 +88,7 @@ class LevelButton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
+                    GameText(title,
                         maxLines: compact ? 1 : 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -111,7 +112,7 @@ class LevelButton extends StatelessWidget {
                           spacing: 4,
                           runSpacing: 2,
                           children: [
-                            const Text('Зарплата',
+                            const GameText('Зарплата',
                                 style: TextStyle(fontWeight: FontWeight.w700)),
                             CoinAmount(run.coins, prefix: '+', size: 18),
                           ],
@@ -161,13 +162,13 @@ class LevelButton extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Уровень ${done.number} пройден!',
+                      GameText('Уровень ${done.number} пройден!',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                               fontSize: compact ? 16 : 20,
                               fontWeight: FontWeight.w900)),
-                      Text(
+                      GameText(
                           compact
                               ? 'Новый — завтра. Можно тренироваться'
                               : 'Новый уровень — завтра. А пока можно потренироваться.',
@@ -255,7 +256,7 @@ class _LevelScreenState extends State<LevelScreen> {
           onPressed: () => Navigator.pop(context, false),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: Text(
+        title: GameText(
             s.levels.titleOf(done?.number ?? run?.number ?? s.levelNumber)),
         actions: [
           IconButton(
@@ -264,14 +265,14 @@ class _LevelScreenState extends State<LevelScreen> {
               context: context,
               builder: (context) => AlertDialog(
                 icon: const Icon(Icons.help_outline_rounded, size: 36),
-                title: const Text('Уровень дня'),
-                content: const Text(
+                title: const GameText('Уровень дня'),
+                content: const GameText(
                     'Проходи игры по тропинке одну за другой. За каждую пройденную игру сразу дают часть зарплаты — даже если получилось не с первого раза. Новый уровень откроется завтра, после сна.',
                     style: TextStyle(fontSize: 17)),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Понятно')),
+                      child: const GameText('Понятно')),
                 ],
               ),
             ),
@@ -382,7 +383,7 @@ class _Path extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: currentTask == null ? null : onPlay,
                 icon: const Icon(Icons.play_arrow_rounded),
-                label: Text(currentTask == null
+                label: GameText(currentTask == null
                     ? 'Готово'
                     : run.isStarted
                         ? 'Дальше: ${currentTask.title}'
@@ -433,7 +434,7 @@ class _Header extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                GameText(
                   run.isStarted
                       ? 'Ещё ${games - run.done} ${ruGames(games - run.done)} — и уровень пройден!'
                       : 'Сегодня $games ${ruGames(games)}. За каждую — часть зарплаты!',
@@ -443,7 +444,7 @@ class _Header extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Text('✉️ ', style: TextStyle(fontSize: 20)),
+                    const GameText('✉️ ', style: TextStyle(fontSize: 20)),
                     CoinAmount(run.coins, prefix: '+', size: 20),
                     const Spacer(),
                     _Dots(total: games, done: run.done),
@@ -547,7 +548,7 @@ class _Node extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Text(task.title,
+            GameText(task.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -558,7 +559,7 @@ class _Node extends StatelessWidget {
             if (done)
               StarRow(stars: stars!, size: 16)
             else if (slot.isHard)
-              const Text('🔥 посложнее',
+              const GameText('🔥 посложнее',
                   style: TextStyle(
                       fontSize: 16,
                       color: FinniColors.purple,
@@ -585,10 +586,10 @@ class _Result extends StatelessWidget {
       children: [
         PopIn(
           motion: state.motion,
-          child: const Text('🎉',
+          child: const GameText('🎉',
               textAlign: TextAlign.center, style: TextStyle(fontSize: 64)),
         ),
-        Text('Уровень ${record.number} пройден!',
+        GameText('Уровень ${record.number} пройден!',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 8),
@@ -601,7 +602,7 @@ class _Result extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        Text(
+        GameText(
           record.totalStars == all
               ? 'Все звёзды! Ты думал очень внимательно.'
               : 'Звёзды показывают, как ты думал. Монеты — за каждую пройденную игру.',
@@ -616,15 +617,15 @@ class _Result extends StatelessWidget {
             color: FinniColors.honey,
             child: Column(
               children: [
-                const Text('✉️', style: TextStyle(fontSize: 48)),
+                const GameText('✉️', style: TextStyle(fontSize: 48)),
                 const SizedBox(height: 4),
-                const Text('Всего за уровень',
+                const GameText('Всего за уровень',
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 8),
                 CoinAmount(record.coins, prefix: '+', size: 32),
                 const SizedBox(height: 8),
-                const Text('Все монеты уже в кошельке. Куда их направим?',
+                const GameText('Все монеты уже в кошельке. Куда их направим?',
                     textAlign: TextAlign.center),
               ],
             ),
@@ -639,7 +640,7 @@ class _Result extends StatelessWidget {
                 _Silhouette(iconId: next.iconId),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
+                  child: GameText(
                     _teaser(state.unlockLevelOf(next.id) - record.number),
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
@@ -651,12 +652,12 @@ class _Result extends StatelessWidget {
         FilledButton.icon(
           onPressed: () => Navigator.pop(context, true),
           icon: const Icon(Icons.pie_chart_outline_rounded),
-          label: const Text('Распределить монеты'),
+          label: const GameText('Распределить монеты'),
         ),
         const SizedBox(height: 8),
         OutlinedButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('На главную'),
+          child: const GameText('На главную'),
         ),
       ],
     );
@@ -678,7 +679,7 @@ class _StarCount extends StatelessWidget {
         children: [
           const Icon(Icons.star_rounded, color: FinniColors.gold, size: 20),
           const SizedBox(width: 4),
-          Text('${record.totalStars} из ${record.stars.length * 3}',
+          GameText('${record.totalStars} из ${record.stars.length * 3}',
               style: const TextStyle(fontWeight: FontWeight.w800)),
         ],
       );
@@ -723,7 +724,7 @@ class _LevelBadge extends StatelessWidget {
           border: Border.all(color: FinniColors.gold, width: 3),
         ),
         alignment: Alignment.center,
-        child: Text('$number',
+        child: GameText('$number',
             textScaler: TextScaler.noScaling,
             style: TextStyle(
                 fontSize: size * .42,

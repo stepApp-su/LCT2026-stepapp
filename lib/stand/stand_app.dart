@@ -26,8 +26,7 @@ class StandApp extends StatefulWidget {
 class _StandAppState extends State<StandApp> {
   late GameController game;
   // один плеер на все сценарии: музыка не рвётся при смене профиля
-  late final SoundPlayer? player =
-      widget.sounds == null ? null : SoundPlayer();
+  late final SoundPlayer? player = widget.sounds == null ? null : SoundPlayer();
   late final SoundService? sound =
       widget.sounds == null ? null : SoundService(scheme: widget.sounds!);
   int revision = 0;
@@ -47,8 +46,6 @@ class _StandAppState extends State<StandApp> {
   ];
   final messengerKey = GlobalKey<ScaffoldMessengerState>();
   final playRepository = StandRepository(persistent: true);
-  static const buildId =
-      String.fromEnvironment('BUILD_ID', defaultValue: 'local');
   static const groups = [
     'Рост',
     'Состояние',
@@ -353,6 +350,24 @@ class _StandAppState extends State<StandApp> {
                           .toJson()
                     })),
             action('Нет монет', () => scenario({'balance': 0})),
+            for (final need in ['satiety', 'care', 'mood'])
+              action(
+                  switch (need) {
+                    'satiety' => 'Хочет перекусить',
+                    'care' => 'Хочет умыться',
+                    _ => 'Хочет поиграть'
+                  }, () async {
+                await scenario({
+                  'stats': {
+                    'satiety': need == 'satiety' ? 20 : 100,
+                    'care': need == 'care' ? 20 : 100,
+                    'mood': need == 'mood' ? 30 : 100,
+                    'cozy': 0
+                  }
+                });
+                game.dismissBubble();
+                game.remindNeed();
+              }),
             action('180 монет', () => scenario({'balance': 180})),
             action(
                 'Копилка почти полная',
@@ -438,7 +453,8 @@ class _StandAppState extends State<StandApp> {
             action(
                 'Все сбывшиеся мечты',
                 () => scenario({
-                      'reachedGoals': widget.content.goals.goals.map((g) => g.id).toList(),
+                      'reachedGoals':
+                          widget.content.goals.goals.map((g) => g.id).toList(),
                     })),
             for (final id in wallpaperCells.keys)
               action(
@@ -465,7 +481,6 @@ class _StandAppState extends State<StandApp> {
               'bowtie': 'Бабочка',
               'tshirt': 'Футболка',
               'raincoat': 'Дождевик',
-              'backpack': 'Рюкзак',
             }.entries)
               action(
                   entry.value,
@@ -487,7 +502,7 @@ class _StandAppState extends State<StandApp> {
         ...controls(name),
       ]);
 
-  Widget events() {
+  Widget events({bool compact = false}) {
     if (playing) {
       return Center(
           child: SingleChildScrollView(
@@ -505,6 +520,21 @@ class _StandAppState extends State<StandApp> {
                 TextStyle(fontSize: 14, height: 1.6, color: Color(0xff687589))),
       ])));
     }
+    if (compact) {
+      return ListView(children: [
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          for (var i = 0; i < groups.length; i++)
+            ChoiceChip(
+              avatar: Icon(groupIcons[i], size: 17),
+              label: Text(groups[i]),
+              selected: selectedGroup == groups[i],
+              onSelected: (_) => setState(() => selectedGroup = groups[i]),
+            ),
+        ]),
+        const SizedBox(height: 20),
+        section(selectedGroup),
+      ]);
+    }
     final railInk = dark || look.darkRail
         ? const Color(0xffe4eaf3)
         : const Color(0xff556171);
@@ -518,14 +548,6 @@ class _StandAppState extends State<StandApp> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   children: [
-                    Padding(
-                        padding: const EdgeInsets.fromLTRB(8, 0, 0, 16),
-                        child: Text('РАЗДЕЛЫ',
-                            style: TextStyle(
-                                color: railInk.withValues(alpha: .65),
-                                fontSize: 10,
-                                letterSpacing: 1.4,
-                                fontWeight: FontWeight.w600))),
                     for (var i = 0; i < groups.length; i++)
                       Padding(
                           padding: const EdgeInsets.only(bottom: 6),
@@ -579,15 +601,6 @@ class _StandAppState extends State<StandApp> {
       const SizedBox(width: 20),
       Expanded(
           child: ListView(children: [
-        Row(children: [
-          Icon(groupIcons[groups.indexOf(selectedGroup)],
-              size: 17, color: look.accent),
-          const SizedBox(width: 8),
-          Text('СЦЕНАРИИ / ${selectedGroup.toUpperCase()}',
-              style: TextStyle(
-                  fontSize: 10, letterSpacing: 1, color: look.accent)),
-        ]),
-        const SizedBox(height: 12),
         section(selectedGroup),
       ])),
     ]);
@@ -620,51 +633,73 @@ class _StandAppState extends State<StandApp> {
                     play: v.first);
               }));
 
-  Widget panel(BuildContext context) => Material(
+  Widget panel(BuildContext context, {bool compact = false}) => Material(
       key: const ValueKey('stand-controls'),
       color: look.surface,
       child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            LayoutBuilder(builder: (context, space) {
-              final title = Row(mainAxisSize: MainAxisSize.min, children: [
-                const Text('Тестовый стенд Финни',
-                    style:
-                        TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-                const SizedBox(width: 12),
-                Tooltip(
-                    message: buildId == 'local'
-                        ? 'Будет доступно после первого релиза'
-                        : 'Последний релиз',
-                    child: FilledButton.tonalIcon(
-                        style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 34),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            textStyle: const TextStyle(fontSize: 11),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8))),
-                        onPressed: buildId == 'local' ? null : downloadApk,
-                        icon: const Icon(Icons.download, size: 16),
-                        label: const Text('Скачать APK'))),
-              ]);
-              return space.maxWidth >= 580
-                  ? Row(children: [
-                      Expanded(
-                          child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: title)),
-                      const SizedBox(width: 12),
-                      modeSwitch()
-                    ])
-                  : Wrap(
-                      spacing: 12,
-                      runSpacing: 8,
-                      children: [title, modeSwitch()]);
-            }),
+            if (compact) ...[
+              Row(children: [
+                const Expanded(
+                    child: Text('Тестовый стенд Финни',
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w600))),
+                IconButton(
+                    tooltip: 'Закрыть настройки',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close)),
+              ]),
+              Wrap(spacing: 8, runSpacing: 8, children: [
+                modeSwitch(),
+                TextButton.icon(
+                    onPressed: downloadApk,
+                    icon: const Icon(Icons.download),
+                    label: const Text('Скачать APK')),
+                TextButton.icon(
+                    onPressed: busy ? null : () => reset(context),
+                    icon: const Icon(Icons.restart_alt),
+                    label: const Text('Сбросить')),
+              ]),
+            ] else
+              LayoutBuilder(builder: (context, space) {
+                final title = Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Text('Тестовый стенд Финни',
+                      style:
+                          TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                  const SizedBox(width: 12),
+                  Tooltip(
+                      message: 'Последний релиз для Android',
+                      child: FilledButton.tonalIcon(
+                          style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 34),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              textStyle: const TextStyle(fontSize: 11),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8))),
+                          onPressed: downloadApk,
+                          icon: const Icon(Icons.download, size: 16),
+                          label: const Text('Скачать APK'))),
+                ]);
+                return space.maxWidth >= 580
+                    ? Row(children: [
+                        Expanded(
+                            child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: title)),
+                        const SizedBox(width: 12),
+                        modeSwitch()
+                      ])
+                    : Wrap(
+                        spacing: 12,
+                        runSpacing: 8,
+                        children: [title, modeSwitch()]);
+              }),
             const Divider(height: 28),
-            Expanded(child: events()),
+            Expanded(child: events(compact: compact)),
           ])));
 
   Widget previewToolbar(BuildContext context) => SizedBox(
@@ -721,7 +756,33 @@ class _StandAppState extends State<StandApp> {
       ),
       home: Builder(
           builder: (context) => Scaffold(
-                  body: SafeArea(child: LayoutBuilder(builder: (context, box) {
+              endDrawer: Drawer(
+                width: MediaQuery.sizeOf(context).width.clamp(0, 440),
+                child: SafeArea(
+                    child: Builder(
+                        builder: (context) => panel(context, compact: true))),
+              ),
+              body: SafeArea(child: LayoutBuilder(builder: (context, box) {
+                if (box.maxWidth < 800) {
+                  return Stack(fit: StackFit.expand, children: [
+                    FinniApp(key: ValueKey(revision), controller: game),
+                    Positioned(
+                      right: 0,
+                      top: box.maxHeight * .42,
+                      child: Material(
+                        color: ink,
+                        borderRadius: const BorderRadius.horizontal(
+                            left: Radius.circular(14)),
+                        child: IconButton(
+                          tooltip: 'Настройки стенда',
+                          color: Colors.white,
+                          onPressed: () => Scaffold.of(context).openEndDrawer(),
+                          icon: const Icon(Icons.tune, size: 20),
+                        ),
+                      ),
+                    ),
+                  ]);
+                }
                 final phone = Center(
                     child: Padding(
                         padding: const EdgeInsets.symmetric(
@@ -747,28 +808,15 @@ class _StandAppState extends State<StandApp> {
                               child: FinniApp(
                                   key: ValueKey(revision), controller: game),
                             ))));
-                return box.maxWidth >= 800
-                    ? Row(children: [
-                        Expanded(child: panel(context)),
-                        Expanded(
-                            child: Row(
-                                key: const ValueKey('stand-preview'),
-                                children: [
-                              previewToolbar(context),
-                              Expanded(child: phone)
-                            ]))
-                      ])
-                    : Column(children: [
-                        SizedBox(
-                            height: box.maxHeight * .55,
-                            child: SingleChildScrollView(
-                                child: SizedBox(
-                                    height: 780, child: panel(context)))),
-                        Expanded(
-                            child: Row(children: [
-                          previewToolbar(context),
-                          Expanded(child: phone)
-                        ])),
-                      ]);
+                return Row(children: [
+                  Expanded(child: panel(context)),
+                  Expanded(
+                      child: Row(
+                          key: const ValueKey('stand-preview'),
+                          children: [
+                        previewToolbar(context),
+                        Expanded(child: phone)
+                      ]))
+                ]);
               })))));
 }

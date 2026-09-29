@@ -13,7 +13,7 @@ class _GoalIcon extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: id == null
-            ? const Center(child: Text('✨', style: TextStyle(fontSize: 26)))
+            ? const Center(child: GameText('✨', style: TextStyle(fontSize: 26)))
             : ItemArt(id!, size: 40, background: false),
       );
 }
@@ -37,7 +37,7 @@ class _GoalProgress extends StatelessWidget {
               child:
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Flexible(
-                    child: Text('$saved из $target',
+                    child: GameText('$saved из $target',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontSize: 14,
@@ -83,7 +83,7 @@ class _Coins extends StatelessWidget {
           children: [
             const CoinIcon(),
             const SizedBox(width: 6),
-            Text(
+            GameText(
               '$amount',
               style: const TextStyle(
                 fontSize: 22,
@@ -140,7 +140,7 @@ class _ResourceChip extends StatelessWidget {
                           const GameIcon(GameIconKind.pig)
                         else
                           Icon(icon, size: 22),
-                        Text(label,
+                        GameText(label,
                             style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.w800)),
                       ],
@@ -168,7 +168,7 @@ class _Pill extends StatelessWidget {
             Icon(icon, size: 15, color: FinniColors.ink),
             const SizedBox(width: 5),
             Flexible(
-                child: Text(
+                child: GameText(
               label,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             )),
@@ -202,13 +202,13 @@ class _Stat extends StatelessWidget {
             GameIcon(icon, size: 25),
             const SizedBox(width: 7),
             Expanded(
-                child: Text(label,
+                child: GameText(label,
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: color))),
             const SizedBox(width: 7),
-            Text('$value',
+            GameText('$value',
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           ]),
@@ -228,7 +228,7 @@ class _Notice extends StatelessWidget {
           children: [
             Icon(icon, color: FinniColors.gold),
             const SizedBox(width: 12),
-            Expanded(child: Text(text)),
+            Expanded(child: GameText(text)),
           ],
         ),
       );
@@ -253,11 +253,11 @@ class _PlanLeft extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text('$emoji $label',
+                child: GameText('$emoji $label',
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w800)),
               ),
-              Text(planned <= 0 ? 'не планировали' : 'ещё $shown из $planned',
+              GameText(planned <= 0 ? 'не планировали' : 'ещё $shown из $planned',
                   style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -294,7 +294,7 @@ class _PlanLeft extends StatelessWidget {
           const SizedBox(height: 10),
           _row('🎁', 'Желаемое', optional, full.optional, FinniColors.purple),
           const SizedBox(height: 10),
-          Text(
+          GameText(
             savings > 0
                 ? '🐷 В копилку отложить ещё $savings ${ruCoins(savings)}'
                 : '🐷 В копилку отложено по плану',
@@ -305,7 +305,7 @@ class _PlanLeft extends StatelessWidget {
           ),
           if (optional < 0) ...[
             const SizedBox(height: 6),
-            Text(
+            GameText(
                 'На желаемое потрачено на ${-optional} больше плана — сегодня в копилку попадёт меньше.',
                 style: const TextStyle(fontSize: 16, color: FinniColors.muted)),
           ],
@@ -357,7 +357,7 @@ class _StatBar extends StatelessWidget {
               GameIcon(icon, size: 20),
               const SizedBox(width: 5),
               Expanded(
-                child: Text(label,
+                child: GameText(label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -365,7 +365,7 @@ class _StatBar extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                         color: tint)),
               ),
-              Text(next == null ? '$value' : '$value → $next',
+              GameText(next == null ? '$value' : '$value → $next',
                   style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w900, color: tint)),
             ],
@@ -525,7 +525,7 @@ class _NeedCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
+                child: GameText(
                   '${need.emoji.isEmpty ? '' : '${need.emoji} '}${state.needTitle(need)}',
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w900),
@@ -533,7 +533,7 @@ class _NeedCard extends StatelessWidget {
               ),
               if (note.isNotEmpty)
                 Flexible(
-                  child: Text(note,
+                  child: GameText(note,
                       textAlign: TextAlign.end,
                       style: TextStyle(
                           fontSize: 16,
@@ -633,7 +633,7 @@ class _NeedOption extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: FinniColors.honey,
                       borderRadius: BorderRadius.circular(10)),
-                  child: const Text('выгодно',
+                  child: const GameText('выгодно',
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
@@ -644,7 +644,7 @@ class _NeedOption extends StatelessWidget {
               const SizedBox(height: 4),
               Expanded(
                 child: Center(
-                  child: Text(item.title,
+                  child: GameText(item.title,
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -661,7 +661,7 @@ class _NeedOption extends StatelessWidget {
                     for (final (stat, _, icon, _) in _statRows)
                       if (stat == effect.stat) GameIcon(icon, size: 16),
                     const SizedBox(width: 3),
-                    Text(gain,
+                    GameText(gain,
                         style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -674,7 +674,7 @@ class _NeedOption extends StatelessWidget {
                 children: [
                   const CoinIcon(size: 18),
                   const SizedBox(width: 4),
-                  Text('${item.price}',
+                  GameText('${item.price}',
                       style: const TextStyle(
                           fontSize: 17, fontWeight: FontWeight.w900)),
                 ],
@@ -718,14 +718,14 @@ class _BudgetRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      GameText(
                         title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      Text(
+                      GameText(
                         subtitle,
                         style: const TextStyle(
                           fontSize: 16,
@@ -836,7 +836,7 @@ class _Navigation extends StatelessWidget {
                 children: [
                   GameIcon(icon, size: 33),
                   const SizedBox(height: 4),
-                  Text(
+                  GameText(
                     label,
                     style: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w800),
@@ -921,7 +921,7 @@ class _PageHeader extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Text(title,
+              child: GameText(title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleLarge),
@@ -957,11 +957,11 @@ class _ShiftList extends StatelessWidget {
                       color: FinniColors.primary),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(shift.label,
+                    child: GameText(shift.label,
                         style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w800)),
                   ),
-                  Text('${shift.before} → ${shift.after}',
+                  GameText('${shift.before} → ${shift.after}',
                       style: const TextStyle(
                           fontSize: 17,
                           fontFeatures: [FontFeature.tabularFigures()])),
@@ -1030,10 +1030,10 @@ class _ExtraPlannerState extends State<_ExtraPlanner> {
         children: [
           Row(
             children: [
-              const Text('💰', style: TextStyle(fontSize: 28)),
+              const GameText('💰', style: TextStyle(fontSize: 28)),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
+                child: GameText(
                   'Заработано сегодня ещё $pending ${ruCoins(pending)}. Куда направим?',
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w800),
@@ -1050,7 +1050,7 @@ class _ExtraPlannerState extends State<_ExtraPlanner> {
                   Icon(_labels[d]!.$2, color: FinniColors.primary),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(_labels[d]!.$1,
+                    child: GameText(_labels[d]!.$1,
                         style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
                   IconButton(
@@ -1060,7 +1060,7 @@ class _ExtraPlannerState extends State<_ExtraPlanner> {
                   ),
                   SizedBox(
                     width: 40,
-                    child: Text('${parts[d]}',
+                    child: GameText('${parts[d]}',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w900)),
@@ -1079,13 +1079,13 @@ class _ExtraPlannerState extends State<_ExtraPlanner> {
             children: [
               for (final d in PlanDirection.values)
                 ActionChip(
-                  label: Text('Всё: ${_labels[d]!.$1.toLowerCase()}'),
+                  label: GameText('Всё: ${_labels[d]!.$1.toLowerCase()}'),
                   onPressed: () => _all(d),
                 ),
             ],
           ),
           const SizedBox(height: 10),
-          Text(
+          GameText(
             left > 0
                 ? 'Осталось разложить: $left ${ruCoins(left)}'
                 : 'Всё разложено!',
@@ -1108,7 +1108,7 @@ class _ExtraPlannerState extends State<_ExtraPlanner> {
                   }
                 : null,
             icon: const Icon(Icons.check_circle_outline_rounded),
-            label: const Text('Добавить в план'),
+            label: const GameText('Добавить в план'),
           ),
         ],
       ),
@@ -1136,14 +1136,14 @@ class _NeedsToday extends StatelessWidget {
               const Icon(Icons.restaurant_outlined, color: FinniColors.primary),
               const SizedBox(width: 10),
               Expanded(
-                child: Text('Сегодня нужно — обычно $total ${ruCoins(total)}',
+                child: GameText('Сегодня нужно — обычно $total ${ruCoins(total)}',
                     style: const TextStyle(
                         fontSize: 17, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          const Text('Можно выбрать подешевле и сэкономить.',
+          const GameText('Можно выбрать подешевле и сэкономить.',
               style: TextStyle(fontSize: 16, color: FinniColors.muted)),
           const SizedBox(height: 4),
           for (final need in needs)
@@ -1155,11 +1155,11 @@ class _NeedsToday extends StatelessWidget {
                     ItemArt((state.boughtFor(need) ?? primary).id, size: 36),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(need.occasion == null
+                      child: GameText(need.occasion == null
                           ? (need.title.isEmpty ? primary.title : need.title)
                           : '${need.title} — ${state.needTitle(need)}'),
                     ),
-                    Text(
+                    GameText(
                         state.needOptions(need).length > 1
                             ? 'от ${state.needOptions(need).first.price}'
                             : '${primary.price}',

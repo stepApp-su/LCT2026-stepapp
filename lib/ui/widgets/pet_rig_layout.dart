@@ -1,6 +1,7 @@
 import 'dart:ui';
 import '../../domain/models/pet.dart';
 import '../pet_appearance.dart';
+import 'pet_head_layout.dart';
 
 class PetRigLayout {
   const PetRigLayout(this.pet, this.stage);
@@ -16,12 +17,14 @@ class PetRigLayout {
         PetAppearance.pix => const Rect.fromLTWH(474, 8, 500, 446),
         PetAppearance.tyapa => const Rect.fromLTWH(500, 6, 503, 458),
         PetAppearance.bumba => const Rect.fromLTWH(574, 24, 495, 445),
+        _ => const Rect.fromLTWH(480, 0, 600, 600),
       };
   Rect get closed => switch (pet) {
         PetAppearance.moni => const Rect.fromLTWH(480, 468, 450, 388),
         PetAppearance.pix => const Rect.fromLTWH(474, 414, 500, 446),
         PetAppearance.tyapa => const Rect.fromLTWH(480, 385, 503, 458),
         PetAppearance.bumba => const Rect.fromLTWH(551, 410, 495, 445),
+        _ => const Rect.fromLTWH(480, 0, 600, 600),
       };
   Rect get body => switch (pet) {
         PetAppearance.tyapa => const Rect.fromLTWH(30, 80, 459, 380),
@@ -46,6 +49,7 @@ class PetRigLayout {
             const Rect.fromLTWH(1085, 113, 256, 327),
             const Rect.fromLTWH(1095, 76, 271, 358),
           ][age],
+        _ => Rect.zero,
       };
   Rect get rightSource => switch (pet) {
         PetAppearance.moni => const Rect.fromLTWH(1363, 43, 399, 411),
@@ -60,6 +64,7 @@ class PetRigLayout {
             const Rect.fromLTWH(1468, 99, 269, 340),
             const Rect.fromLTWH(1490, 58, 214, 377),
           ][age],
+        _ => Rect.zero,
       };
   Rect get leftEar => switch (pet) {
         PetAppearance.moni => const Rect.fromLTWH(88, 151, 203, 210),
@@ -78,6 +83,7 @@ class PetRigLayout {
             const Rect.fromLTWH(190, 225, 86, 110),
             const Rect.fromLTWH(181, 195, 105, 139)
           ][age],
+        _ => Rect.zero,
       };
   Rect get rightEar => switch (pet) {
         PetAppearance.moni => const Rect.fromLTWH(335, 90, 179, 227),
@@ -96,39 +102,45 @@ class PetRigLayout {
             const Rect.fromLTWH(358, 195, 67, 85),
             const Rect.fromLTWH(361, 180, 64, 112)
           ][age],
+        _ => Rect.zero,
       };
   Offset get glassesCenter => switch (pet) {
         PetAppearance.moni => const Offset(345, 347),
         PetAppearance.pix => const Offset(348, 362),
         PetAppearance.tyapa => const Offset(353, 351),
         PetAppearance.bumba => const Offset(347, 356),
+        _ => PetHeadLayout(pet, age)
+            .project(PetHeadLayout(pet, age).eyeCenter, headTarget),
       };
+  double get glassesAngle => pet.unifiedHead ? -.055 : -.25;
 
-  Offset get capCenter => Offset(352, switch (pet) {
-    PetAppearance.moni => 258,
-    PetAppearance.pix => age == 0 ? 268 : 257,
-    PetAppearance.bumba => age == 0 ? 267 : 256,
-    PetAppearance.tyapa => 257,
-  });
-
-  Rect backpackTarget(double breath) => Rect.fromLTWH(
-      pet == PetAppearance.bumba ? 218 : 212, 422 + breath, 88, 113);
-
-  Path get backpackStrap => Path()
-    ..moveTo(292, 424)
-    ..cubicTo(312, 436, 307, 471, 280, 493)
-    ..quadraticBezierTo(271, 500, 263, 496);
+  Offset get capCenter => Offset(
+      352,
+      switch (pet) {
+        PetAppearance.moni => 258,
+        PetAppearance.pix => age == 0 ? 268 : 257,
+        PetAppearance.bumba => age == 0 ? 267 : 256,
+        PetAppearance.tyapa => 257,
+        PetAppearance.puf => age == 0 ? 271 : 272,
+        _ => 245,
+      });
 
   Rect get tailTarget => switch (pet) {
         PetAppearance.bumba => const Rect.fromLTWH(107, 401, 200, 151),
         PetAppearance.tyapa => const Rect.fromLTWH(147, 416, 126, 113),
         PetAppearance.pix => const Rect.fromLTWH(133, 401, 145, 138),
         PetAppearance.moni => const Rect.fromLTWH(121, 382, 162, 154),
+        PetAppearance.puf ||
+        PetAppearance.busya =>
+          const Rect.fromLTWH(170, 444, 75, 75),
+        _ => const Rect.fromLTWH(111, 388, 167, 158),
       };
-  Rect get headTarget => pet == PetAppearance.moni
-      ? const Rect.fromLTWH(217, 216, 255, 217)
-      : Rect.fromLTWH(217, 433 - 255 * head.height / head.width, 255,
-          255 * head.height / head.width);
+  Rect get headTarget => pet.unifiedHead
+      ? const Rect.fromLTWH(180, 103, 330, 330)
+      : pet == PetAppearance.moni
+          ? const Rect.fromLTWH(217, 216, 255, 217)
+          : Rect.fromLTWH(217, 433 - 255 * head.height / head.width, 255,
+              255 * head.height / head.width);
   Rect bodyTarget(double breath) => switch (pet) {
         PetAppearance.bumba =>
           Rect.fromLTWH(198, 408 + breath, 240, 185 - breath),

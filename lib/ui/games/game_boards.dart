@@ -1,3 +1,4 @@
+import '../widgets/game_text.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -133,7 +134,7 @@ class _CardChip extends StatelessWidget {
                 EmojiBadge(iconId, size: compact ? 34 : 44),
                 const SizedBox(width: 8),
                 Flexible(
-                  child: Text(
+                  child: GameText(
                     label,
                     style: TextStyle(
                       fontSize: compact ? 15 : 16,
@@ -221,7 +222,7 @@ class _SortBoardState extends State<SortBoard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(board.texts.sort.instruction,
+        GameText(board.texts.sort.instruction,
             style: const TextStyle(color: FinniColors.muted)),
         const SizedBox(height: 12),
         CoachTarget(
@@ -266,7 +267,7 @@ class _SortBoardState extends State<SortBoard> {
         ),
         if (waiting.isNotEmpty) ...[
           const SizedBox(height: 10),
-          Text(
+          GameText(
             fillText(board.texts.sort.notAllPlaced, {'count': '${waiting.length}'}),
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
@@ -333,13 +334,13 @@ class _SortBoardState extends State<SortBoard> {
                           Icon(_binIcon(bin), color: FinniColors.primary),
                           const SizedBox(width: 6),
                           Expanded(
-                            child: Text(
+                            child: GameText(
                               board.binLabels[bin] ?? bin,
                               style: const TextStyle(
                                   fontSize: 17, fontWeight: FontWeight.w800),
                             ),
                           ),
-                          Text('${inside.length}',
+                          GameText('${inside.length}',
                               style: const TextStyle(
                                   fontSize: 17, fontWeight: FontWeight.w800)),
                         ],
@@ -349,7 +350,7 @@ class _SortBoardState extends State<SortBoard> {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           child: Center(
-                            child: Text(
+                            child: GameText(
                               board.texts.sort.binEmoji[bin] ??
                                   (bin == payload.bins.first ? '🧺' : '🎁'),
                               style: const TextStyle(fontSize: 40),
@@ -399,7 +400,7 @@ class _CoinDisc extends StatelessWidget {
                 color: FinniColors.paper.withValues(alpha: .92),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(
+              child: GameText(
                 '$value',
                 textScaler: TextScaler.noScaling,
                 style: TextStyle(
@@ -519,10 +520,10 @@ class _CoinsBoardState extends State<CoinsBoard> {
               children: [
                 Row(
                   children: [
-                    const Text('🏪', style: TextStyle(fontSize: 26)),
+                    const GameText('🏪', style: TextStyle(fontSize: 26)),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
+                      child: GameText(
                         fillText(texts.onCounter, {'onCounter': '$total'}),
                         style: const TextStyle(
                             fontSize: 20, fontWeight: FontWeight.w900),
@@ -534,7 +535,7 @@ class _CoinsBoardState extends State<CoinsBoard> {
                 if (counter.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 18),
-                    child: Text(texts.dragHint,
+                    child: GameText(texts.dragHint,
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: FinniColors.muted)),
                   )
@@ -562,7 +563,7 @@ class _CoinsBoardState extends State<CoinsBoard> {
         ),
         ),
         const SizedBox(height: 16),
-        const Text('Кошелёк', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const GameText('Кошелёк', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         CoachTarget(
           id: 'coins.wallet',
@@ -628,7 +629,7 @@ class _WalletCoin extends StatelessWidget {
                 : disc,
           ),
           const SizedBox(height: 4),
-          Text('×$left', style: const TextStyle(fontWeight: FontWeight.w800)),
+          GameText('×$left', style: const TextStyle(fontWeight: FontWeight.w800)),
         ],
       ),
     );
@@ -733,10 +734,10 @@ class _DistributeBoardState extends State<DistributeBoard> {
           padding: 12,
           child: Row(
             children: [
-              const Text('🪙', style: TextStyle(fontSize: 26)),
+              const GameText('🪙', style: TextStyle(fontSize: 26)),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
+                child: GameText(
                   fillText(board.texts.distribute.remainder, {'remainder': '$remainder'}),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
@@ -763,11 +764,11 @@ class _DistributeBoardState extends State<DistributeBoard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_label(counter),
+                      GameText(_label(counter),
                           style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w800)),
                       if (_hint(counter) != null)
-                        Text(_hint(counter)!,
+                        GameText(_hint(counter)!,
                             style: const TextStyle(color: FinniColors.muted)),
                       const SizedBox(height: 6),
                       i == 0
@@ -806,7 +807,7 @@ class _DistributeBoardState extends State<DistributeBoard> {
             children: [
               Row(
                 children: [
-                  const Text('🐷', style: TextStyle(fontSize: 34)),
+                  const GameText('🐷', style: TextStyle(fontSize: 34)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: ClipRRect(
@@ -830,7 +831,7 @@ class _DistributeBoardState extends State<DistributeBoard> {
               ),
               const SizedBox(height: 12),
               if (preview != null)
-                Text(
+                GameText(
                   fillText(preview, {'days': '$count', 'daysTotal': '$sum'}),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
@@ -847,11 +848,11 @@ class _DistributeBoardState extends State<DistributeBoard> {
                 id: 'distribute.controls',
                 child: _stepper(
                   counter,
-                  Text('$count',
+                  GameText('$count',
                       style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900)),
                 ),
               ),
-              Text(counter.label.isEmpty ? '' : counter.label,
+              GameText(counter.label.isEmpty ? '' : counter.label,
                   style: const TextStyle(color: FinniColors.muted)),
               const SizedBox(height: 12),
               Wrap(
@@ -872,7 +873,7 @@ class _DistributeBoardState extends State<DistributeBoard> {
                         ),
                         child: Column(
                           children: [
-                            Text('${d + 1}',
+                            GameText('${d + 1}',
                                 style: const TextStyle(
                                     fontSize: 13, fontWeight: FontWeight.w800)),
                             const CoinIcon(size: 20),
@@ -1046,7 +1047,7 @@ class _OrderBoardState extends State<OrderBoard> {
                           color: FinniColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: Text('${i + 1}',
+                        child: GameText('${i + 1}',
                             style: const TextStyle(
                                 color: FinniColors.paper,
                                 fontWeight: FontWeight.w900,
@@ -1056,7 +1057,7 @@ class _OrderBoardState extends State<OrderBoard> {
                       EmojiBadge(item.iconId, size: 46),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(item.label,
+                        child: GameText(item.label,
                             style: const TextStyle(
                                 fontSize: 17, fontWeight: FontWeight.w800)),
                       ),
@@ -1074,7 +1075,7 @@ class _OrderBoardState extends State<OrderBoard> {
           ),
         ),
         if (board.showMarks && check != null && check.placedRight.isNotEmpty)
-          Text('✓ ${board.texts.order.placedRight}',
+          GameText('✓ ${board.texts.order.placedRight}',
               style: const TextStyle(color: FinniColors.muted)),
       ],
     );
@@ -1108,7 +1109,7 @@ class _ChoiceBoardState extends State<ChoiceBoard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(widget.payload.question,
+        GameText(widget.payload.question,
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
         CoachTarget(
@@ -1142,11 +1143,11 @@ class _ChoiceBoardState extends State<ChoiceBoard> {
                   ),
                   child: Row(
                     children: [
-                      Text(_faces[i % _faces.length],
+                      GameText(_faces[i % _faces.length],
                           style: const TextStyle(fontSize: 28)),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(option.label,
+                        child: GameText(option.label,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w800)),
                       ),
@@ -1214,13 +1215,13 @@ class _BasketBoardState extends State<BasketBoard> {
             children: [
               Row(
                 children: [
-                  const Text('🛒', style: TextStyle(fontSize: 30)),
+                  const GameText('🛒', style: TextStyle(fontSize: 30)),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(fillText(texts.budget, {'budget': '$budget'}),
+                    child: GameText(fillText(texts.budget, {'budget': '$budget'}),
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                   ),
-                  Text(
+                  GameText(
                     over
                         ? fillText(texts.over, {'gap': '${-left}'})
                         : fillText(texts.left, {'left': '$left'}),
@@ -1243,7 +1244,7 @@ class _BasketBoardState extends State<BasketBoard> {
                 ),
               ),
               const SizedBox(height: 6),
-              Text(fillText(texts.inBasket, {'total': '$total'})),
+              GameText(fillText(texts.inBasket, {'total': '$total'})),
             ],
           ),
         ),
@@ -1256,7 +1257,7 @@ class _BasketBoardState extends State<BasketBoard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('📝 Список',
+              const GameText('📝 Список',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 6),
               for (final product in payload.fromList)
@@ -1276,7 +1277,7 @@ class _BasketBoardState extends State<BasketBoard> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(product.label,
+                        child: GameText(product.label,
                             style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 decoration: basket.contains(product.id)
@@ -1368,13 +1369,13 @@ class _ProductTile extends StatelessWidget {
                   children: [
                     EmojiBadge(product.iconId, size: 52),
                     const SizedBox(height: 4),
-                    Text(product.label,
+                    GameText(product.label,
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 2),
                     CoinAmount(product.price, size: 16),
                     if (product.onList)
-                      Text(onListLabel,
+                      GameText(onListLabel,
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 13, color: FinniColors.muted)),
                   ],
@@ -1456,13 +1457,13 @@ class _WeekBoardState extends State<WeekBoard> {
             children: [
               Row(
                 children: [
-                  const Text('🎯', style: TextStyle(fontSize: 28)),
+                  const GameText('🎯', style: TextStyle(fontSize: 28)),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(fillText(texts.goal, {'target': '${payload.target}'}),
+                    child: GameText(fillText(texts.goal, {'target': '${payload.target}'}),
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                   ),
-                  Text(fillText(texts.savings, {'savings': '$savings'}),
+                  GameText(fillText(texts.savings, {'savings': '$savings'}),
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                 ],
               ),
@@ -1502,7 +1503,7 @@ class _WeekBoardState extends State<WeekBoard> {
             children: [
               Row(
                 children: [
-                  Text(fillText(texts.day, {'n': '$day'}),
+                  GameText(fillText(texts.day, {'n': '$day'}),
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(width: 8),
                   CoinAmount(payload.dailyIncome, size: 16, prefix: '+'),
@@ -1521,7 +1522,7 @@ class _WeekBoardState extends State<WeekBoard> {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Text('🐷', style: TextStyle(fontSize: 22)),
+                  const GameText('🐷', style: TextStyle(fontSize: 22)),
                   IconButton.filledTonal(
                     tooltip: 'Отложить меньше в день $day',
                     onPressed: board.locked ? null : () => _change(day - 1, -1),
@@ -1538,9 +1539,9 @@ class _WeekBoardState extends State<WeekBoard> {
               Wrap(
                 spacing: 12,
                 children: [
-                  Text(fillText(texts.wallet, {'wallet': '$wallet'}),
+                  GameText(fillText(texts.wallet, {'wallet': '$wallet'}),
                       style: const TextStyle(color: FinniColors.muted)),
-                  Text(fillText(texts.savings, {'savings': '$savings'}),
+                  GameText(fillText(texts.savings, {'savings': '$savings'}),
                       style: const TextStyle(color: FinniColors.muted)),
                 ],
               ),

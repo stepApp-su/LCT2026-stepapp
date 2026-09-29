@@ -1,3 +1,4 @@
+import '../widgets/game_text.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/models.dart';
@@ -106,7 +107,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         icon: Icon(step == _last
                             ? Icons.pets_outlined
                             : Icons.arrow_forward_rounded),
-                        label: Text(_buttonLabel),
+                        label: GameText(_buttonLabel),
                       ),
                     ),
                   ),
@@ -170,14 +171,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             onPressed: () => showDialog<void>(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('Твой маленький друг'),
-                content: const Text(
+                title: const GameText('Твой маленький друг'),
+                content: const GameText(
                     'Заботься о питомце, выбирай покупки и копи на мечту.',
                     style: TextStyle(fontSize: 17)),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Понятно')),
+                      child: const GameText('Понятно')),
                 ],
               ),
             ),
@@ -200,7 +201,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Widget _title(BuildContext context, String text) => Padding(
         padding: const EdgeInsets.only(top: 8, bottom: 6),
-        child: Text(text,
+        child: GameText(text,
             textAlign: TextAlign.center,
             style: const TextStyle(
                 fontSize: 26,
@@ -209,7 +210,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 height: 1.15)),
       );
 
-  Widget _lead(String text) => Text(text,
+  Widget _lead(String text) => GameText(text,
       textAlign: TextAlign.center,
       style: const TextStyle(
           fontSize: 16, fontWeight: FontWeight.w700, color: FinniColors.muted));
@@ -222,7 +223,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           children: [
             for (final option in PetAppearance.values)
               ChoiceChip(
-                label: Text(option.name),
+                label: GameText(option.name),
                 selected: pet == option,
                 onSelected: (_) => setState(() {
                   if (name == pet.name) name = option.name;
@@ -249,11 +250,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                       color: color, borderRadius: BorderRadius.circular(14)),
-                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                  child: GameText(emoji, style: const TextStyle(fontSize: 22)),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
-                  child: Text(text,
+                  child: GameText(text,
                       style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
@@ -323,7 +324,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           const SizedBox(height: 6),
           Expanded(
             child: Center(
-              child: Text(goal.title,
+              child: GameText(goal.title,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -367,18 +368,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 selected: simple == value,
                 onTap: () => setState(() => simple = value),
                 child: Row(children: [
-                  Text(emoji, style: const TextStyle(fontSize: 32)),
+                  GameText(emoji, style: const TextStyle(fontSize: 32)),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title,
+                          GameText(title,
                               style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w900,
                                   color: FinniColors.ink)),
-                          Text(subtitle,
+                          GameText(subtitle,
                               style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,

@@ -5,7 +5,6 @@ const List<(String, String, String)> _slots = [
   ('eyes', 'Глаза', '👓'),
   ('neck', 'Шея', '🧣'),
   ('body', 'Тело', '👕'),
-  ('back', 'Спина', '🎒'),
   ('paw', 'Лапа', '🎈'),
 ];
 
@@ -14,7 +13,6 @@ const List<(double, double)> _slotPlaces = [
   (.1, .16),
   (.9, .16),
   (.05, .52),
-  (.95, .52),
   (.5, .88),
 ];
 
@@ -61,11 +59,11 @@ class _RoomPageState extends State<_RoomPage> {
               segments: const [
                 ButtonSegment(
                     value: 0,
-                    label: Text('👕 Наряды',
+                    label: GameText('👕 Наряды',
                         maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ButtonSegment(
                     value: 1,
-                    label: Text('🛋️ Комната',
+                    label: GameText('🛋️ Комната',
                         maxLines: 1, overflow: TextOverflow.ellipsis)),
               ],
               selected: {tab},
@@ -73,7 +71,7 @@ class _RoomPageState extends State<_RoomPage> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
+          GameText(
               tab == 0
                   ? 'Нажми на кружок и выбери, что надеть'
                   : 'Нажми на «+» и поставь вещь на место',
@@ -95,9 +93,9 @@ class _RoomPageState extends State<_RoomPage> {
                 const GameIcon(GameIconKind.cozy, size: 24),
                 const SizedBox(width: 8),
                 const Expanded(
-                    child: Text('Уют',
+                    child: GameText('Уют',
                         style: TextStyle(fontWeight: FontWeight.w900))),
-                Text('${s.stats.cozy}',
+                GameText('${s.stats.cozy}',
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.w900)),
               ]),
@@ -105,7 +103,7 @@ class _RoomPageState extends State<_RoomPage> {
           ],
           if (s.wishlist.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text('Отложенные желания',
+            GameText('Отложенные желания',
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             for (final item
@@ -113,7 +111,7 @@ class _RoomPageState extends State<_RoomPage> {
               ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: ItemArt(item.id, size: 44),
-                  title: Text(item.title),
+                  title: GameText(item.title),
                   trailing: TagChip('🪙 ${item.price}', tone: TagTone.blue),
                   onTap: () => widget.shell.purchase(item)),
           ],
@@ -133,7 +131,7 @@ class _RoomPageState extends State<_RoomPage> {
             Row(mainAxisSize: MainAxisSize.min, children: [
               _SpotBubble(state: state, size: 18),
               const SizedBox(width: 5),
-              Text(label,
+              GameText(label,
                   style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -234,7 +232,7 @@ class _RoomPageState extends State<_RoomPage> {
                   if (worn != null)
                     _ThingTile(
                       art: const Center(
-                          child: Text('🚫', style: TextStyle(fontSize: 30))),
+                          child: GameText('🚫', style: TextStyle(fontSize: 30))),
                       title: 'Снять',
                       onTap: () => s.equip(worn),
                     ),
@@ -273,7 +271,7 @@ class _RoomPageState extends State<_RoomPage> {
                   child: const _SpotBubble(
                     state: _SpotState.full,
                     size: 44,
-                    child: Text('🖌️', style: TextStyle(fontSize: 20)),
+                    child: GameText('🖌️', style: TextStyle(fontSize: 20)),
                   ),
                 ),
               ),
@@ -391,7 +389,7 @@ class _SpotBubble extends StatelessWidget {
     final small = size < 30;
     final Widget inner = child ??
         switch (state) {
-          _SpotState.open => Text('+',
+          _SpotState.open => GameText('+',
               style: TextStyle(
                   fontSize: small ? 14 : size * .36,
                   height: 1,
@@ -434,7 +432,7 @@ class _SpotBubble extends StatelessWidget {
           ? Center(child: inner)
           : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               inner,
-              Text(label!,
+              GameText(label!,
                   maxLines: 1,
                   overflow: TextOverflow.fade,
                   softWrap: false,
@@ -504,7 +502,7 @@ class _ThingTile extends StatelessWidget {
                 child: Column(children: [
                   SizedBox(height: 54, child: Center(child: art)),
                   const SizedBox(height: 4),
-                  Text(title,
+                  GameText(title,
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       style: const TextStyle(
@@ -550,7 +548,7 @@ class _RoomButton extends StatelessWidget {
                     width: 24, height: 32,
                     child: Center(child: Icon(Icons.weekend_outlined, size: 26,
                         color: FinniColors.primary)))
-              else const Text('🛋️ Обустроить',
+              else const GameText('🛋️ Обустроить',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
               if (news) ...[const SizedBox(width: 6), const _NewDot()],
             ]),
@@ -658,7 +656,7 @@ class _DiaryPageState extends State<_DiaryPage> {
         child: Wrap(spacing: 8, runSpacing: 8, children: [
         for (final (i, label) in _filters.indexed)
           ChoiceChip(
-            label: Text(label),
+            label: GameText(label),
             selected: filter == i,
             showCheckmark: false,
             onSelected: (_) => setState(() => filter = i),
@@ -683,7 +681,7 @@ class _DiaryPageState extends State<_DiaryPage> {
             runSpacing: 6,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text('День $day',
+              GameText('День $day',
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w900)),
               if (day == s.day)
@@ -707,10 +705,10 @@ class _DiaryPageState extends State<_DiaryPage> {
                   decoration: BoxDecoration(
                       color: color, borderRadius: BorderRadius.circular(14)),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text(value,
+                    GameText(value,
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.w900, color: ink)),
-                    Text(label,
+                    GameText(label,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontSize: 16,
@@ -751,7 +749,7 @@ class _DiaryPageState extends State<_DiaryPage> {
       ],
       if (s.legacyCompletedTasks.isNotEmpty) ...[
         const SizedBox(height: 12),
-        Text(
+        GameText(
             'Сохранены задания прежней версии: ${s.legacyCompletedTasks.length}.'),
       ],
     ]);
@@ -791,7 +789,7 @@ class _DayChip extends StatelessWidget {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('$day',
+                    GameText('$day',
                         textScaler: TextScaler.noScaling,
                         style: TextStyle(
                             fontSize: 20,
@@ -799,7 +797,7 @@ class _DayChip extends StatelessWidget {
                             color: selected
                                 ? FinniColors.paper
                                 : FinniColors.ink)),
-                    Text(today ? 'сегодня' : 'день',
+                    GameText(today ? 'сегодня' : 'день',
                         textScaler: TextScaler.noScaling,
                         style: TextStyle(
                             fontSize: 12,
@@ -860,7 +858,7 @@ class _DiaryRow extends StatelessWidget {
         ? RoomArt(itemId, size: 28)
         : switch (t.type) {
             TransactionType.income when source.startsWith('task:') =>
-              const Text('🧩', style: TextStyle(fontSize: 22)),
+              const GameText('🧩', style: TextStyle(fontSize: 22)),
             TransactionType.income => const CoinIcon(size: 26),
             _ => const GameIcon(GameIconKind.pig, size: 26),
           };
@@ -883,7 +881,7 @@ class _DiaryRow extends StatelessWidget {
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(t.reasonText,
+              GameText(t.reasonText,
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w800)),
               const SizedBox(height: 3),
@@ -894,7 +892,7 @@ class _DiaryRow extends StatelessWidget {
             ]),
           ),
           const SizedBox(width: 8),
-          Text('$sign${t.amount}',
+          GameText('$sign${t.amount}',
               style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.w900, color: ink)),
         ]),
@@ -938,17 +936,17 @@ class _ReserveCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text('🛡️', style: TextStyle(fontSize: 30)),
+                  const GameText('🛡️', style: TextStyle(fontSize: 30)),
                   const SizedBox(width: 10),
                   const Expanded(
-                    child: Text('Подушка безопасности',
+                    child: GameText('Подушка безопасности',
                         style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
                   ),
                   TagChip('${math.min(days, target)} из $target', tone: TagTone.green),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(text,
+              GameText(text,
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
               ClipRRect(
@@ -971,7 +969,7 @@ class _ReserveCard extends StatelessWidget {
                       tone: TagTone.gold),
                 ),
               const SizedBox(height: 8),
-              Text(
+              GameText(
                   'Это монеты на неожиданный случай: сломался зонтик, подорожала еда. '
                   'Один день нужного = $perDay ${ruCoins(perDay)}.',
                   style: const TextStyle(fontSize: 15, color: FinniColors.muted)),
@@ -1051,13 +1049,13 @@ class _DayReceipt extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text('🧾', style: TextStyle(fontSize: 24)),
+                  const GameText('🧾', style: TextStyle(fontSize: 24)),
                   const SizedBox(width: 8),
                   const Expanded(
-                    child: Text('Чек дня',
+                    child: GameText('Чек дня',
                         style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
                   ),
-                  Text('День $day',
+                  GameText('День $day',
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w800, color: FinniColors.muted)),
                 ],
@@ -1070,11 +1068,11 @@ class _DayReceipt extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Text(_name(t),
+                        child: GameText(_name(t),
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                       ),
                       const SizedBox(width: 8),
-                      Text('${t.amount}',
+                      GameText('${t.amount}',
                           style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -1086,16 +1084,16 @@ class _DayReceipt extends StatelessWidget {
               Row(
                 children: [
                   const Expanded(
-                    child: Text('Итого',
+                    child: GameText('Итого',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                   ),
-                  Text('$total ${ruCoins(total)}',
+                  GameText('$total ${ruCoins(total)}',
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.w900, fontFeatures: figures)),
                 ],
               ),
               const SizedBox(height: 8),
-              const Text(
+              const GameText(
                   'Чек помогает проверить покупки. С ним можно вернуть сломанную вещь.',
                   style: TextStyle(fontSize: 15, color: FinniColors.muted)),
             ],
@@ -1177,7 +1175,7 @@ class _TitlesView extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 4,
                         children: [
-                          Text('${s.progress.growthPoints} опыта',
+                          GameText('${s.progress.growthPoints} опыта',
                               style: const TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w900)),
                           if (status.next != null)
@@ -1196,10 +1194,10 @@ class _TitlesView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Как получить опыт',
+          GameText('Как получить опыт',
               style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 4),
-          const Text('Опыт считаем вечером, по итогам дня.',
+          const GameText('Опыт считаем вечером, по итогам дня.',
               style: TextStyle(color: FinniColors.muted)),
           const SizedBox(height: 8),
           CoachTarget(
@@ -1225,11 +1223,11 @@ class _TitlesView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16)),
                           child: Row(children: [
                             Expanded(
-                                child: Text(label,
+                                child: GameText(label,
                                     style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w800))),
-                            Text('+${s.growth.rules.points[factor] ?? 0}',
+                            GameText('+${s.growth.rules.points[factor] ?? 0}',
                                 style: const TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.w900)),
                           ]),
@@ -1246,24 +1244,24 @@ class _TitlesView extends StatelessWidget {
                 color: FinniColors.honey.withValues(alpha: .6),
                 padding: 12,
                 child: Row(children: [
-                  Text(_iconOf(current), style: const TextStyle(fontSize: 34)),
+                  GameText(_iconOf(current), style: const TextStyle(fontSize: 34)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Твоё звание',
+                          const GameText('Твоё звание',
                               style: TextStyle(
                                   color: FinniColors.muted,
                                   fontWeight: FontWeight.w700)),
-                          Text(current.title,
+                          GameText(current.title,
                               style: const TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.w900)),
                         ]),
                   ),
                   if (s.progress.earnedTitles.length > 1)
                     TextButton(
-                        onPressed: onChange, child: const Text('Сменить')),
+                        onPressed: onChange, child: const GameText('Сменить')),
                 ]),
               ),
             ),
@@ -1274,7 +1272,7 @@ class _TitlesView extends StatelessWidget {
               spacing: 8,
               runSpacing: 4,
               children: [
-                Text('Следующие звания',
+                GameText('Следующие звания',
                     style: Theme.of(context).textTheme.titleLarge),
                 TagChip(
                     '${s.progress.earnedTitles.length} из ${s.content.titles.titles.length}',
@@ -1313,7 +1311,7 @@ class _StageStep extends StatelessWidget {
     final label =
         state.content.economy.growth.texts.stageLabels[stage] ?? stage.name;
     final Widget art = stage == PetStage.egg
-        ? const Center(child: Text('🥚', style: TextStyle(fontSize: 26)))
+        ? const Center(child: GameText('🥚', style: TextStyle(fontSize: 26)))
         : IgnorePointer(
             child: MoniScene(
                 appearance: state.appearance, stage: stage, motion: false));
@@ -1366,7 +1364,7 @@ class _StageStep extends StatelessWidget {
         const SizedBox(height: 4),
         FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(label,
+          child: GameText(label,
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -1402,16 +1400,16 @@ class _NextTitle extends StatelessWidget {
             decoration: BoxDecoration(
                 color: FinniColors.sky,
                 borderRadius: BorderRadius.circular(14)),
-            child: Text(icon, style: const TextStyle(fontSize: 24)),
+            child: GameText(icon, style: const TextStyle(fontSize: 24)),
           ),
           const SizedBox(width: 10),
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title,
+              GameText(title,
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w900)),
-              Text(reason, style: const TextStyle(color: FinniColors.muted)),
+              GameText(reason, style: const TextStyle(color: FinniColors.muted)),
               const SizedBox(height: 6),
               TagRow([
                 TagChip('$done из $total'),
@@ -1492,7 +1490,7 @@ class _GlossaryPageState extends State<_GlossaryPage> {
                 child: Wrap(spacing: 8, runSpacing: 8, children: [
                   for (final id in ['', ..._topics])
                     ChoiceChip(
-                      label: Text(id.isEmpty
+                      label: GameText(id.isEmpty
                           ? texts['topicAll'] ?? 'Все'
                           : texts['topic_$id'] ?? id),
                       selected: topic == id,
@@ -1538,16 +1536,16 @@ class _GlossaryPageState extends State<_GlossaryPage> {
                                     ? FinniColors.honey
                                     : FinniColors.mint,
                                 borderRadius: BorderRadius.circular(14)),
-                            child: Text(kEmoji[term.iconId] ?? '💡',
+                            child: GameText(kEmoji[term.iconId] ?? '💡',
                                 style: const TextStyle(fontSize: 22)),
                           ),
-                          title: Text(term.term,
+                          title: GameText(term.term,
                               style:
                                   const TextStyle(fontWeight: FontWeight.w900)),
-                          subtitle: Text(term.definition,
+                          subtitle: GameText(term.definition,
                               maxLines: 2, overflow: TextOverflow.ellipsis),
                           trailing: s.knownWords.contains(term.id)
-                              ? const Text('⭐', style: TextStyle(fontSize: 20))
+                              ? const GameText('⭐', style: TextStyle(fontSize: 20))
                               : const Icon(Icons.chevron_right_rounded),
                         ),
                       )),
@@ -1567,7 +1565,7 @@ class _GlossaryPageState extends State<_GlossaryPage> {
                     minimumSize: const Size.fromHeight(54)),
                 onPressed: () => _learn(),
                 icon: const Icon(Icons.style_outlined),
-                label: Text(texts['learn'] ?? 'Учить слова'),
+                label: GameText(texts['learn'] ?? 'Учить слова'),
               ),
             ),
           ),
@@ -1626,7 +1624,7 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
               tooltip: 'Закрыть',
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close_rounded)),
-          title: Text(s.content.glossary.texts['learn'] ?? 'Учим слова'),
+          title: GameText(s.content.glossary.texts['learn'] ?? 'Учим слова'),
         ),
         body: SafeArea(
           child: Center(
@@ -1643,7 +1641,7 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
     return ListView(padding: const EdgeInsets.all(16), children: [
       Row(children: [
         Expanded(
-            child: Text('Слово ${index + 1} из ${deck.length}',
+            child: GameText('Слово ${index + 1} из ${deck.length}',
                 style: const TextStyle(
                     fontWeight: FontWeight.w800, color: FinniColors.muted))),
         TagChip('знаю ⭐ ${s.knownWords.length}', tone: TagTone.gold),
@@ -1677,15 +1675,15 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
               ],
             ),
             child: Column(children: [
-              Text(kEmoji[term.iconId] ?? '💡',
+              GameText(kEmoji[term.iconId] ?? '💡',
                   style: const TextStyle(fontSize: 56)),
               const SizedBox(height: 8),
-              Text(term.term,
+              GameText(term.term,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontSize: 28, fontWeight: FontWeight.w900)),
               const SizedBox(height: 8),
-              Text(term.definition,
+              GameText(term.definition,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w700)),
@@ -1696,7 +1694,7 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
                 decoration: BoxDecoration(
                     color: FinniColors.mint,
                     borderRadius: BorderRadius.circular(16)),
-                child: Text('🎮 ${term.inGame}',
+                child: GameText('🎮 ${term.inGame}',
                     style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -1716,7 +1714,7 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
                   minimumSize: const Size.fromHeight(54)),
               onPressed: () => _answer(false),
               icon: const Icon(Icons.replay_rounded),
-              label: const Text('Повторить'),
+              label: const GameText('Повторить'),
             ),
           ),
           const SizedBox(width: 10),
@@ -1726,7 +1724,7 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
                   minimumSize: const Size.fromHeight(54)),
               onPressed: () => _answer(true),
               icon: const Icon(Icons.star_rounded),
-              label: const Text('Знаю'),
+              label: const GameText('Знаю'),
             ),
           ),
         ]),
@@ -1741,13 +1739,13 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
     ];
     return ListView(padding: const EdgeInsets.all(16), children: [
       const SizedBox(height: 24),
-      const Center(child: Text('🎉', style: TextStyle(fontSize: 64))),
+      const Center(child: GameText('🎉', style: TextStyle(fontSize: 64))),
       const SizedBox(height: 8),
-      const Text('Все слова пройдены!',
+      const GameText('Все слова пройдены!',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
       const SizedBox(height: 6),
-      Text(
+      GameText(
           again.isEmpty
               ? 'Ты знаешь все слова. Здорово!'
               : 'Знаешь ${s.knownWords.length} из ${s.content.glossary.terms.length}. Эти слова повторим в следующий раз:',
@@ -1761,11 +1759,11 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
           child: _Panel(
             padding: 12,
             child: Row(children: [
-              Text(kEmoji[term.iconId] ?? '💡',
+              GameText(kEmoji[term.iconId] ?? '💡',
                   style: const TextStyle(fontSize: 24)),
               const SizedBox(width: 10),
               Expanded(
-                  child: Text(term.term,
+                  child: GameText(term.term,
                       style: const TextStyle(fontWeight: FontWeight.w900))),
               const TagChip('повторить', tone: TagTone.gold),
             ]),
@@ -1775,7 +1773,7 @@ class _FlashcardsPageState extends State<_FlashcardsPage> {
       FilledButton(
         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
         onPressed: () => Navigator.pop(context),
-        child: const Text('К списку слов'),
+        child: const GameText('К списку слов'),
       ),
     ]);
   }
@@ -1825,7 +1823,7 @@ class _AdultView extends StatelessWidget {
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('За ${report.days} ${ruDays(report.days)}',
+                  GameText('За ${report.days} ${ruDays(report.days)}',
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 10),
@@ -1853,14 +1851,14 @@ class _AdultView extends StatelessWidget {
                               child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(value,
+                                    GameText(value,
                                         style: TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.w900,
                                             color: ink)),
                                     FittedBox(
                                       fit: BoxFit.scaleDown,
-                                      child: Text(label,
+                                      child: GameText(label,
                                           style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w700,
@@ -1901,7 +1899,7 @@ class _AdultView extends StatelessWidget {
                 ]),
           ),
           const SizedBox(height: 16),
-          Text('Что уже получается',
+          GameText('Что уже получается',
               style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           if (closed == 0)
@@ -1923,7 +1921,7 @@ class _AdultView extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 4,
                         children: [
-                          Text(label,
+                          GameText(label,
                               style:
                                   const TextStyle(fontWeight: FontWeight.w800)),
                           TagChip(
@@ -1936,43 +1934,43 @@ class _AdultView extends StatelessWidget {
               ]),
             ),
           const SizedBox(height: 16),
-          Text('Настройки', style: Theme.of(context).textTheme.titleLarge),
+          GameText('Настройки', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           _Panel(
             padding: 4,
             child: Column(children: [
               ListTile(
-                title: const Text('Имя питомца',
+                title: const GameText('Имя питомца',
                     style: TextStyle(fontWeight: FontWeight.w800)),
-                subtitle: Text(s.petName),
+                subtitle: GameText(s.petName),
                 trailing: TextButton.icon(
                     onPressed: shell.renamePet,
                     icon: const Icon(Icons.edit_outlined),
-                    label: const Text('Изменить')),
+                    label: const GameText('Изменить')),
               ),
               SwitchListTile(
-                  title: const Text('Звук',
+                  title: const GameText('Звук',
                       style: TextStyle(fontWeight: FontWeight.w800)),
-                  subtitle: const Text('Озвучка и звуковые эффекты'),
+                  subtitle: const GameText('Озвучка и звуковые эффекты'),
                   value: s.sound,
                   onChanged: s.setSound),
               SwitchListTile(
-                  title: const Text('Музыка',
+                  title: const GameText('Музыка',
                       style: TextStyle(fontWeight: FontWeight.w800)),
-                  subtitle: const Text('Фоновая мелодия игры'),
+                  subtitle: const GameText('Фоновая мелодия игры'),
                   value: s.music,
                   onChanged: s.setMusic),
               SwitchListTile(
-                  title: const Text('Анимации питомца',
+                  title: const GameText('Анимации питомца',
                       style: TextStyle(fontWeight: FontWeight.w800)),
-                  subtitle: const Text(
+                  subtitle: const GameText(
                       'Системное отключение движений тоже учитывается'),
                   value: s.motion,
                   onChanged: s.setMotion),
               SwitchListTile(
-                  title: const Text('Попроще',
+                  title: const GameText('Попроще',
                       style: TextStyle(fontWeight: FontWeight.w800)),
-                  subtitle: const Text('Меньше карточек и чисел в играх'),
+                  subtitle: const GameText('Меньше карточек и чисел в играх'),
                   value: s.simpleMode,
                   onChanged: s.setSimple),
             ]),
@@ -1984,14 +1982,14 @@ class _AdultView extends StatelessWidget {
               spacing: 8,
               runSpacing: 4,
               children: [
-                Text('Темы подробно',
+                GameText('Темы подробно',
                     style: Theme.of(context).textTheme.titleLarge),
                 TagChip(
                     '${s.tasks.completedTaskIds.length} из ${s.content.tasks.tasks.length} игр',
                     tone: TagTone.green),
               ]),
           const SizedBox(height: 4),
-          const Text(
+          const GameText(
               'Число справа — сколько раз игра пройдена. Полоски — сколько её вариантов уже решено.',
               style: TextStyle(color: FinniColors.muted)),
           const SizedBox(height: 8),
@@ -2003,20 +2001,20 @@ class _AdultView extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.restart_alt_rounded,
                     color: FinniColors.alert),
-                title: const Text('Начать заново',
+                title: const GameText('Начать заново',
                     style: TextStyle(
                         fontWeight: FontWeight.w800, color: FinniColors.alert)),
                 subtitle:
-                    const Text('Прогресс на этом устройстве будет заменён'),
+                    const GameText('Прогресс на этом устройстве будет заменён'),
                 onTap: () => shell.confirmProfileAction(false),
               ),
               ListTile(
                 leading: const Icon(Icons.delete_outline_rounded,
                     color: FinniColors.alert),
-                title: const Text('Удалить профиль',
+                title: const GameText('Удалить профиль',
                     style: TextStyle(
                         fontWeight: FontWeight.w800, color: FinniColors.alert)),
-                subtitle: const Text('Всё будет удалено с этого устройства'),
+                subtitle: const GameText('Всё будет удалено с этого устройства'),
                 onTap: () => shell.confirmProfileAction(true),
               ),
             ]),
@@ -2042,7 +2040,7 @@ class _AdultView extends StatelessWidget {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(theme.title,
+                    GameText(theme.title,
                         style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 4),
@@ -2086,7 +2084,7 @@ class _AdultView extends StatelessWidget {
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(task.title,
+              GameText(task.title,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
               Row(children: [
@@ -2106,10 +2104,10 @@ class _AdultView extends StatelessWidget {
             const TagChip('не играли')
           else
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text('$times',
+              GameText('$times',
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w900)),
-              Text(_times(times),
+              GameText(_times(times),
                   style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,

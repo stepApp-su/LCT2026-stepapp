@@ -24,6 +24,7 @@ import '../domain/services/growth_service.dart';
 import '../domain/services/level_service.dart';
 import '../domain/services/title_service.dart';
 import '../domain/services/pet_state_service.dart';
+import '../domain/services/pet_need_service.dart';
 import '../domain/services/phrase_service.dart';
 import '../domain/services/plan_service.dart';
 import '../domain/services/shop_service.dart';
@@ -108,6 +109,9 @@ class GameController extends ChangeNotifier {
 
   late PetAppearance appearance;
   String get character => appearance.character;
+  PetStat? get currentNeed => currentPetNeed(stats, content.economy.pet);
+  bool get petIsSad => currentNeed != null;
+  DateTime? _lastNeedReminder;
   static const Map<String, String> _legacyItems = {'ball': 'bouncy_ball'};
 
   final Map<String, dynamic> config;
@@ -186,6 +190,7 @@ class GameController extends ChangeNotifier {
   }
 
   void _restore(Map<String, dynamic>? saved) {
+    _lastNeedReminder = null;
     final data = {...config, ...?saved};
     _day = data['day'] as int;
     celebration = (data['celebration'] as Map?)?.cast<String, dynamic>();
@@ -210,6 +215,16 @@ class GameController extends ChangeNotifier {
             at: clock.now(),
             dayNumber: day);
       }
+    }
+    if (saved != null &&
+        (data['owned'] as List? ?? []).contains('backpack') &&
+        !journal.any((tx) => tx.sourceId == 'refund:backpack')) {
+      wallet.earn(
+          amount: 35,
+          sourceId: 'refund:backpack',
+          reasonText: 'Вернули монеты за рюкзак: его больше нет в магазине.',
+          at: clock.now(),
+          dayNumber: day);
     }
     stats = PetState.fromJson((data['stats'] as Map).cast<String, Object?>());
     motion = data['motion'] != false;
@@ -245,18 +260,20 @@ class GameController extends ChangeNotifier {
       plan.setAmount(d, amounts[d.name] as int);
     }
     if (data['confirmed'] == true) plan.confirm();
-    wishlist = {...(data['wishlist'] as List? ?? []).cast<String>()};
+    wishlist = {...(data['wishlist'] as List? ?? []).cast<String>()}
+      ..remove('backpack');
     hiddenRoomItems = {
       ...(data['hiddenRoomItems'] as List? ?? []).cast<String>()
     };
     roomSelection =
         (data['roomSelection'] as Map? ?? {}).cast<String, String>();
-    outfit = (data['outfit'] as Map? ?? {}).cast<String, String>();
+    outfit = Map<String, String>.from(data['outfit'] as Map? ?? {})
+      ..removeWhere((slot, id) => slot == 'back' || id == 'backpack');
     legacyCompletedTasks =
         (data['legacyCompletedTasks'] as List? ?? []).cast<String>();
     final owned = [
       for (final id in (data['owned'] as List? ?? []).cast<String>())
-        _legacyItems[id] ?? id
+        if (id != 'backpack') _legacyItems[id] ?? id
     ];
     shop = ShopService(
       catalog: content.shop,
@@ -363,7 +380,8 @@ class GameController extends ChangeNotifier {
         final candidates = roomPlaces[entry.key];
         if (candidates == null) continue;
         placed.removeWhere((_, id) => candidates.contains(id));
-        if (candidates.contains(entry.value) && shop.isOwned(entry.value) &&
+        if (candidates.contains(entry.value) &&
+            shop.isOwned(entry.value) &&
             !hiddenRoomItems.contains(entry.value)) {
           final spot = room.spotFor(entry.value);
           if (spot != null && spot.type == RoomSpotType.item) {
@@ -1269,7 +1287,7 @@ class GameController extends ChangeNotifier {
     if (!plan.isConfirmed) {
       plan.confirm();
       fx('round_win');
-    say('plan_confirmed');
+      say('plan_confirmed');
       changed();
     }
   }
@@ -1471,8 +1489,7 @@ class GameController extends ChangeNotifier {
     final scheme = sounds;
     final player = soundPlayer;
     if (scheme == null || player == null || !sound) return;
-    final voice =
-        scheme.voiceFor(line.id, species: character, soundOn: sound);
+    final voice = scheme.voiceFor(line.id, species: character, soundOn: sound);
     player.stopSpeech();
     player.speak(voice != null
         ? [voice]
@@ -1480,9 +1497,36 @@ class GameController extends ChangeNotifier {
             species: character, seed: line.id.hashCode, soundOn: sound));
   }
 
-  void greet() => say('app_open');
+  void greet() {
+    if (currentNeed != null) {
+      remindNeed();
+    } else {
+      say('app_open');
+    }
+  }
 
-  void idle() => say('idle_30s');
+  void idle() {
+    if (bubble != null || celebration != null) return;
+    if (currentNeed != null) {
+      remindNeed();
+    } else {
+      say('idle_30s');
+    }
+  }
+
+  bool remindNeed() {
+    final need = currentNeed;
+    if (need == null || bubble != null || celebration != null) return false;
+    final now = clock.now();
+    if (_lastNeedReminder != null &&
+        now.difference(_lastNeedReminder!) < const Duration(seconds: 90)) {
+      return false;
+    }
+    final line = say('need_reminder', facts: {'statLow': need.name});
+    if (line == null) return false;
+    _lastNeedReminder = now;
+    return true;
+  }
 
   void openShop() => say('shop_open');
 
@@ -1652,6 +1696,7 @@ class GameController extends ChangeNotifier {
   void renamePet(String name) {
     if (petNameProblem(name) != null) throw ArgumentError.value(name);
     petName = normalizePetName(name);
+    _lastNeedReminder = null;
     changed();
   }
 
@@ -1754,6 +1799,12 @@ class GameController extends ChangeNotifier {
       };
 
   void changed() {
+    if (bubble?.trigger == 'need_reminder' &&
+        bubble?.id != 'need_${currentNeed?.name}') {
+      _bubbleTimer?.cancel();
+      soundPlayer?.stopSpeech();
+      bubble = null;
+    }
     _notify();
     final data = snapshot();
     _pending = _pending.then((_) async {

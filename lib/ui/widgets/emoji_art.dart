@@ -1,9 +1,11 @@
+import './game_text.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../theme/finni_theme.dart';
 import 'game_icon.dart';
+import 'game_glyph.dart';
 import 'moni_scene.dart';
 import 'sprite_sheet.dart';
 import 'room_backdrop.dart';
@@ -23,7 +25,6 @@ const Map<String, (String, int)> _sprites = {
   'bowtie': ('accessories', 4),
   'tshirt': ('accessories', 5),
   'raincoat': ('accessories', 6),
-  'backpack': ('accessories', 7),
   'balloon': ('accessories', 8),
 };
 
@@ -32,6 +33,19 @@ const Map<String, GameIconKind> _icons = {
 };
 
 const Map<String, String> kEmoji = {
+  'icon_room_main': '🏠',
+  'icon_room_bedroom': '🌙',
+  'icon_cat_mandatory': '🍲',
+  'icon_cat_optional': '🎁',
+  'icon_title_novice': '🌱',
+  'icon_title_planner': '📋',
+  'icon_title_saver': '🐷',
+  'icon_title_shopping_expert': '🛒',
+  'icon_title_reserve_keeper': '🛡️',
+  'icon_title_dreamer': '🌟',
+  'icon_title_careful': '🔒',
+  'icon_title_budget_master': '👛',
+  'icon_title_mentor': '🎓',
   'treat': '🍪',
   'porridge': '🥣',
   'lunchbox': '🍱',
@@ -258,10 +272,14 @@ class ItemArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final id = this.id.replaceFirst(RegExp(r'^icon_(?:shop|goal)_'), '');
     final sprite = _sprites[id];
     final icon = _icons[id];
     final Widget art;
-    if (accessoryCells.containsKey(id)) {
+    final goalId = id.replaceFirst(RegExp(r'^icon_goal_'), '');
+    if (gameArtCells[goalId]?.sheet.startsWith('dreams-') ?? false) {
+      art = GameGlyph(goalId, size: size * .84);
+    } else if (accessoryCells.containsKey(id)) {
       art = SheetArt(
           path: 'assets/pets/shared/accessories.png',
           cell: accessoryCells[id]!,
@@ -282,7 +300,7 @@ class ItemArt extends StatelessWidget {
       art = CustomPaint(painter: _PatternPainter(dots: id == 'wp_dots'));
     } else {
       art = Center(
-        child: Text(
+        child: GameText(
           kEmoji[id] ?? '🎁',
           style: TextStyle(fontSize: size * .52, height: 1),
           textScaler: TextScaler.noScaling,
@@ -351,7 +369,7 @@ class RoomArt extends StatelessWidget {
             border: Border.all(
                 color: FinniColors.paper, width: math.max(2, size * .05)),
           ),
-          child: Text('🐠',
+          child: GameText('🐠',
               style: TextStyle(fontSize: size * .42, height: 1),
               textScaler: TextScaler.noScaling),
         ),
@@ -360,7 +378,7 @@ class RoomArt extends StatelessWidget {
       art = FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.bottomCenter,
-        child: Text(
+        child: GameText(
           kEmoji[id] ?? '🎁',
           style: TextStyle(fontSize: size * .9, height: 1),
           textScaler: TextScaler.noScaling,
@@ -418,11 +436,6 @@ class EmojiBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sprite = _sprites[iconId];
-    final hasArtwork = accessoryCells.containsKey(iconId) ||
-        furnitureCells.containsKey(iconId) ||
-        wallpaperCells.containsKey(iconId) ||
-        goalCells.containsKey(iconId);
     return ExcludeSemantics(
       child: Container(
         width: size,
@@ -432,17 +445,7 @@ class EmojiBadge extends StatelessWidget {
           color: color ?? artBackground(iconId).withValues(alpha: .8),
           borderRadius: BorderRadius.circular(size * .32),
         ),
-        child: hasArtwork
-            ? ItemArt(iconId, size: size * .8, background: false)
-            : sprite != null
-                ? ProductArt(sheet: sprite.$1, cell: sprite.$2)
-                : Center(
-                    child: Text(
-                      kEmoji[iconId] ?? '⭐',
-                      style: TextStyle(fontSize: size * .5, height: 1),
-                      textScaler: TextScaler.noScaling,
-                    ),
-                  ),
+        child: ItemArt(iconId, size: size * .8, background: false),
       ),
     );
   }

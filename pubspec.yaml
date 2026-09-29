@@ -25,10 +25,16 @@ flutter:
     - assets/content/
     - assets/images/
     - assets/images/hud/
+    - assets/images/game/
     - assets/pets/moni/
     - assets/pets/pix/
     - assets/pets/tyapa/
     - assets/pets/bumba/
+    - assets/pets/puf/
+    - assets/pets/roni/
+    - assets/pets/tori/
+    - assets/pets/busya/
+    - assets/pets/leo/
     - assets/room/
     - assets/pets/shared/
     - assets/audio/sfx/
@@ -38,6 +44,11 @@ flutter:
     - assets/audio/babble/robot/
     - assets/audio/babble/puppy/
     - assets/audio/babble/dragon/
+    - assets/audio/babble/rabbit/
+    - assets/audio/babble/raccoon/
+    - assets/audio/babble/red_panda/
+    - assets/audio/babble/bear/
+    - assets/audio/babble/lion/
   fonts:
     - family: Nunito
       fonts:

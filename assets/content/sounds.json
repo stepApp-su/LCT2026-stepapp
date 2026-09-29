@@ -54,6 +54,11 @@
       "babble/puppy/puppy_3.wav",
       "babble/puppy/puppy_4.wav"
     ],
+    "rabbit": ["babble/rabbit/rabbit_1.wav", "babble/rabbit/rabbit_2.wav", "babble/rabbit/rabbit_3.wav", "babble/rabbit/rabbit_4.wav"],
+    "raccoon": ["babble/raccoon/raccoon_1.wav", "babble/raccoon/raccoon_2.wav", "babble/raccoon/raccoon_3.wav", "babble/raccoon/raccoon_4.wav"],
+    "red_panda": ["babble/red_panda/red_panda_1.wav", "babble/red_panda/red_panda_2.wav", "babble/red_panda/red_panda_3.wav", "babble/red_panda/red_panda_4.wav"],
+    "bear": ["babble/bear/bear_1.wav", "babble/bear/bear_2.wav", "babble/bear/bear_3.wav", "babble/bear/bear_4.wav"],
+    "lion": ["babble/lion/lion_1.wav", "babble/lion/lion_2.wav", "babble/lion/lion_3.wav", "babble/lion/lion_4.wav"],
     "dragon": [
       "babble/dragon/dragon_1.wav",
       "babble/dragon/dragon_2.wav",

@@ -9,7 +9,21 @@
   <meta name="description" content="Финни — предпросмотр экранов приложения">
   <title>Финни</title>
 </head>
-<body style="background:#F7F8F3">
+<body style="background:#eef0f2;margin:0">
+  <div id="startup" role="status" style="position:fixed;inset:0;display:grid;place-items:center;padding:24px;color:#202b3a;font:16px/1.5 system-ui,sans-serif">
+    <div style="max-width:440px">
+      <h1 style="font-size:26px;line-height:1.2">Тестовый стенд Финни</h1>
+      <p>Загружаем игру. Скорость загрузки зависит от вашего интернета.</p>
+      <p>Для полноценной игры на Android рекомендуем установить APK.</p>
+      <a href="https://github.com/stepApp-su/LCT2026-stepapp/releases/latest/download/finni.apk" style="color:#263b56">Скачать APK</a>
+      <noscript><p>Для веб-стенда нужен JavaScript. Включите его или скачайте APK.</p></noscript>
+    </div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', () => {
+      document.getElementById('startup')?.remove();
+    }, {once: true});
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
