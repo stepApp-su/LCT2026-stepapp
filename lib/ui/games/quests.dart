@@ -500,7 +500,7 @@ class _DailyScreenState extends State<DailyScreen> {
                   _DoneCard(
                       state: s,
                       reward: reward,
-                      onPlan: s.extraPending > 0
+                      onSave: s.pocket > 0
                           ? () => Navigator.pop(context, true)
                           : null)
                 else
@@ -591,11 +591,11 @@ class _Challenge extends StatelessWidget {
 }
 
 class _DoneCard extends StatelessWidget {
-  const _DoneCard({required this.state, required this.reward, this.onPlan});
+  const _DoneCard({required this.state, required this.reward, this.onSave});
 
   final GameController state;
   final GameReward? reward;
-  final VoidCallback? onPlan;
+  final VoidCallback? onSave;
 
   @override
   Widget build(BuildContext context) {
@@ -622,12 +622,12 @@ class _DoneCard extends StatelessWidget {
             const SizedBox(height: 10),
             const GameText('Новое задание появится завтра. Приходи!',
                 textAlign: TextAlign.center),
-            if (onPlan != null) ...[
+            if (onSave != null) ...[
               const SizedBox(height: 14),
               FilledButton.icon(
-                onPressed: onPlan,
-                icon: const Icon(Icons.pie_chart_outline_rounded),
-                label: const GameText('Разложить монеты по плану'),
+                onPressed: onSave,
+                icon: const Icon(Icons.savings_outlined),
+                label: GameText('В копилку ${state.pocket}'),
               ),
             ],
           ],

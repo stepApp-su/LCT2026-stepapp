@@ -281,7 +281,7 @@ class _PlanLeft extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final full = state.fullPlan;
+    final full = state.plan.plan;
     final mandatory = state.planLeft(PlanDirection.mandatory);
     final optional = state.planLeft(PlanDirection.optional);
     final savings = state.planLeft(PlanDirection.savings);
@@ -703,7 +703,6 @@ class _BudgetRow extends StatelessWidget {
   final int value;
   final PlanDirection direction;
   final GameController state;
-  int get extra => state.planExtra[direction] ?? 0;
 
   @override
   Widget build(BuildContext context) => _Panel(
@@ -742,31 +741,22 @@ class _BudgetRow extends StatelessWidget {
               children: [
                 IconButton.filledTonal(
                   tooltip: 'Уменьшить: $title',
-                  onPressed: !state.plan.isConfirmed && value >= 5
+                  onPressed: !state.plan.isConfirmed && value > 0
                       ? () => state.changePlan(direction, -5)
                       : null,
                   icon: const Icon(Icons.remove_rounded),
                 ),
-                Expanded(child: Center(child: _Coins(value + extra))),
+                Expanded(child: Center(child: _Coins(value))),
                 IconButton.filledTonal(
                   tooltip: 'Увеличить: $title',
                   onPressed:
-                      !state.plan.isConfirmed && state.plan.remainder >= 5
+                      !state.plan.isConfirmed && state.plan.remainder > 0
                           ? () => state.changePlan(direction, 5)
                           : null,
                   icon: const Icon(Icons.add_rounded),
                 ),
               ],
             ),
-            if (extra > 0)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: _Pill(
-                  icon: Icons.add_task_rounded,
-                  label: 'Утром $value, из заработанного +$extra',
-                  color: FinniColors.honey,
-                ),
-              ),
           ],
         ),
       );
@@ -982,135 +972,137 @@ class _ShiftList extends StatelessWidget {
       );
 }
 
-class _ExtraPlanner extends StatefulWidget {
-  const _ExtraPlanner({required this.state, required this.onDone});
+class _HungryCard extends StatelessWidget {
+  const _HungryCard({required this.state, required this.onShop});
+
+  final GameController state;
+  final VoidCallback onShop;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        container: true,
+        label: '${state.petName}: ${state.hungerText}',
+        child: _Panel(
+          color: FinniColors.peach,
+          padding: 14,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ExcludeSemantics(
+                child: Row(
+                  children: [
+                    const GameText('🍲', style: TextStyle(fontSize: 34)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GameText(state.hungerText,
+                          style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: FinniColors.alert)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: FinniColors.alert,
+                  foregroundColor: FinniColors.paper,
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                onPressed: onShop,
+                icon: const Icon(Icons.restaurant_outlined),
+                label: const GameText('Выбрать еду'),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
+class _PocketCard extends StatelessWidget {
+  const _PocketCard({required this.state, required this.onDone});
 
   final GameController state;
   final ValueChanged<String> onDone;
 
   @override
-  State<_ExtraPlanner> createState() => _ExtraPlannerState();
-}
-
-class _ExtraPlannerState extends State<_ExtraPlanner> {
-  final Map<PlanDirection, int> parts = {
-    for (final d in PlanDirection.values) d: 0
-  };
-
-  int get pending => widget.state.extraPending;
-  int get used => parts.values.fold(0, (a, b) => a + b);
-  int get left => pending - used;
-
-  static const Map<PlanDirection, (String, IconData)> _labels = {
-    PlanDirection.mandatory: ('Обязательное', Icons.restaurant_outlined),
-    PlanDirection.optional: ('Желаемое', Icons.celebration_outlined),
-    PlanDirection.savings: ('Копилка', Icons.savings_outlined),
-  };
-
-  void _change(PlanDirection d, int delta) {
-    final next = parts[d]! + delta;
-    if (next < 0 || (delta > 0 && left < delta)) return;
-    setState(() => parts[d] = next);
-  }
-
-  void _all(PlanDirection d) => setState(() {
-        for (final key in parts.keys) {
-          parts[key] = key == d ? pending : 0;
-        }
-      });
-
-  @override
   Widget build(BuildContext context) {
-    if (pending <= 0) return const SizedBox.shrink();
-    return _Panel(
-      color: FinniColors.honey,
-      padding: 14,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              const GameText('💰', style: TextStyle(fontSize: 28)),
-              const SizedBox(width: 10),
-              Expanded(
-                child: GameText(
-                  'Заработано сегодня ещё $pending ${ruCoins(pending)}. Куда направим?',
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w800),
+    final coins = state.pocket;
+    if (coins <= 0) return const SizedBox.shrink();
+    return Semantics(
+      container: true,
+      label: 'Новые монеты: $coins. Заработаны после плана',
+      child: _Panel(
+        color: FinniColors.honey,
+        padding: 14,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const ExcludeSemantics(
+                    child: GameText('👛', style: TextStyle(fontSize: 34))),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const GameText('Новые монеты',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: FinniColors.gold)),
+                      GameText('$coins',
+                          style: const TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w900,
+                              color: FinniColors.honeyInk,
+                              height: 1.1)),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          for (final d in PlanDirection.values)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  Icon(_labels[d]!.$2, color: FinniColors.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: GameText(_labels[d]!.$1,
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
-                  ),
-                  IconButton(
-                    tooltip: 'Меньше: ${_labels[d]!.$1}',
-                    onPressed: parts[d]! > 0 ? () => _change(d, -1) : null,
-                    icon: const Icon(Icons.remove_circle_outline_rounded),
-                  ),
-                  SizedBox(
-                    width: 40,
-                    child: GameText('${parts[d]}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w900)),
-                  ),
-                  IconButton(
-                    tooltip: 'Больше: ${_labels[d]!.$1}',
-                    onPressed: left > 0 ? () => _change(d, 1) : null,
-                    icon: const Icon(Icons.add_circle_outline_rounded),
-                  ),
-                ],
-              ),
+              ],
             ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final d in PlanDirection.values)
-                ActionChip(
-                  label: GameText('Всё: ${_labels[d]!.$1.toLowerCase()}'),
-                  onPressed: () => _all(d),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          GameText(
-            left > 0
-                ? 'Осталось разложить: $left ${ruCoins(left)}'
-                : 'Всё разложено!',
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 10),
-          FilledButton.icon(
-            onPressed: used > 0
-                ? () {
-                    final added = used;
-                    if (widget.state.planEarned(parts)) {
-                      setState(() {
-                        for (final key in parts.keys) {
-                          parts[key] = 0;
-                        }
-                      });
-                      widget.onDone(
-                          'Добавили в план ещё $added ${ruCoins(added)}.');
-                    }
-                  }
-                : null,
-            icon: const Icon(Icons.check_circle_outline_rounded),
-            label: const GameText('Добавить в план'),
-          ),
-        ],
+            const SizedBox(height: 6),
+            const GameText(
+              'Ты заработал их после плана. Отложи в копилку — или они сами добавятся к плану завтра утром.',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: FinniColors.honeyInk),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: FinniColors.purple,
+                foregroundColor: FinniColors.paper,
+                minimumSize: const Size.fromHeight(52),
+              ),
+              onPressed: () {
+                if (state.savePocket()) {
+                  Celebration.show(context, motion: state.motion, emoji: '🐷');
+                  onDone(
+                      'Отложили $coins ${ruCoins(coins)} в копилку. Мечта ближе!');
+                } else {
+                  onDone(
+                      'Сначала выбери мечту — нажми на неё на главном экране.');
+                }
+              },
+              icon: const Icon(Icons.savings_outlined),
+              label: GameText('В копилку $coins'),
+            ),
+            const SizedBox(height: 8),
+            GameText(
+              '📅 Если не трогать — завтра утром +$coins к плану',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: FinniColors.gold),
+            ),
+          ],
+        ),
       ),
     );
   }

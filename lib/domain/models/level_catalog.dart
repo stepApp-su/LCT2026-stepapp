@@ -74,15 +74,29 @@ final class LevelTexts {
 }
 
 final class DailyRules {
-  const DailyRules._({required this.coins, required this.perfectBonus});
+  const DailyRules._(
+      {required this.coins, required this.perfectBonus, required this.slowCoins});
 
-  factory DailyRules.fromJson(Map<String, Object?> json) => DailyRules._(
-        coins: jsonInt(json['coins'], 'daily.coins', min: 1),
-        perfectBonus: jsonInt(json['perfectBonus'] ?? 0, 'daily.perfectBonus', min: 0),
-      );
+  factory DailyRules.fromJson(Map<String, Object?> json) {
+    final coins = jsonInt(json['coins'], 'daily.coins', min: 1);
+    return DailyRules._(
+      coins: coins,
+      perfectBonus:
+          jsonInt(json['perfectBonus'] ?? 0, 'daily.perfectBonus', min: 0),
+      slowCoins: jsonInt(json['slowCoins'] ?? coins, 'daily.slowCoins', min: 0),
+    );
+  }
 
   final int coins;
   final int perfectBonus;
+  final int slowCoins;
+
+  int forStars(int stars) => switch (stars) {
+        >= 3 => coins + perfectBonus,
+        2 => coins,
+        1 => slowCoins,
+        _ => 0,
+      };
 }
 
 final class LevelCatalog {

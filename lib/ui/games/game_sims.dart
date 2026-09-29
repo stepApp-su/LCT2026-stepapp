@@ -1128,6 +1128,10 @@ class _PriceTagGameState extends State<PriceTagGame> {
   final List<String> chosen = [];
   String? pick;
   bool submitted = false;
+  final Map<int, List<PriceOffer>> _offers = {};
+
+  List<PriceOffer> _offersOf(int round) =>
+      _offers[round] ??= mixed(payload.rounds[round].offers);
 
   PriceTagPayload get payload => widget.payload;
   BoardContext get board => widget.board;
@@ -1225,7 +1229,7 @@ class _PriceTagGameState extends State<PriceTagGame> {
             spacing: 10,
             runSpacing: 14,
             children: [
-              for (final (i, offer) in round.offers.indexed)
+              for (final (i, offer) in _offersOf(index).indexed)
                 SizedBox(
                   width: width,
                   child: PopIn(

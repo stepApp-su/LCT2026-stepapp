@@ -49,7 +49,7 @@ final class PlanService {
   /// Возвращает (применилось ли, текущий остаток).
   (bool applied, int remainder) setAmount(PlanDirection direction, int value) {
     if (_confirmed) throw StateError('план уже подтверждён');
-    if (value < 0 || value % step != 0) return (false, _plan.remainder);
+    if (value < 0) return (false, _plan.remainder);
 
     final next = switch (direction) {
       PlanDirection.mandatory => (
@@ -68,7 +68,10 @@ final class PlanService {
           s: value,
         ),
     };
-    if (next.m + next.o + next.s > _plan.income) {
+    final total = next.m + next.o + next.s;
+    if (total > _plan.income) return (false, _plan.remainder);
+    // Некратный шаг — только чтобы разложить последние монеты дохода.
+    if (value % step != 0 && total != _plan.income) {
       return (false, _plan.remainder);
     }
     _plan = BudgetPlan.create(
@@ -81,12 +84,19 @@ final class PlanService {
   }
 
   /// Прибавить шаг к направлению (кнопка «+»).
-  (bool applied, int remainder) increase(PlanDirection d) =>
-      setAmount(d, _amountOf(d) + step);
+  /// Когда осталось меньше шага, добавляет остаток целиком.
+  (bool applied, int remainder) increase(PlanDirection d) {
+    final left = _plan.remainder;
+    if (left <= 0) return (false, left);
+    return setAmount(d, _amountOf(d) + (left < step ? left : step));
+  }
 
-  /// Убавить шаг (кнопка «−»).
-  (bool applied, int remainder) decrease(PlanDirection d) =>
-      setAmount(d, _amountOf(d) - step);
+  /// Убавить шаг (кнопка «−»); некратная сумма сначала округляется вниз.
+  (bool applied, int remainder) decrease(PlanDirection d) {
+    final amount = _amountOf(d);
+    final cut = amount % step == 0 ? step : amount % step;
+    return setAmount(d, amount - cut);
+  }
 
   int _amountOf(PlanDirection d) => switch (d) {
         PlanDirection.mandatory => _plan.mandatory,

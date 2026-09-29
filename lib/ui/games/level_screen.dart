@@ -11,6 +11,7 @@ import '../widgets/coach.dart';
 import '../widgets/emoji_art.dart';
 import '../widgets/finni_ui.dart';
 import '../widgets/moni_scene.dart';
+import '../widgets/party.dart';
 import 'game_screen.dart';
 
 String ruGames(int n) => ruPlural(n, 'игра', 'игры', 'игр');
@@ -227,6 +228,21 @@ class _LevelScreenState extends State<LevelScreen> {
     s.markCoachSeen([tour.id, ...tour.covers]);
   }
 
+  Future<void> _improve(int index) async {
+    final record = s.todayLevel;
+    if (record == null || !s.canImprove(index)) return;
+    await Navigator.of(context).push<GameReward>(MaterialPageRoute(
+      settings: RouteSettings(name: 'improve:${record.taskIds[index]}'),
+      builder: (_) => GameScreen(
+          state: s,
+          taskId: record.taskIds[index],
+          mode: GameMode.improve,
+          slot: index),
+    ));
+    if (!mounted) return;
+    setState(() => result = s.todayLevel);
+  }
+
   Future<void> _play() async {
     final slot = s.levelRun?.current;
     if (slot == null) return;
@@ -239,9 +255,26 @@ class _LevelScreenState extends State<LevelScreen> {
     setState(() {
       if (s.levelRun == null) result = s.todayLevel;
     });
-    if (result != null) {
-      Celebration.show(context,
-          motion: s.motion, emoji: '💰', text: 'Всего +${result!.coins}');
+    final done = result;
+    if (done != null) {
+      final all = done.stars.length * 3;
+      final got = done.totalStars;
+      final stars = got >= all ? 3 : (got * 3 >= all * 2 ? 2 : 1);
+      await showParty(context,
+          state: s,
+          party: Party(
+            kind: PartyKind.level,
+            kicker: 'Уровень ${done.number} пройден',
+            title: stars == 3
+                ? 'Все звёзды!'
+                : stars == 2
+                    ? 'Отлично!'
+                    : 'Уровень твой!',
+            text: 'Монеты в кармашке «Новые монеты».',
+            coins: done.coins,
+            stars: stars,
+            button: 'Дальше',
+          ));
     }
   }
 
@@ -285,7 +318,7 @@ class _LevelScreenState extends State<LevelScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: done != null
-                ? _Result(state: s, record: done)
+                ? _Result(state: s, record: done, onImprove: _improve)
                 : run == null
                     ? const SizedBox.shrink()
                     : _Path(state: s, run: run, onPlay: _play),
@@ -336,7 +369,7 @@ class _Path extends StatelessWidget {
                       Positioned.fill(
                         child: CustomPaint(
                           painter:
-                              _TrailPainter(centers: centers, done: run.done),
+                              _TrailPainter(centers: centers, done: run.played),
                         ),
                       ),
                       for (final (i, slot) in run.slots.indexed)
@@ -352,8 +385,8 @@ class _Path extends StatelessWidget {
                               slot: slot,
                               index: i,
                               stars: i < run.stars.length ? run.stars[i] : null,
-                              isCurrent: i == run.done,
-                              onTap: i == run.done ? onPlay : null,
+                              isCurrent: i == run.currentIndex,
+                              onTap: i == run.currentIndex ? onPlay : null,
                             ),
                           ),
                         ),
@@ -364,7 +397,7 @@ class _Path extends StatelessWidget {
               const SoftNotice(
                 icon: Icons.favorite_border_rounded,
                 text:
-                    'Пробовать можно сколько угодно: зарплата за уровень не уменьшается. Звёзды — за то, как ты думал.',
+                    'Звезда = монета: без ошибок 3, с одной ошибкой 2, дальше 1. Трудную игру можно отложить и вернуться к ней после остальных.',
                 color: FinniColors.lavender,
               ),
             ],
@@ -445,7 +478,7 @@ class _Header extends StatelessWidget {
                 Row(
                   children: [
                     const GameText('✉️ ', style: TextStyle(fontSize: 20)),
-                    CoinAmount(run.coins, prefix: '+', size: 20),
+                    CoinAmount(run.coins, prefix: 'до +', size: 20),
                     const Spacer(),
                     _Dots(total: games, done: run.done),
                   ],
@@ -479,8 +512,9 @@ class _Node extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final task = state.content.tasks.byId(slot.taskId)!;
-    final done = stars != null;
-    final waiting = !done && !isCurrent;
+    final skipped = stars == 0;
+    final done = stars != null && !skipped;
+    final waiting = !done && !isCurrent && !skipped;
     Widget circle = Container(
       width: 76,
       height: 76,
@@ -490,7 +524,9 @@ class _Node extends StatelessWidget {
             ? FinniColors.mint
             : isCurrent
                 ? FinniColors.honey
-                : FinniColors.paper,
+                : skipped
+                    ? FinniColors.peach
+                    : FinniColors.paper,
         border: Border.all(
           color: isCurrent ? FinniColors.gold : FinniColors.line,
           width: isCurrent ? 3 : 2,
@@ -511,7 +547,7 @@ class _Node extends StatelessWidget {
     return Semantics(
       button: onTap != null,
       label:
-          'Игра ${index + 1}: ${task.title}${done ? '. Звёзд: $stars' : isCurrent ? '. Сейчас' : ''}',
+          'Игра ${index + 1}: ${task.title}${done ? '. Звёзд: $stars' : skipped ? '. Отложена, вернись позже' : ''}${isCurrent ? '. Сейчас' : ''}',
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -558,6 +594,12 @@ class _Node extends StatelessWidget {
                     color: waiting ? FinniColors.muted : FinniColors.ink)),
             if (done)
               StarRow(stars: stars!, size: 16)
+            else if (skipped)
+              const GameText('ждёт тебя',
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: FinniColors.alert,
+                      fontWeight: FontWeight.w800))
             else if (slot.isHard)
               const GameText('🔥 посложнее',
                   style: TextStyle(
@@ -572,10 +614,12 @@ class _Node extends StatelessWidget {
 }
 
 class _Result extends StatelessWidget {
-  const _Result({required this.state, required this.record});
+  const _Result(
+      {required this.state, required this.record, required this.onImprove});
 
   final GameController state;
   final LevelRecord record;
+  final ValueChanged<int> onImprove;
 
   @override
   Widget build(BuildContext context) {
@@ -605,10 +649,46 @@ class _Result extends StatelessWidget {
         GameText(
           record.totalStars == all
               ? 'Все звёзды! Ты думал очень внимательно.'
-              : 'Звёзды показывают, как ты думал. Монеты — за каждую пройденную игру.',
+              : 'Звезда = монета. Игры, где меньше трёх звёзд, можно улучшить до конца дня.',
           textAlign: TextAlign.center,
           style: const TextStyle(color: FinniColors.muted),
         ),
+        for (var i = 0; i < record.stars.length; i++)
+          if (state.canImprove(i))
+            if (state.content.tasks.byId(record.taskIds[i]) case final task?)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: FinniCard(
+                  color: FinniColors.paper,
+                  padding: 12,
+                  child: Row(children: [
+                    EmojiBadge(task.iconId,
+                        size: 40, color: FinniColors.transparent),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GameText(task.title,
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w800)),
+                            StarRow(stars: record.stars[i], size: 16),
+                            GameText(
+                                'Ещё до +${levelPay(record.shareOf(i), 3) - levelPay(record.shareOf(i), record.stars[i])} ${ruCoins(levelPay(record.shareOf(i), 3) - levelPay(record.shareOf(i), record.stars[i]))}',
+                                style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: FinniColors.gold)),
+                          ]),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: () => onImprove(i),
+                      icon: const Icon(Icons.star_rounded),
+                      label: const GameText('Улучшить'),
+                    ),
+                  ]),
+                ),
+              ),
         const SizedBox(height: 20),
         PopIn(
           motion: state.motion,
@@ -625,7 +705,8 @@ class _Result extends StatelessWidget {
                 const SizedBox(height: 8),
                 CoinAmount(record.coins, prefix: '+', size: 32),
                 const SizedBox(height: 8),
-                const GameText('Все монеты уже в кошельке. Куда их направим?',
+                const GameText(
+                    'Монеты в кармашке «Новые монеты». Отложишь в копилку или оставишь на завтра?',
                     textAlign: TextAlign.center),
               ],
             ),
@@ -649,12 +730,14 @@ class _Result extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 20),
-        FilledButton.icon(
-          onPressed: () => Navigator.pop(context, true),
-          icon: const Icon(Icons.pie_chart_outline_rounded),
-          label: const GameText('Распределить монеты'),
-        ),
-        const SizedBox(height: 8),
+        if (state.pocket > 0) ...[
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.savings_outlined),
+            label: GameText('В копилку ${state.pocket}'),
+          ),
+          const SizedBox(height: 8),
+        ],
         OutlinedButton(
           onPressed: () => Navigator.pop(context, false),
           child: const GameText('На главную'),

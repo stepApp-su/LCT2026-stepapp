@@ -23,14 +23,15 @@ String _stageName(GameController s, PetStage stage) =>
         .toLowerCase();
 
 Widget _lockTag(GameController s, ShopItem item) =>
-    item.minStage.index > s.stage.index
+    s.itemLocked(item)
         ? TagChip('🔒 ${_stageName(s, item.minStage)}')
         : TagChip('🪙 ${item.price}', tone: TagTone.blue);
 
 class _RoomPage extends StatefulWidget {
-  const _RoomPage({required this.shell, required this.tab});
+  const _RoomPage({required this.shell, required this.tab, this.tryId});
   final _GameShellState shell;
   final int tab;
+  final String? tryId;
   @override
   State<_RoomPage> createState() => _RoomPageState();
 }
@@ -44,9 +45,40 @@ class _RoomPageState extends State<_RoomPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) s.markThingsSeen();
+      if (!mounted) return;
+      s.markThingsSeen();
+      final item = widget.tryId == null ? null : s.content.shop.byId(widget.tryId!);
+      if (item != null) unawaited(_try(item));
     });
   }
+
+  @override
+  void dispose() {
+    final state = s;
+    if (state.trying != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => state.tryOn(null));
+    }
+    super.dispose();
+  }
+
+  Future<void> _try(ShopItem item) async {
+    if (!s.canBuyNow(item)) {
+      widget.shell.toast(s.itemLocked(item)
+          ? 'Откроется, когда ${s.petName} станет: ${_stageName(s, item.minStage)}.'
+          : 'Эту вещь пока нельзя купить.');
+      return;
+    }
+    final state = s;
+    state.tryOn(item);
+    await widget.shell.purchase(item, trying: true);
+    state.keepTried(item);
+    state.tryOn(null);
+  }
+
+  VoidCallback _tryTap(BuildContext sheet, ShopItem item) => () {
+        Navigator.of(sheet).pop();
+        unawaited(_try(item));
+      };
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -126,7 +158,7 @@ class _RoomPageState extends State<_RoomPage> {
           for (final (state, label) in [
             (_SpotState.full, wardrobe ? 'надето' : 'стоит'),
             (_SpotState.open, wardrobe ? 'можно надеть' : 'можно поставить'),
-            (_SpotState.locked, 'пока нет вещей'),
+            (_SpotState.locked, 'можно примерить'),
           ])
             Row(mainAxisSize: MainAxisSize.min, children: [
               _SpotBubble(state: state, size: 18),
@@ -163,7 +195,7 @@ class _RoomPageState extends State<_RoomPage> {
                     appearance: s.appearance,
                     stage: s.stage,
                     motion: s.motion,
-                    outfit: s.outfit),
+                    outfit: s.wornOutfit),
               ),
             ),
             for (final (i, (slot, label, emoji)) in _slots.indexed)
@@ -184,16 +216,15 @@ class _RoomPageState extends State<_RoomPage> {
         : owned
             ? _SpotState.open
             : _SpotState.locked;
+    final any = _slotItems(slot).isNotEmpty;
     return Semantics(
-      button: state != _SpotState.locked,
+      button: any,
       label:
-          '$label: ${worn == null ? (owned ? 'можно надеть' : 'пока нет вещей') : s.content.shop.byId(worn)?.title ?? ''}',
+          '$label: ${worn == null ? (owned ? 'можно надеть' : 'можно примерить') : s.content.shop.byId(worn)?.title ?? ''}',
       excludeSemantics: true,
       child: Squish(
-        enabled: state != _SpotState.locked,
-        onTap: state == _SpotState.locked
-            ? null
-            : () => _chooseFor(slot, label, emoji),
+        enabled: any,
+        onTap: any ? () => _chooseFor(slot, label, emoji) : null,
         child: _SpotBubble(
           state: state,
           size: size,
@@ -228,6 +259,7 @@ class _RoomPageState extends State<_RoomPage> {
                         art: RoomArt(item.id, size: 52),
                         title: item.title,
                         tag: _lockTag(s, item),
+                        onTap: _tryTap(context, item),
                       ),
                   if (worn != null)
                     _ThingTile(
@@ -293,16 +325,16 @@ class _RoomPageState extends State<_RoomPage> {
       left: rect.center.dx - size / 2,
       top: rect.center.dy - size / 2,
       child: Semantics(
-        button: state != _SpotState.locked,
+        button: names.isNotEmpty,
         label: item != null
             ? 'Стоит: ${item.title}'
             : state == _SpotState.open
                 ? 'Можно поставить: $names'
-                : 'Пока нечего поставить: $names',
+                : 'Можно примерить: $names',
         excludeSemantics: true,
         child: Squish(
-          enabled: state != _SpotState.locked,
-          onTap: state == _SpotState.locked ? null : () => _chooseForSpot(spot),
+          enabled: names.isNotEmpty,
+          onTap: names.isEmpty ? null : () => _chooseForSpot(spot),
           child: _SpotBubble(
             state: state,
             size: size,
@@ -341,6 +373,7 @@ class _RoomPageState extends State<_RoomPage> {
                   art: RoomArt(item.id, size: 52),
                   title: item.title,
                   tag: _lockTag(s, item),
+                  onTap: _tryTap(context, item),
                 ),
           ]);
         },
@@ -368,7 +401,7 @@ class _RoomPageState extends State<_RoomPage> {
               tag: s.owned.contains(item.id) ? null : _lockTag(s, item),
               onTap: s.owned.contains(item.id)
                   ? () => s.applyWallpaper(item.id)
-                  : null,
+                  : _tryTap(context, item),
             ),
         ]),
       ),
@@ -594,13 +627,19 @@ class _DiaryPageState extends State<_DiaryPage> {
     '🐷 Копилка'
   ];
 
-  bool _shown(Transaction t) => switch (filter) {
-        1 => t.type == TransactionType.income,
-        2 => t.type == TransactionType.expense,
-        3 => t.type == TransactionType.toSavings ||
-            t.type == TransactionType.fromSavings,
-        _ => true,
-      };
+  static bool _dream(Transaction t) => t.sourceId.startsWith('goal:');
+
+  bool _shown(Transaction t) {
+    if (t.type == TransactionType.fromSavings && _dream(t)) return false;
+    return switch (filter) {
+      1 => t.type == TransactionType.income,
+      2 => t.type == TransactionType.expense,
+      3 => t.type == TransactionType.toSavings ||
+          t.type == TransactionType.fromSavings ||
+          _dream(t),
+      _ => true,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -609,7 +648,7 @@ class _DiaryPageState extends State<_DiaryPage> {
         if (t.dayNumber == day) t
     ];
     int total(TransactionType type) => all
-        .where((t) => t.type == type)
+        .where((t) => t.type == type && !_dream(t))
         .fold(0, (sum, t) => sum + t.amount);
     final saved = total(TransactionType.toSavings) -
         all
@@ -832,6 +871,11 @@ class _DiaryRow extends StatelessWidget {
             : null;
     final (sign, ink, tint) = switch (t.type) {
       TransactionType.income => ('+', FinniColors.primary, FinniColors.mint),
+      TransactionType.expense when source.startsWith('goal:') => (
+          '🐷 −',
+          FinniColors.purple,
+          FinniColors.lavender
+        ),
       TransactionType.expense => ('−', FinniColors.alert, FinniColors.peach),
       TransactionType.toSavings => (
           '🐷 ',
@@ -1981,6 +2025,13 @@ class _AdultView extends StatelessWidget {
                   subtitle: const GameText('Меньше карточек и чисел в играх'),
                   value: s.simpleMode,
                   onChanged: s.setSimple),
+              SwitchListTile(
+                  title: const GameText('Демо-режим',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: const GameText(
+                      'Все игры, покупки и мечты открыты сразу'),
+                  value: s.demoMode,
+                  onChanged: s.setDemo),
             ]),
           ),
           const SizedBox(height: 16),

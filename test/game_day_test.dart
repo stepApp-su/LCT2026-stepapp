@@ -98,31 +98,130 @@ void main() {
     });
   });
 
-  test('заработанное за день раскладывается по плану и попадает в итоги',
-      () async {
+  void planDay(GameController state, int mandatory, int optional, int savings) {
+    for (final (d, v) in [
+      (PlanDirection.mandatory, mandatory),
+      (PlanDirection.optional, optional),
+      (PlanDirection.savings, savings),
+    ]) {
+      for (var i = 0; i < v ~/ 5; i++) {
+        state.changePlan(d, 5);
+      }
+    }
+    state.confirmPlan();
+  }
+
+  test('заработанное падает в кармашек и не меняет утренний план', () async {
     final state = fresh();
+    planDay(state, 25, 10, 5);
+    for (final need in content.economy.pet.needs) {
+      expect(state.buyNow(need.itemId), isA<PurchaseDone>());
+    }
+    expect(state.saveByPlan(), isTrue);
     expect(state.earnedToday, 0);
+    expect(state.pocket, 0);
     playLevel(state);
     final earned = state.earnedToday;
     expect(earned, state.todayLevel!.coins);
-    expect(state.extraPending, earned);
-    expect(state.planEarned({PlanDirection.savings: earned + 1}), isFalse);
-    expect(
-        state.planEarned({
-          PlanDirection.savings: earned - 1,
-          PlanDirection.optional: 1,
-        }),
-        isTrue);
-    expect(state.extraPending, 0);
-    expect(state.fullPlan.savings, state.plan.plan.savings + earned - 1);
-    expect(state.fullPlan.income, state.plan.plan.income + earned);
-    expect(state.planFactRows.last.$2, state.fullPlan.savings);
+    expect(state.pocket, earned);
+    expect(state.plan.plan.income, 40);
+    expect(state.freeBalance, state.wallet.wallet.balance - earned);
+    expect(state.bedtimeTodos, isNot(contains(BedtimeTodo.plan)));
+
+    final ball = content.shop.byId('bouncy_ball')!;
+    expect(ball.price, greaterThan(state.freeBalance));
+    final refused = state.askToBuy(ball.id);
+    expect(refused, isA<PurchaseRefused>());
+    expect((refused as PurchaseRefused).textRu, state.pocketRefusal);
+    expect(state.pocket, earned);
+
+    expect(state.savePocket(), isTrue);
+    expect(state.pocket, 0);
+    expect(state.planFactRows.last.$3, 5);
+    expect(state.dayFacts.deposited, 5);
     await state.flush();
     final restored = GameController(config,
         content: content, saved: await state.repository.load());
-    expect(restored.planExtra[PlanDirection.savings], earned - 1);
-    nextDay(restored);
-    expect(restored.extraPlanned, 0);
+    expect(restored.pocketSaved, earned);
+    expect(restored.pocket, 0);
+    final left = restored.wallet.wallet.balance;
+    expect(restored.closeDay(restored.day), isTrue);
+    final pocket = (restored.celebration!['pocket'] as Map).cast<String, Object?>();
+    expect(pocket, {'earned': earned, 'saved': earned, 'needs': 0, 'carry': 0});
+    restored.acknowledgeCelebration();
+    expect(restored.carried, left);
+    expect(restored.plan.plan.income, 40 + left);
+    expect(restored.pocketSaved, 0);
+  });
+
+  test('голодным лёг спать — ночью не растёт и просыпается грустнее', () {
+    final state = fresh();
+    planDay(state, 25, 10, 5);
+    for (final need in content.economy.pet.needs) {
+      expect(state.buyNow(need.itemId), isA<PurchaseDone>());
+    }
+    expect(state.saveByPlan(), isTrue);
+    expect(state.veryHungry, isFalse);
+    state.stats = PetState.create(satiety: 20, care: 80, mood: 80, cozy: 10);
+    expect(state.veryHungry, isTrue);
+    expect(state.hungerText, isNotEmpty);
+    final before = state.progress.growthPoints;
+    expect(state.closeDay(state.day), isTrue);
+    expect(state.celebration!['points'], 0);
+    expect(state.progress.growthPoints, before);
+    expect('${state.celebration!['hungry']}', contains(state.petName));
+    expect(state.stats.mood, lessThan(75));
+  });
+
+  test('сытый питомец растёт как обычно', () {
+    final state = fresh();
+    planDay(state, 25, 10, 5);
+    for (final need in content.economy.pet.needs) {
+      expect(state.buyNow(need.itemId), isA<PurchaseDone>());
+    }
+    expect(state.saveByPlan(), isTrue);
+    expect(state.veryHungry, isFalse);
+    expect(state.closeDay(state.day), isTrue);
+    expect(state.celebration!['points'] as int, greaterThan(0));
+    expect(state.celebration!.containsKey('hungry'), isFalse);
+  });
+
+  test('план нового дня — это все монеты в кошельке, вместе с кармашком',
+      () async {
+    final state = fresh();
+    planDay(state, 25, 10, 5);
+    playLevel(state);
+    final earned = state.earnedToday;
+    expect(earned, greaterThan(0));
+    final left = state.wallet.wallet.balance;
+    expect(left, 40 + earned);
+    nextDay(state);
+    expect(state.carried, left);
+    expect(state.plan.plan.income, 40 + left);
+    expect(state.plan.plan.income, state.wallet.wallet.balance);
+    expect(state.pocket, 0);
+    expect(state.earnedToday, 0);
+    await state.flush();
+    final restored = GameController(config,
+        content: content, saved: await state.repository.load());
+    expect(restored.plan.plan.income, 40 + left);
+    expect(restored.carried, left);
+  });
+
+  test('на нужное кармашек доплачивает, и план остаётся честным', () {
+    final state = fresh();
+    planDay(state, 10, 25, 5);
+    playLevel(state);
+    final earned = state.earnedToday;
+    final food = content.shop.byId('food')!;
+    final gap = food.price - 10;
+    expect(state.pocketForNeed(food), gap < earned ? gap : earned);
+    final fromPocket = state.pocketForNeed(food);
+    expect(state.buyNow(food.id), isA<PurchaseDone>());
+    expect(state.pocketNeeds, fromPocket);
+    expect(state.pocket, earned - fromPocket);
+    expect(state.planFactRows.first.$3, food.price - fromPocket);
+    expect(state.dayFacts.spentMandatory, food.price - fromPocket);
   });
 
   test('итоги дня сохраняются в дневнике', () async {
@@ -166,6 +265,109 @@ void main() {
     expect(task.variantCount, greaterThan(2));
   });
 
+  test('на уровнях вариант игры не повторяется подряд', () {
+    final state = fresh();
+    for (final task in content.tasks.tasks) {
+      for (final level in TaskDifficulty.values) {
+        final count = task.variantsIn(TaskPool.level, level).length;
+        expect(count, greaterThanOrEqualTo(3), reason: task.id);
+        int? last;
+        for (var i = 0; i < count * 2; i++) {
+          final at = state.nextIndex(task, level, TaskPool.level);
+          expect(at, isNot(last), reason: '${task.id}/${level.name}/$i');
+          final session =
+              state.tasks.start(task.id, level, index: at, pool: TaskPool.level);
+          session.submit(rightAnswer(session.variant));
+          state.finishGame(session);
+          last = at;
+        }
+      }
+    }
+  });
+
+  test('примерка показывает вещь, но ничего не покупает и не сохраняет', () {
+    final state = fresh();
+    final wallpaper = content.shop.items.firstWhere(
+        (i) => i.kind == ShopItemKind.wallpaper && i.price > 0);
+    final before = state.wallpaperId;
+    final balance = state.wallet.wallet.balance;
+    state.tryOn(wallpaper);
+    expect(state.wallpaperId, wallpaper.id);
+    expect(state.snapshot()['wallpaper'], isNot(wallpaper.id));
+    state.tryOn(null);
+    expect(state.wallpaperId, before);
+    final bow = content.shop.byId('bow')!;
+    state.tryOn(bow);
+    expect(state.wornOutfit[bow.slot], bow.id);
+    expect(state.outfit.containsKey(bow.slot), isFalse);
+    state.tryOn(null);
+    expect(state.wornOutfit, state.outfit);
+    expect(state.wallet.wallet.balance, balance);
+    expect(state.owned, isNot(contains(bow.id)));
+  });
+
+  TaskAnswer wrongSort(TaskVariant variant) {
+    final payload = variant.payload as SortPayload;
+    return SortAnswer({
+      for (final card in payload.cards)
+        card.id: payload.bins.firstWhere((bin) => bin != card.bin),
+    });
+  }
+
+  test('звезда = монета, отложенная игра ждёт, улучшение доплачивает разницу',
+      () {
+    final state = fresh();
+    planDay(state, 25, 10, 5);
+    final run = state.startLevel()!;
+    expect(run.slots.first.taskId, 'payments_sort_needs');
+    final before = state.earnedToday;
+
+    final first = state.startLevelGame();
+    first.submit(wrongSort(first.variant));
+    final skipped = state.finishLevelGame(first);
+    expect(skipped.reward.coins, 0);
+    expect(skipped.reward.stars, 0);
+    expect(state.earnedToday, before);
+    expect(state.levelRun!.isWaiting(0), isTrue);
+    expect(state.levelRun!.currentIndex, 1);
+    expect(state.tasks.isCompleted(first.task.id), isFalse);
+
+    while (state.levelRun!.currentIndex != 0) {
+      final session = state.startLevelGame();
+      session.submit(rightAnswer(session.variant));
+      expect(state.finishLevelGame(session).reward.stars, 3);
+    }
+    final again = state.startLevelGame();
+    expect(again.task.id, first.task.id);
+    expect(again.index, isNot(first.index));
+    again.submit(wrongSort(again.variant));
+    again.submit(rightAnswer(again.variant));
+    final step = state.finishLevelGame(again);
+    expect(step.reward.stars, 2);
+    expect(step.reward.coins, run.payFor(0, 2));
+    final record = step.finished!;
+    expect(record.coins, run.coins - run.payFor(0, 3) + run.payFor(0, 2));
+    expect(state.earnedToday - before, record.coins);
+
+    expect(state.canImprove(0), isTrue);
+    final better = state.startImprove(0);
+    better.submit(rightAnswer(better.variant));
+    final gain = state.finishImprove(0, better);
+    expect(gain.coins, run.payFor(0, 3) - run.payFor(0, 2));
+    expect(state.todayLevel!.stars.first, 3);
+    expect(state.todayLevel!.coins, run.coins);
+    expect(state.canImprove(0), isFalse);
+    expect(state.earnedToday - before, run.coins);
+  });
+
+  test('задание дня: чем точнее, тем больше монет, сдался — ноль', () {
+    final rules = content.levels.daily;
+    expect(rules.forStars(3), 12);
+    expect(rules.forStars(2), 8);
+    expect(rules.forStars(1), 5);
+    expect(rules.forStars(0), 0);
+  });
+
   test('каждый день начинается с плана', () {
     final state = fresh();
     expect(state.needsPlan, isTrue);
@@ -201,14 +403,12 @@ void main() {
     }
     expect(state.bedtimeReminder, isNull);
     playLevel(state);
-    expect(state.bedtimeTodos, contains(BedtimeTodo.plan));
-    state.planEarned({PlanDirection.savings: state.extraPending});
     expect(state.bedtimeTodos, [BedtimeTodo.task]);
     state.startDaily();
     final daily = state.startDailyGame();
     daily.submit(rightAnswer(daily.variant));
     state.finishDaily(daily);
-    state.planEarned({PlanDirection.savings: state.extraPending});
+    expect(state.pocket, greaterThan(0));
     expect(state.bedtimeReady, isTrue);
     expect(state.bedtimeHint, content.economy.bedtime.ready);
   });
@@ -304,5 +504,30 @@ void main() {
     final swipe = content.events.byId('safe_secrets')!;
     expect(swipe.optionForScore(swipe.show.cards.length).id, 'great');
     expect(swipe.optionForScore(0).id, 'ok');
+  });
+
+  test('демо-режим открывает все игры, товары и мечты и сохраняется', () async {
+    final state = fresh();
+    bool allGames(GameController s) =>
+        content.tasks.tasks.every((t) => s.isGameUnlocked(t.id));
+    final shelf = content.shop.items.where((i) => i.showInShop).length;
+    expect(allGames(state), isFalse);
+    expect(state.catalog.length, lessThan(shelf));
+    state.setDemo(true);
+    expect(allGames(state), isTrue);
+    expect(state.nextUnlock, isNull);
+    expect(state.catalog.length, shelf);
+    expect(state.content.shop.items.where(state.itemLocked), isEmpty);
+    expect(state.goals.available().length, content.goals.goals.length);
+    expect(state.dailyTask, isNotNull);
+    await state.flush();
+    final restored = GameController(config,
+        content: content, saved: await state.repository.load());
+    expect(restored.demoMode, isTrue);
+    expect(allGames(restored), isTrue);
+    expect(restored.catalog.length, shelf);
+    restored.setDemo(false);
+    expect(allGames(restored), isFalse);
+    expect(restored.catalog.length, lessThan(shelf));
   });
 }

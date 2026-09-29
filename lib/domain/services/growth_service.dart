@@ -79,7 +79,9 @@ final class GrowthService {
   int pointsFor(Set<GrowthFactor> factors) =>
       factors.fold(0, (sum, factor) => sum + rules.points[factor]!);
 
-  GrowthOutcome closeDay(PetProgress progress, DayFacts facts) {
+  /// [hungry] — питомец лёг спать голодным: день записан, но очков нет.
+  GrowthOutcome closeDay(PetProgress progress, DayFacts facts,
+      {bool hungry = false}) {
     for (final day in progress.growthDays) {
       if (day.dayNumber == facts.dayNumber) {
         return GrowthOutcome(
@@ -93,7 +95,7 @@ final class GrowthService {
     }
 
     final factors = factorsOf(facts);
-    final points = pointsFor(factors);
+    final points = hungry ? 0 : pointsFor(factors);
     final total = progress.growthPoints + points;
     final reached = rules.stageFor(total);
     final stage =

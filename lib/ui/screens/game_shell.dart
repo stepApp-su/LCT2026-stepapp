@@ -19,6 +19,7 @@ import '../widgets/emoji_art.dart';
 import '../widgets/finni_ui.dart';
 import '../widgets/moni_scene.dart';
 import '../widgets/name_picker.dart';
+import '../widgets/party.dart';
 import '../widgets/pet_celebration.dart';
 import '../widgets/room_view.dart';
 import '../widgets/story_art.dart';
@@ -63,6 +64,7 @@ class _GameShellState extends State<GameShell> {
     s.addListener(showCelebration);
     s.addListener(maybeCoach);
     s.addListener(showNews);
+    s.addListener(showMilestone);
     idleTimer = Timer.periodic(const Duration(seconds: 45), (_) {
       if (mounted && page == 0 && ModalRoute.of(context)?.isCurrent == true) {
         s.idle();
@@ -75,6 +77,7 @@ class _GameShellState extends State<GameShell> {
     s.removeListener(showCelebration);
     s.removeListener(maybeCoach);
     s.removeListener(showNews);
+    s.removeListener(showMilestone);
     idleTimer?.cancel();
     super.dispose();
   }
@@ -114,6 +117,50 @@ class _GameShellState extends State<GameShell> {
       final lines = s.news;
       s.clearNews();
       toast(lines.join('\n'));
+    });
+  }
+
+  bool milestoneQueued = false;
+
+  void showMilestone() {
+    if (!mounted || milestoneQueued || celebrating || s.celebration != null) {
+      return;
+    }
+    final event = s.milestone;
+    if (event == null) return;
+    milestoneQueued = true;
+    s.clearMilestone();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) {
+        milestoneQueued = false;
+        return;
+      }
+      final reached = event['reached'] == true;
+      final saved = event['saved'] as int;
+      final price = event['price'] as int;
+      final text = '${event['text']}';
+      final cut = text.indexOf('!');
+      await showParty(context,
+          state: s,
+          party: Party(
+            kind: PartyKind.milestone,
+            kicker: 'Копилка',
+            title: reached
+                ? 'Хватает на мечту!'
+                : cut > 0
+                    ? text.substring(0, cut + 1)
+                    : text,
+            text: reached
+                ? 'Теперь «${event['goal']}» можно забрать!'
+                : cut > 0 && cut + 1 < text.length
+                    ? text.substring(cut + 1).trim()
+                    : 'Мечта: ${event['goal']}.',
+            caption: '$saved из $price',
+            from: (event['from'] as int) / 100,
+            to: (event['to'] as int) / 100,
+            button: 'Здорово!',
+          ));
+      milestoneQueued = false;
     });
   }
 
@@ -158,8 +205,8 @@ class _GameShellState extends State<GameShell> {
         'planConfirmed': () => s.plan.isConfirmed,
         'needsPaid': () => s.unpaidNeeds.isEmpty,
         'wantBought': () => s.wantBought,
-        'wantsPlanned': () => s.fullPlan.optional > 0,
-        'noWants': () => s.fullPlan.optional <= 0,
+        'wantsPlanned': () => s.plan.plan.optional > 0,
+        'noWants': () => s.plan.plan.optional <= 0,
         'savedAll': () => s.savingsToDeposit <= 0,
         'onHome': () => page == 0,
         'nothingSaved': () => s.savedToday <= 0,
@@ -279,7 +326,7 @@ class _GameShellState extends State<GameShell> {
             0 =>
               'Каждый день начинается с плана: разложи монеты на обязательное, желаемое и копилку. Потом можно играть, покупать и копить. Нажми на питомца, чтобы погладить. Внизу — план, магазин, игры и другие разделы.',
             1 =>
-              'Сначала подумай, что нужно сегодня. Разложи монеты по трём направлениям. План — это твой выбор, а не списание денег. Потом трать по плану, а монеты для копилки отложи кнопкой «Отложить в копилку». Если заработаешь ещё монеты, здесь появится окошко, чтобы разложить и их.',
+              'Сначала подумай, что нужно сегодня. Разложи монеты по трём направлениям. План — это твой выбор, а не списание денег. Потом трать по плану, а монеты для копилки отложи кнопкой «Отложить в копилку». Всё, что заработаешь днём, попадёт в кармашек «Новые монеты»: его можно отложить в копилку или оставить на завтра.',
             2 =>
               'Обязательное — то, без чего никак. Желаемое — то, что радует. Сверху видно, сколько осталось по плану. Старайся в него укладываться: если потратишь на желаемое больше, в копилку попадёт меньше, и мечта отодвинется. Если монет не хватает, их можно взять из копилки — но только если очень нужно.',
             3 =>
@@ -607,6 +654,14 @@ class _GameShellState extends State<GameShell> {
                           .toList());
                 }),
               ),
+              if (s.veryHungry) ...[
+                const SizedBox(height: 12),
+                _HungryCard(state: s, onShop: () => go(2)),
+              ],
+              if (s.pocket > 0) ...[
+                const SizedBox(height: 12),
+                _PocketCard(state: s, onDone: toast),
+              ],
               const SizedBox(height: 12),
               HomeQuests(
                 state: s,
@@ -631,30 +686,37 @@ class _GameShellState extends State<GameShell> {
                   child: _Panel(
                       color: FinniColors.mint,
                       padding: 12,
-                      child: Row(children: [
-                        const Expanded(
-                            child: GameText('Доход дня',
-                                style: TextStyle(fontWeight: FontWeight.w700))),
-                        _Coins(s.plan.plan.income)
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Row(children: [
+                          const Expanded(
+                              child: GameText('Доход дня',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w700))),
+                          _Coins(s.plan.plan.income)
+                        ]),
+                        if (s.carried > 0 || s.paidBack > 0) ...[
+                          const SizedBox(height: 4),
+                          GameText(
+                            [
+                              '${s.content.economy.params.day.income} на день',
+                              if (s.carried > 0) '+${s.carried} осталось',
+                              if (s.paidBack > 0) '+${s.paidBack} вернули',
+                            ].join(' '),
+                            style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: FinniColors.muted),
+                          ),
+                        ],
                       ])),
                 ),
                 const SizedBox(height: 8),
                 CoachTarget(id: 'plan.needs', child: _NeedsToday(state: s)),
-                if (s.earnedToday > 0) ...[
-                  const SizedBox(height: 8),
-                  _Panel(
-                      color: FinniColors.honey.withValues(alpha: .5),
-                      padding: 12,
-                      child: Row(children: [
-                        const Expanded(
-                            child: GameText('Заработано сегодня',
-                                style: TextStyle(fontWeight: FontWeight.w700))),
-                        _Coins(s.earnedToday)
-                      ])),
-                ],
-                if (s.extraPending > 0) ...[
+                if (s.pocket > 0) ...[
                   const SizedBox(height: 12),
-                  _ExtraPlanner(state: s, onDone: toast),
+                  _PocketCard(state: s, onDone: toast),
                 ],
                 const SizedBox(height: 12),
                 const GameText('Каждый шаг — 5 монет.',
@@ -844,7 +906,7 @@ class _GameShellState extends State<GameShell> {
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
-                _Coins(s.wallet.wallet.balance),
+                _Coins(s.freeBalance),
               ],
             ),
           ),
@@ -854,6 +916,10 @@ class _GameShellState extends State<GameShell> {
         if (s.plan.isConfirmed) ...[
           const SizedBox(height: 12),
           CoachTarget(id: 'shop.plan', child: _PlanLeft(state: s)),
+        ],
+        if (s.pocket > 0) ...[
+          const SizedBox(height: 12),
+          _PocketCard(state: s, onDone: toast),
         ],
         const SizedBox(height: 20),
         CoachTarget(
@@ -985,7 +1051,9 @@ class _GameShellState extends State<GameShell> {
       icon = Icons.check_circle_outline_rounded;
       text = check.fits
           ? 'Это нужное. По плану на обязательное осталось ${check.left} ${ruCoins(check.left)}.'
-          : 'Это нужное — оно важнее всего. По плану на обязательное осталось ${check.left}, остальные ${check.gap} ${ruCoins(check.gap)} возьмём из других монет.';
+          : s.pocketForNeed(item) > 0
+              ? 'Это нужное — оно важнее всего. По плану на обязательное осталось ${check.left}, ещё ${s.pocketForNeed(item)} ${ruCoins(s.pocketForNeed(item))} возьмём из кармашка «Новые монеты»${check.gap > s.pocketForNeed(item) ? ', остальное — из других монет' : ''}.'
+              : 'Это нужное — оно важнее всего. По плану на обязательное осталось ${check.left}, остальные ${check.gap} ${ruCoins(check.gap)} возьмём из других монет.';
     } else if (check.fits) {
       icon = Icons.check_circle_outline_rounded;
       final after = check.left - check.price;
@@ -1063,12 +1131,12 @@ class _GameShellState extends State<GameShell> {
     );
   }
 
-  void purchase(ShopItem item) {
+  Future<void> purchase(ShopItem item, {bool trying = false}) async {
     if (requirePlan()) return;
     PurchaseOutcome outcome = s.askToBuy(item.id);
     WithdrawPreview? takeFromPiggy;
     final before = s.wallet.wallet.balance;
-    sheet(
+    await sheet(
       item.title,
       StatefulBuilder(
         builder: (context, update) {
@@ -1077,12 +1145,18 @@ class _GameShellState extends State<GameShell> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: PopIn(
-                  motion: s.motion,
-                  child: ItemArt(item.id, size: 150),
+              if (trying)
+                const _Notice(
+                    icon: Icons.visibility_outlined,
+                    text:
+                        'Примерка: так будет выглядеть. Если не купить, всё вернётся как было.')
+              else
+                Center(
+                  child: PopIn(
+                    motion: s.motion,
+                    child: ItemArt(item.id, size: 150),
+                  ),
                 ),
-              ),
               const SizedBox(height: 12),
               if (item.description.isNotEmpty)
                 GameText(item.description, textAlign: TextAlign.center),
@@ -1285,9 +1359,21 @@ class _GameShellState extends State<GameShell> {
                       icon: const Icon(Icons.shopping_bag_outlined),
                       label: GameText('Купить за ${item.price} монет'),
                     ),
+                    if (!trying && s.canTry(item) && !view.isOwned)
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          room(item.slot.isNotEmpty ? 0 : 1, item.id);
+                        },
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: GameText(item.slot.isNotEmpty
+                            ? 'Примерить на питомце'
+                            : 'Примерить в комнате'),
+                      ),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const GameText('Подумаю ещё'),
+                      child:
+                          GameText(trying ? 'Вернуть как было' : 'Подумаю ещё'),
                     ),
                   ],
               },

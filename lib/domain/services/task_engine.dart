@@ -165,9 +165,20 @@ final class TaskEngine {
         variantKey: task.keyIn(pool, difficulty, at));
   }
 
-  TaskCompletion _complete(TaskSession session) {
+  TaskCompletion _complete(TaskSession session, {bool solved = true}) {
     final task = session.task;
     final firstTime = !_completed.contains(task.id);
+    if (!solved) {
+      return TaskCompletion._(
+        taskId: task.id,
+        coins: 0,
+        firstTime: firstTime,
+        withMistakes: true,
+        attempts: session.attempts,
+        reasonText:
+            fillTemplate(rewards.reasonTemplate, {'taskTitle': task.title}),
+      );
+    }
     final withMistakes = session.mistakes > 0;
     final full = withMistakes ? task.reward.wrong : task.reward.correct;
     final coins = firstTime
@@ -679,7 +690,7 @@ final class TaskSession {
     if (_attempts == 0) {
       throw StateError('сначала нужна хотя бы одна попытка');
     }
-    return _completion = _engine._complete(this);
+    return _completion = _engine._complete(this, solved: false);
   }
 
   WalletOk collect(

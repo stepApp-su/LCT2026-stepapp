@@ -230,6 +230,7 @@ final class DayController {
       DayFacts.fromDay(closedDay, mandatoryItemIds: const [], mandatoryOptions: [
         for (final need in _economy.pet.needsOn(day, stage)) need.itemIds
       ]),
+      hungry: _economy.pet.isVeryHungry(profile.state),
     );
 
     final summary = _summaries.build(

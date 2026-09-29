@@ -238,6 +238,8 @@ final class GoalService {
   int _day;
   String? _selectedGoalId;
 
+  bool openAll = false;
+
   GoalCatalog get catalog => _catalog;
   GoalTexts get texts => _catalog.texts;
   int get dayNumber => _day;
@@ -273,14 +275,15 @@ final class GoalService {
   List<Goal> available() {
     final list = [
       for (final goal in _catalog.goals)
-        if (!_reached.contains(goal.id) && _reached.length >= goal.minGoalsReached)
+        if (!_reached.contains(goal.id) && isUnlocked(goal))
           goal.copyWith(saved: saved)
     ];
     list.sort((a, b) => a.price.compareTo(b.price));
     return List.unmodifiable(list);
   }
 
-  bool isUnlocked(Goal goal) => _reached.length >= goal.minGoalsReached;
+  bool isUnlocked(Goal goal) =>
+      openAll || _reached.length >= goal.minGoalsReached;
 
   void startDay(int dayNumber) => _day = dayNumber;
 

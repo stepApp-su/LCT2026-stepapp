@@ -182,13 +182,15 @@ void main() {
       expect(completion.coins, greaterThan(0));
     });
 
-    test('можно закончить после ошибки и всё равно получить монеты', () {
+    test('сдался после ошибки — монет нет, и задание не засчитано', () {
       final task = _catalog.byType(TaskType.basket).first;
-      final session = _engine().start(task.id, TaskDifficulty.easy);
+      final engine = _engine();
+      final session = engine.start(task.id, TaskDifficulty.easy);
       session.submit(const BasketAnswer({}));
       final completion = session.finish();
-      expect(completion.coins, task.reward.wrong);
+      expect(completion.coins, 0);
       expect(completion.withMistakes, isTrue);
+      expect(engine.isCompleted(task.id), isFalse);
       expect(session.isFinished, isTrue);
       expect(() => session.submit(const BasketAnswer({})), throwsStateError);
     });

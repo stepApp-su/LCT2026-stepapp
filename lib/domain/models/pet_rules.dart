@@ -349,6 +349,82 @@ final class PetTexts {
   final String dailyItem;
 }
 
+/// Сильный голод: вторая ступень после «хочется перекусить».
+/// Голодным лёг спать — ночью не растёт; проснулся голодным — грустнее.
+final class PetHunger {
+  const PetHunger._({
+    required this.atOrBelow,
+    required this.text,
+    required this.noGrowthText,
+    required this.nightAtOrBelow,
+    required this.nightEffects,
+    required this.nightReason,
+  });
+
+  factory PetHunger.create({
+    required int atOrBelow,
+    required String text,
+    required String noGrowthText,
+    required int nightAtOrBelow,
+    required List<StateEffect> nightEffects,
+    required String nightReason,
+  }) {
+    _requireText(text, 'hunger.text');
+    _requireText(noGrowthText, 'hunger.noGrowth');
+    if (atOrBelow < PetState.satietyFloor || atOrBelow >= PetState.cap) {
+      throw ArgumentError.value(atOrBelow, 'hunger.atOrBelow',
+          'порог между полом ${PetState.satietyFloor} и потолком');
+    }
+    if (nightAtOrBelow < PetState.satietyFloor ||
+        nightAtOrBelow >= PetState.cap) {
+      throw ArgumentError.value(nightAtOrBelow, 'hunger.night.atOrBelow',
+          'порог между полом ${PetState.satietyFloor} и потолком');
+    }
+    for (final effect in nightEffects) {
+      if (effect.delta == 0) {
+        throw ArgumentError.value(
+            effect.stat.name, 'hunger.night', 'изменение на 0');
+      }
+      if (effect.stat == PetStat.cozy && effect.delta < 0) {
+        throw ArgumentError.value(
+            effect.delta, 'hunger.night', 'уют только растёт');
+      }
+    }
+    if (nightEffects.isNotEmpty) _requireText(nightReason, 'hunger.night.reason');
+    return PetHunger._(
+      atOrBelow: atOrBelow,
+      text: text,
+      noGrowthText: noGrowthText,
+      nightAtOrBelow: nightAtOrBelow,
+      nightEffects: List.unmodifiable(nightEffects),
+      nightReason: nightReason,
+    );
+  }
+
+  factory PetHunger.fromJson(Map<String, Object?> json) {
+    final night =
+        (json['night'] as Map?)?.cast<String, Object?>() ?? const {};
+    return PetHunger.create(
+      atOrBelow: json['atOrBelow'] as int,
+      text: (json['text'] ?? '') as String,
+      noGrowthText: (json['noGrowth'] ?? '') as String,
+      nightAtOrBelow: (night['atOrBelow'] as int?) ?? PetState.satietyFloor,
+      nightEffects: _effectsFromJson(night['effects']),
+      nightReason: (night['reason'] ?? '') as String,
+    );
+  }
+
+  /// Сытость, при которой питомцу очень хочется кушать и ночью он не растёт.
+  final int atOrBelow;
+  final String text;
+  final String noGrowthText;
+
+  /// Проснулся с такой сытостью или ниже — срабатывают [nightEffects].
+  final int nightAtOrBelow;
+  final List<StateEffect> nightEffects;
+  final String nightReason;
+}
+
 final class PetRules {
   const PetRules._({
     required this.initialState,
@@ -360,6 +436,7 @@ final class PetRules {
     required this.actions,
     required this.moodLevels,
     required this.texts,
+    required this.hunger,
   });
 
   /// Действия, которые вызывает код, — без них правила неполные.
@@ -377,6 +454,7 @@ final class PetRules {
     required Map<String, PetAction> actions,
     required List<MoodLevelRule> moodLevels,
     required PetTexts texts,
+    PetHunger? hunger,
   }) {
     // Старт: ни одна шкала не стоит на нуле (даже уют), и питомец
     // не начинает игру с просьбы.
@@ -455,6 +533,11 @@ final class PetRules {
     if (nightlyEffects.isNotEmpty) {
       _requireText(nightlyReason, 'nightly.reason');
     }
+    final wish = low[PetStat.satiety];
+    if (hunger != null && wish != null && hunger.atOrBelow > wish.atOrBelow) {
+      throw ArgumentError.value(hunger.atOrBelow, 'hunger.atOrBelow',
+          'сильный голод не выше порога «хочется»');
+    }
 
     for (final id in requiredActions) {
       if (!actions.containsKey(id)) {
@@ -503,6 +586,7 @@ final class PetRules {
       actions: Map.unmodifiable(actions),
       moodLevels: List.unmodifiable(levels),
       texts: texts,
+      hunger: hunger,
     );
   }
 
@@ -540,6 +624,10 @@ final class PetRules {
               (e.value as Map).cast<String, Object?>())
       ],
       texts: PetTexts.fromJson((json['texts'] as Map).cast<String, Object?>()),
+      hunger: json['hunger'] == null
+          ? null
+          : PetHunger.fromJson(
+              (json['hunger'] as Map).cast<String, Object?>()),
     );
   }
 
@@ -571,6 +659,12 @@ final class PetRules {
   /// От восторга к скуке, пороги по убыванию.
   final List<MoodLevelRule> moodLevels;
   final PetTexts texts;
+
+  /// Вторая ступень голода; без неё питомец только «хочет перекусить».
+  final PetHunger? hunger;
+
+  bool isVeryHungry(PetState state) =>
+      hunger != null && state.satiety <= hunger!.atOrBelow;
 
   PetNeed? needFor(String itemId) {
     for (final need in allNeeds) {

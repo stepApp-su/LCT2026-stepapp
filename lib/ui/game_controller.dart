@@ -111,6 +111,8 @@ class GameController extends ChangeNotifier {
   String get character => appearance.character;
   PetStat? get currentNeed => currentPetNeed(stats, content.economy.pet);
   bool get petIsSad => currentNeed != null;
+  bool get veryHungry => content.economy.pet.isVeryHungry(stats);
+  String get hungerText => content.economy.pet.hunger?.text ?? '';
   DateTime? _lastNeedReminder;
   static const Map<String, String> _legacyItems = {'ball': 'bouncy_ball'};
 
@@ -137,7 +139,10 @@ class GameController extends ChangeNotifier {
   late List<Map<String, Object?>> paybacks;
   List<String> news = const [];
   int carefulCount = 0;
-  late Map<PlanDirection, int> planExtra;
+  int pocketSaved = 0;
+  int pocketNeeds = 0;
+  int carried = 0;
+  int paidBack = 0;
   late List<Map<String, dynamic>> dayHistory;
   List<StatShift> lastShifts = const [];
   late Set<String> dailyHistory;
@@ -160,7 +165,8 @@ class GameController extends ChangeNotifier {
   late Set<String> knownWords;
   late Map<String, int> playCounts;
   late Set<String> passedVariants;
-  late bool motion, simpleMode, onboarded, sound, music;
+  late Map<String, int> lastVariants;
+  late bool motion, simpleMode, onboarded, sound, music, demoMode;
   String _musicTheme = 'main';
   late String petName;
   PhraseLine? bubble;
@@ -231,6 +237,7 @@ class GameController extends ChangeNotifier {
     sound = data['sound'] != false;
     music = data['music'] != false;
     simpleMode = data['simpleMode'] != false;
+    demoMode = data['demoMode'] == true;
     onboarded = data['onboarded'] == true;
     appearance = PetAppearance.restore(data['character']);
     petName = data['petName'] as String? ?? appearance.name;
@@ -254,7 +261,7 @@ class GameController extends ChangeNotifier {
       progress = progress.copyWith(stage: PetStage.baby);
     }
     progress = titles.start(progress);
-    plan = _newPlan();
+    plan = _newPlan(data['planIncome'] as int? ?? params.day.income);
     final amounts = data['plan'] as Map;
     for (final d in PlanDirection.values) {
       plan.setAmount(d, amounts[d.name] as int);
@@ -298,7 +305,8 @@ class GameController extends ChangeNotifier {
       selectedGoalId: goalId,
       reachedGoalIds: reached,
       dayNumber: day,
-    );
+    )..openAll = demoMode;
+    shop.openAll = demoMode;
     tasks = TaskEngine(
       catalog: content.tasks,
       rewards: params.tasks,
@@ -310,6 +318,10 @@ class GameController extends ChangeNotifier {
     seenCoach = coachSeen != null
         ? {...coachSeen.cast<String>()}
         : {if (onboarded) _allCoach};
+    lastVariants = {
+      for (final e in (data['lastVariants'] as Map? ?? {}).entries)
+        if (e.value is int) '${e.key}': e.value as int
+    };
     final passed = data['passedVariants'] as List?;
     passedVariants = passed != null
         ? {...passed.cast<String>()}
@@ -349,10 +361,10 @@ class GameController extends ChangeNotifier {
     ];
     news = [...(data['news'] as List? ?? []).whereType<String>()];
     carefulCount = data['careful'] as int? ?? 0;
-    final extra = (data['planExtra'] as Map? ?? {}).cast<String, Object?>();
-    planExtra = {
-      for (final d in PlanDirection.values) d: (extra[d.name] as int?) ?? 0
-    };
+    pocketSaved = data['pocketSaved'] as int? ?? 0;
+    pocketNeeds = data['pocketNeeds'] as int? ?? 0;
+    carried = data['carried'] as int? ?? 0;
+    paidBack = data['paidBack'] as int? ?? 0;
     dayHistory = [
       for (final raw in data['dayHistory'] as List? ?? [])
         (raw as Map).cast<String, dynamic>()
@@ -416,7 +428,43 @@ class GameController extends ChangeNotifier {
           if (spot.type == RoomSpotType.item) spot
       ];
 
+  ShopItem? trying;
+
+  bool canTry(ShopItem item) =>
+      item.kind == ShopItemKind.wallpaper ||
+      item.slot.isNotEmpty ||
+      room.spotFor(item.id)?.type == RoomSpotType.item;
+
+  bool canBuyNow(ShopItem item) => shop.refusalFor(item) == null;
+
+  void tryOn(ShopItem? item) {
+    if (trying?.id == item?.id) return;
+    trying = item == null || canTry(item) ? item : null;
+    _notify();
+  }
+
+  void keepTried(ShopItem item) {
+    if (!shop.isOwned(item.id)) return;
+    if (item.slot.isNotEmpty) {
+      if (outfit[item.slot] != item.id) equip(item.id);
+      return;
+    }
+    final spot = room.spotFor(item.id);
+    if (spot != null && spot.type == RoomSpotType.item) {
+      hiddenRoomItems.remove(item.id);
+      place(spot, item.id);
+    }
+  }
+
+  Map<String, String> get wornOutfit {
+    final item = trying;
+    if (item == null || item.slot.isEmpty) return outfit;
+    return {...outfit, item.slot: item.id};
+  }
+
   ShopItem? placedAt(RoomSpot spot) {
+    final item = trying;
+    if (item != null && room.spotFor(item.id)?.id == spot.id) return item;
     final id = placed[spot.id];
     return id == null || !shop.isOwned(id) ? null : content.shop.byId(id);
   }
@@ -452,7 +500,9 @@ class GameController extends ChangeNotifier {
           if (item.kind == ShopItemKind.wallpaper) item
       ];
 
-  String get wallpaperId => shop.activeWallpaperId ?? room.defaultWallpaperId;
+  String get wallpaperId => trying?.kind == ShopItemKind.wallpaper
+      ? trying!.id
+      : shop.activeWallpaperId ?? room.defaultWallpaperId;
 
   void applyWallpaper(String id) {
     if (shop.applyWallpaper(id)) {
@@ -491,16 +541,28 @@ class GameController extends ChangeNotifier {
   GrowthStatus get growthStatus => growth.status(progress);
   TitleDef? get currentTitle => titles.current(progress);
 
-  DayFacts get dayFacts => DayFacts.fromDay(
-        GameDay.create(
-            number: day,
-            income: fullPlan.income,
-            plan: fullPlan,
-            planConfirmed: plan.isConfirmed,
-            transactions: wallet.journal),
-        mandatoryItemIds: const [],
-        mandatoryOptions: [for (final need in todayNeeds) need.itemIds],
-      );
+  DayFacts get dayFacts {
+    final raw = DayFacts.fromDay(
+      GameDay.create(
+          number: day,
+          income: plan.plan.income,
+          plan: plan.plan,
+          planConfirmed: plan.isConfirmed,
+          transactions: wallet.journal),
+      mandatoryItemIds: const [],
+      mandatoryOptions: [for (final need in todayNeeds) need.itemIds],
+    );
+    return DayFacts.create(
+      dayNumber: raw.dayNumber,
+      plan: raw.plan,
+      planConfirmed: raw.planConfirmed,
+      spentMandatory: math.max(0, raw.spentMandatory - pocketNeeds),
+      spentOptional: raw.spentOptional,
+      deposited: math.max(0, raw.deposited - pocketSaved),
+      mandatoryPaid: raw.mandatoryPaid,
+      tasksDone: raw.tasksDone,
+    );
+  }
 
   List<PetNeed> get todayNeeds => content.economy.pet.needsOn(day, stage);
 
@@ -549,7 +611,8 @@ class GameController extends ChangeNotifier {
   bool closeDay(int expectedDay) {
     if (expectedDay != day || celebration != null) return false;
     final facts = dayFacts;
-    final result = growth.closeDay(progress, facts);
+    final hungry = veryHungry;
+    final result = growth.closeDay(progress, facts, hungry: hungry);
     if (!result.counted) return false;
     final awarded = titles.award(
         result.progress,
@@ -575,8 +638,8 @@ class GameController extends ChangeNotifier {
         DaySummaryService(templates: content.summaries.explain).build(
       day: GameDay.create(
           number: day,
-          income: fullPlan.income,
-          plan: fullPlan,
+          income: plan.plan.income,
+          plan: plan.plan,
           planConfirmed: plan.isConfirmed,
           transactions: wallet.journal),
       before: stats,
@@ -588,6 +651,13 @@ class GameController extends ChangeNotifier {
     final rows = [
       for (final row in planFactRows) [row.$1, row.$2, row.$3]
     ];
+    final carry = pocket;
+    final pocketDay = {
+      'earned': earnedToday,
+      'saved': pocketSaved,
+      'needs': pocketNeeds,
+      'carry': carry,
+    };
     progress = awarded.progress;
     stats = night.after;
     final status = growth.status(progress);
@@ -595,7 +665,7 @@ class GameController extends ChangeNotifier {
     final dayTransactions =
         wallet.journal.where((t) => t.dayNumber == day).toList();
     int total(TransactionType type) => dayTransactions
-        .where((t) => t.type == type)
+        .where((t) => t.type == type && !t.sourceId.startsWith('goal:'))
         .fold(0, (sum, t) => sum + t.amount);
     final shifts = <PetStat, List<int>>{};
     final reasons = <String>[];
@@ -650,6 +720,11 @@ class GameController extends ChangeNotifier {
           .map((change) => '${pet.describe(change)}. ${change.reasonText}')
           .toList(),
       'titles': awarded.earned.map((title) => title.title.id).toList(),
+      'pocket': pocketDay,
+      'income': content.economy.params.day.income,
+      if (hungry)
+        'hungry': fillTemplate(
+            content.economy.pet.hunger?.noGrowthText ?? '', {'name': petName}),
     };
     dayHistory = <Map<String, dynamic>>[
       {
@@ -662,6 +737,7 @@ class GameController extends ChangeNotifier {
         'stageUp': result.stageUp == null ? null : stageLabel,
         'titles': [for (final earned in awarded.earned) earned.title.title],
         if (todayEvent case final event?) 'event': event.title,
+        if (earnedToday > 0) 'pocket': pocketDay,
       },
       ...dayHistory,
     ].take(30).toList();
@@ -671,32 +747,37 @@ class GameController extends ChangeNotifier {
     shop.startDay(day);
     goals.startDay(day);
     final params = content.economy.params;
-    plan = _newPlan();
-    planExtra = {for (final d in PlanDirection.values) d: 0};
+    final leftover = wallet.wallet.balance;
     wallet.earn(
         amount: params.day.income,
         sourceId: 'day_income',
         reasonText: params.day.incomeReason,
         at: clock.now(),
         dayNumber: day);
-    _payBack();
+    pocketSaved = 0;
+    pocketNeeds = 0;
+    carried = leftover;
+    paidBack = _payBack();
+    plan = _newPlan(params.day.income + carried + paidBack);
     changed();
     return true;
   }
 
-  void _payBack() {
+  int _payBack() {
     final due = [
       for (final p in paybacks)
         if ((p['day'] as int) <= day) p
     ];
-    if (due.isEmpty) return;
+    if (due.isEmpty) return 0;
     paybacks = [
       for (final p in paybacks)
         if ((p['day'] as int) > day) p
     ];
     final lines = <String>[];
+    var total = 0;
     for (final p in due) {
       final coins = p['coins'] as int;
+      total += coins;
       final text = eventLine(p['text'] as String);
       wallet.earn(
           amount: coins,
@@ -707,6 +788,7 @@ class GameController extends ChangeNotifier {
       lines.add(fillPlurals('$text +$coins {coin}'));
     }
     news = [...news, ...lines];
+    return total;
   }
 
   void clearNews() {
@@ -718,49 +800,39 @@ class GameController extends ChangeNotifier {
   int get pendingPayback =>
       paybacks.fold(0, (sum, p) => sum + (p['coins'] as int));
 
-  PlanService _newPlan() => PlanService(
-      income: content.economy.params.day.income,
+  PlanService _newPlan(int income) => PlanService(
+      income: income,
       step: content.economy.params.plan.step,
       mandatoryCost: mandatoryCost);
+
+  static const _plannedSources = ['day_income', 'payback:', 'refund:'];
 
   int get earnedToday => wallet.journal
       .where((t) =>
           t.dayNumber == day &&
           t.type == TransactionType.income &&
-          t.sourceId != 'day_income')
+          !_plannedSources.any(t.sourceId.startsWith))
       .fold(0, (sum, t) => sum + t.amount);
 
-  int get extraPlanned => planExtra.values.fold(0, (a, b) => a + b);
-
-  int get extraPending {
-    final left = earnedToday - extraPlanned;
-    return left < 0 ? 0 : left;
+  int get pocket {
+    final left = earnedToday - pocketSaved - pocketNeeds;
+    final balance = wallet.wallet.balance;
+    if (left <= 0 || balance <= 0) return 0;
+    return left < balance ? left : balance;
   }
 
-  BudgetPlan get fullPlan {
-    final base = plan.plan;
-    return BudgetPlan.create(
-      mandatory: base.mandatory + planExtra[PlanDirection.mandatory]!,
-      optional: base.optional + planExtra[PlanDirection.optional]!,
-      savings: base.savings + planExtra[PlanDirection.savings]!,
-      income: base.income + extraPlanned,
-    );
+  int get freeBalance {
+    final free = wallet.wallet.balance - pocket;
+    return free < 0 ? 0 : free;
   }
 
-  bool planEarned(Map<PlanDirection, int> parts) {
-    final total = parts.values.fold(0, (a, b) => a + b);
-    if (total <= 0 ||
-        total > extraPending ||
-        parts.values.any((value) => value < 0)) {
-      return false;
-    }
-    planExtra = {
-      for (final d in PlanDirection.values) d: planExtra[d]! + (parts[d] ?? 0)
-    };
-    fx('round_win');
-    say('plan_confirmed');
-    changed();
-    return true;
+  bool savePocket() {
+    final amount = pocket;
+    if (amount <= 0) return false;
+    pocketSaved += amount;
+    if (saveCoins(amount)) return true;
+    pocketSaved -= amount;
+    return false;
   }
 
   int _spentToday(ExpenseCategory category) => wallet.journal
@@ -770,6 +842,8 @@ class GameController extends ChangeNotifier {
           t.category == category &&
           !t.sourceId.startsWith('goal:'))
       .fold(0, (sum, t) => sum + t.amount);
+
+  int get _savedByPlan => math.max(0, _savedToday - pocketSaved);
 
   int get _savedToday => wallet.journal
       .where((t) => t.dayNumber == day && !t.sourceId.startsWith('goal:'))
@@ -783,20 +857,22 @@ class GameController extends ChangeNotifier {
                       ? -t.amount
                       : 0));
 
+  int get _spentMandatoryByPlan =>
+      math.max(0, _spentToday(ExpenseCategory.mandatory) - pocketNeeds);
+
   int planLeft(PlanDirection direction) {
-    final full = fullPlan;
+    final full = plan.plan;
     return switch (direction) {
-      PlanDirection.mandatory =>
-        full.mandatory - _spentToday(ExpenseCategory.mandatory),
+      PlanDirection.mandatory => full.mandatory - _spentMandatoryByPlan,
       PlanDirection.optional =>
         full.optional - _spentToday(ExpenseCategory.optional),
-      PlanDirection.savings => full.savings - _savedToday,
+      PlanDirection.savings => full.savings - _savedByPlan,
     };
   }
 
   int get savingsToDeposit {
     final left = planLeft(PlanDirection.savings);
-    final balance = wallet.wallet.balance;
+    final balance = freeBalance;
     if (left <= 0 || balance <= 0) return 0;
     return left < balance ? left : balance;
   }
@@ -820,7 +896,7 @@ class GameController extends ChangeNotifier {
       final after = wallet.wallet.balance - item.price;
       if (needs > after) needsShort = needs - after;
     }
-    final perDay = fullPlan.savings;
+    final perDay = plan.plan.savings;
     final delay = direction == PlanDirection.optional && gap > 0 && perDay > 0
         ? (gap + perDay - 1) ~/ perDay
         : 0;
@@ -835,15 +911,30 @@ class GameController extends ChangeNotifier {
   }
 
   List<(String, int, int)> get planFactRows {
-    final full = fullPlan;
+    final full = plan.plan;
     return [
-      ('Обязательное', full.mandatory, _spentToday(ExpenseCategory.mandatory)),
+      ('Обязательное', full.mandatory, _spentMandatoryByPlan),
       ('Желаемое', full.optional, _spentToday(ExpenseCategory.optional)),
-      ('Копилка', full.savings, _savedToday),
+      ('Копилка', full.savings, _savedByPlan),
     ];
   }
 
+  int pocketForNeed(ShopItem item) {
+    if (item.category != ExpenseCategory.mandatory) return 0;
+    final left = math.max(0, planLeft(PlanDirection.mandatory));
+    final gap = item.price - left;
+    if (gap <= 0) return 0;
+    return math.min(gap, pocket);
+  }
+
+  bool blockedByPocket(ShopItem item) =>
+      item.category == ExpenseCategory.optional &&
+      pocket > 0 &&
+      item.price <= wallet.wallet.balance &&
+      item.price > freeBalance;
+
   PetStage _stageOn(int dayNumber) {
+    if (demoMode) return PetStage.adult;
     var result = PetStage.baby;
     for (final closed in progress.growthDays) {
       if (closed.dayNumber >= dayNumber) break;
@@ -909,7 +1000,9 @@ class GameController extends ChangeNotifier {
           reasonText: option.journalText,
           at: now,
           dayNumber: day);
-      if (option.toSavings) saveCoins(option.coins);
+      if (option.toSavings && saveCoins(option.coins)) {
+        pocketSaved += option.coins;
+      }
     }
     if (option.payback case final back?) {
       paybacks = [
@@ -980,7 +1073,7 @@ class GameController extends ChangeNotifier {
   List<BedtimeTodo> get bedtimeTodos {
     final affordable = _needsAffordable;
     return [
-      if (!plan.isConfirmed || extraPending > 0) BedtimeTodo.plan,
+      if (!plan.isConfirmed) BedtimeTodo.plan,
       if (affordable) BedtimeTodo.needs,
       if (!levelDoneToday || dailyAvailable) BedtimeTodo.task,
       if (eventPending) BedtimeTodo.event,
@@ -994,9 +1087,6 @@ class GameController extends ChangeNotifier {
     final texts = content.economy.bedtime;
     if (todos.isEmpty) return texts.ready;
     final first = todos.first;
-    if (first == BedtimeTodo.plan && plan.isConfirmed) {
-      return 'Разложим заработанные монеты по плану.';
-    }
     return fillTemplate(
         texts.todos[first]!, {'items': _itemsText(unpaidNeeds)});
   }
@@ -1074,7 +1164,11 @@ class GameController extends ChangeNotifier {
   LevelRecord? get todayLevel => levelDoneToday ? levelHistory.last : null;
 
   bool isGameUnlocked(String taskId) =>
-      tasks.isCompleted(taskId) || levels.unlockLevelOf(taskId) <= levelsDone;
+      demoMode ||
+      tasks.isCompleted(taskId) ||
+      levels.unlockLevelOf(taskId) <= levelsDone;
+
+  bool itemLocked(ShopItem item) => !shop.isUnlocked(item);
 
   List<TaskDef> get practiceGames => [
         for (final task in content.tasks.tasks)
@@ -1131,9 +1225,20 @@ class GameController extends ChangeNotifier {
 
   GameReward finishDaily(TaskSession session) {
     if (dailyDoneToday) throw StateError('задание дня уже выполнено');
+    final solved = session.isFinished;
     final played = _afterGame(session);
-    final coins =
-        dailyRules.coins + (played.withMistakes ? 0 : dailyRules.perfectBonus);
+    if (!solved) {
+      _rememberSkip(session);
+      fx('retry');
+      changed();
+      return GameReward(
+        coins: 0,
+        firstTime: played.firstTime,
+        withMistakes: true,
+        stars: 0,
+      );
+    }
+    final coins = dailyRules.forStars(played.stars);
     final now = clock.now();
     wallet.earn(
         amount: coins,
@@ -1158,7 +1263,8 @@ class GameController extends ChangeNotifier {
 
   int unlockLevelOf(String taskId) => levels.unlockLevelOf(taskId);
 
-  TaskDef? get nextUnlock => levels.nextUnlock(reachedLevel);
+  TaskDef? get nextUnlock =>
+      demoMode ? null : levels.nextUnlock(reachedLevel);
 
   LevelRun? startLevel() {
     if (levelDoneToday) return null;
@@ -1175,26 +1281,40 @@ class GameController extends ChangeNotifier {
     return _start(slot.taskId, slot.difficulty, TaskPool.level);
   }
 
+  void _rememberSkip(TaskSession session) {
+    lastVariants = {
+      ...lastVariants,
+      _variantSlot(session.variantKey): session.index,
+    };
+  }
+
   LevelStep finishLevelGame(TaskSession session) {
     final run = levelRun;
-    if (run == null || run.current?.taskId != session.task.id) {
+    final index = run?.currentIndex;
+    if (run == null ||
+        index == null ||
+        run.slots[index].taskId != session.task.id) {
       throw StateError('эта игра не из текущего уровня');
     }
+    final solved = session.isFinished;
     final played = _afterGame(session);
-    final share = run.shareOf(run.done);
-    wallet.earn(
-        amount: share,
-        sourceId: 'task:${session.task.id}',
-        reasonText: levels.rewardReasonOf(run.number, session.task.title),
-        at: clock.now(),
-        dayNumber: day);
+    if (!solved) _rememberSkip(session);
+    final pay = run.payFor(index, played.stars);
+    if (pay > 0) {
+      wallet.earn(
+          amount: pay,
+          sourceId: 'task:${session.task.id}',
+          reasonText: levels.rewardReasonOf(run.number, session.task.title),
+          at: clock.now(),
+          dayNumber: day);
+    }
     final reward = GameReward(
-      coins: share,
+      coins: pay,
       firstTime: played.firstTime,
       withMistakes: played.withMistakes,
       stars: played.stars,
     );
-    final next = run.withStars(reward.stars);
+    final next = run.withResult(index, reward.stars);
     LevelRecord? finished;
     if (next.isFinished) {
       finished = LevelRecord(
@@ -1202,22 +1322,81 @@ class GameController extends ChangeNotifier {
         day: day,
         taskIds: [for (final slot in next.slots) slot.taskId],
         stars: next.stars,
-        coins: next.coins,
+        coins: next.paid,
+        salary: next.coins,
+        hard: [
+          for (final (i, slot) in next.slots.indexed)
+            if (slot.isHard) i
+        ],
       );
       levelHistory = [...levelHistory, finished];
       levelRun = null;
       fx('level_done');
       say('task_done',
           facts: {'firstTry': next.stars.every((star) => star == 3)},
-          values: {'reward': next.coins});
+          values: {'reward': next.paid});
     } else {
       levelRun = next;
-      fx('task_done');
-      say('task_done',
-          facts: {'firstTry': !reward.withMistakes}, values: {'reward': share});
+      fx(solved ? 'task_done' : 'retry');
+      if (solved) {
+        say('task_done',
+            facts: {'firstTry': !reward.withMistakes}, values: {'reward': pay});
+      }
     }
     changed();
     return LevelStep(reward: reward, finished: finished);
+  }
+
+  bool canImprove(int index) {
+    final record = todayLevel;
+    return record != null &&
+        index >= 0 &&
+        index < record.stars.length &&
+        record.stars[index] < 3 &&
+        content.tasks.byId(record.taskIds[index]) != null;
+  }
+
+  TaskSession startImprove(int index) {
+    final record = todayLevel;
+    if (record == null || !canImprove(index)) {
+      throw StateError('эту игру уровня сейчас не улучшить');
+    }
+    return _start(
+        record.taskIds[index], record.difficultyOf(index), TaskPool.level);
+  }
+
+  GameReward finishImprove(int index, TaskSession session) {
+    final record = todayLevel;
+    if (record == null || record.taskIds[index] != session.task.id) {
+      throw StateError('эта игра не из сегодняшнего уровня');
+    }
+    final solved = session.isFinished;
+    final played = _afterGame(session);
+    if (!solved) _rememberSkip(session);
+    final better = record.improved(index, played.stars);
+    final gain = better.coins - record.coins;
+    if (gain > 0) {
+      wallet.earn(
+          amount: gain,
+          sourceId: 'task:${session.task.id}',
+          reasonText: levels.rewardReasonOf(record.number, session.task.title),
+          at: clock.now(),
+          dayNumber: day);
+      levelHistory = [
+        ...levelHistory.take(levelHistory.length - 1),
+        better,
+      ];
+      fx('round_win');
+    } else {
+      fx(solved ? 'task_done' : 'retry');
+    }
+    changed();
+    return GameReward(
+      coins: gain,
+      firstTime: played.firstTime,
+      withMistakes: played.withMistakes,
+      stars: played.stars,
+    );
   }
 
   int starsOf(String taskId) => bestStars[taskId] ?? 0;
@@ -1225,13 +1404,24 @@ class GameController extends ChangeNotifier {
   int passedOf(TaskDef task) =>
       task.variantKeys.where(passedVariants.contains).length;
 
+  static String _variantSlot(String key) {
+    final cut = key.lastIndexOf('/');
+    return cut < 0 ? key : key.substring(0, cut);
+  }
+
   int nextIndex(TaskDef task, TaskDifficulty level,
       [TaskPool pool = TaskPool.practice]) {
     final count = task.variantsIn(pool, level).length;
+    if (count <= 1) return 0;
+    final last = lastVariants[_variantSlot(task.keyIn(pool, level, 0))];
+    final from = last == null ? 0 : last + 1;
     for (var i = 0; i < count; i++) {
-      if (!passedVariants.contains(task.keyIn(pool, level, i))) return i;
+      final at = (from + i) % count;
+      if (at == last) continue;
+      if (!passedVariants.contains(task.keyIn(pool, level, at))) return at;
     }
-    return (day + task.order) % count;
+    final at = (day + task.order) % count;
+    return at == last ? (at + 1) % count : at;
   }
 
   TaskSession _start(String taskId, TaskDifficulty level,
@@ -1297,13 +1487,29 @@ class GameController extends ChangeNotifier {
 
   ShopItemView viewOf(ShopItem item) => shop.view(item);
 
-  PurchaseOutcome askToBuy(String itemId) => shop.askToBuy(itemId);
+  String get pocketRefusal =>
+      'Эти монеты ты заработал после плана. Отложи их или спланируй на завтра.';
+
+  PurchaseOutcome askToBuy(String itemId) {
+    final item = content.shop.byId(itemId);
+    if (item != null && blockedByPocket(item)) {
+      return PurchaseRefused(pocketRefusal);
+    }
+    return shop.askToBuy(itemId);
+  }
 
   PurchaseOutcome confirmPurchase(PurchaseConfirm confirmation) {
+    final wanted = confirmation.view.item;
+    if (blockedByPocket(wanted)) {
+      fx('not_enough');
+      return PurchaseRefused(pocketRefusal);
+    }
+    final fromPocket = pocketForNeed(wanted);
     final outcome = shop.confirm(confirmation,
         at: clock.now(), hasUnusedTasksToday: canEarnFromGames);
     switch (outcome) {
       case PurchaseDone(:final item, :final effects, wallet: final after):
+        pocketNeeds += fromPocket;
         fx('purchase');
         lastShifts = _applyEffects(effects);
         wishlist.remove(item.id);
@@ -1329,9 +1535,29 @@ class GameController extends ChangeNotifier {
     return ask is PurchaseConfirm ? confirmPurchase(ask) : ask;
   }
 
+  Map<String, Object>? milestone;
+
+  void clearMilestone() {
+    milestone = null;
+  }
+
   GoalOutcome deposit(int amount) {
+    final before = goals.view()?.percent ?? 0;
     final outcome = goals.deposit(amount: amount, at: clock.now());
     if (outcome is GoalDepositDone) {
+      final view = outcome.view;
+      if (view != null &&
+          (outcome.justReached || outcome.milestoneText != null)) {
+        milestone = {
+          'reached': outcome.justReached,
+          'text': outcome.milestoneText ?? '',
+          'from': before,
+          'to': view.percent,
+          'saved': view.saved,
+          'price': view.goal.price,
+          'goal': view.goal.title,
+        };
+      }
       fx(outcome.justReached ? 'goal_reached' : 'coin');
       if (outcome.justReached) {
         say('goal_reached');
@@ -1436,14 +1662,21 @@ class GameController extends ChangeNotifier {
     final solved = session.isFinished;
     final completion = session.finish();
     if (solved) {
+      lastVariants = {
+        ...lastVariants,
+        _variantSlot(session.variantKey): session.index,
+      };
       passedVariants = {...passedVariants, session.variantKey};
       playCounts = {
         ...playCounts,
         completion.taskId: (playCounts[completion.taskId] ?? 0) + 1
       };
     }
-    final stars =
-        completion.withMistakes ? (completion.attempts > 2 ? 1 : 2) : 3;
+    final stars = !solved
+        ? 0
+        : completion.withMistakes
+            ? (completion.attempts > 2 ? 1 : 2)
+            : 3;
     if (stars > starsOf(completion.taskId)) {
       bestStars = {...bestStars, completion.taskId: stars};
     }
@@ -1578,6 +1811,7 @@ class GameController extends ChangeNotifier {
       'hasGoal': goal != null,
       if (goal != null)
         'goalProgress': goal.price == 0 ? 0 : goal.saved * 100 ~/ goal.price,
+      'satiety': stats.satiety,
       if (rules.isLow(PetStat.satiety, stats.satiety))
         'statLow': 'satiety'
       else if (rules.isLow(PetStat.care, stats.care))
@@ -1719,6 +1953,13 @@ class GameController extends ChangeNotifier {
     changed();
   }
 
+  void setDemo(bool value) {
+    demoMode = value;
+    shop.openAll = value;
+    goals.openAll = value;
+    changed();
+  }
+
   void renamePet(String name) {
     if (petNameProblem(name) != null) throw ArgumentError.value(name);
     petName = normalizePetName(name);
@@ -1781,12 +2022,14 @@ class GameController extends ChangeNotifier {
           'savings': plan.plan.savings
         },
         'confirmed': plan.isConfirmed,
+        'planIncome': plan.plan.income,
         'stats': stats.toJson(),
         'journal': [for (final t in wallet.journal) t.toJson()],
         'motion': motion,
         'sound': sound,
         'music': music,
         'simpleMode': simpleMode,
+        'demoMode': demoMode,
         'onboarded': onboarded,
         'petName': petName,
         'character': character,
@@ -1804,6 +2047,7 @@ class GameController extends ChangeNotifier {
         'seenTutorials': seenTutorials.toList(),
         'seenCoach': seenCoach.toList()..sort(),
         'passedVariants': passedVariants.toList()..sort(),
+        'lastVariants': lastVariants,
         'levelHistory': [for (final record in levelHistory) record.toJson()],
         'levelRun': levelRun?.toJson(),
         'dailyDoneAt': dailyDoneAt?.toIso8601String(),
@@ -1815,7 +2059,10 @@ class GameController extends ChangeNotifier {
         'paybacks': paybacks,
         'news': news,
         'careful': carefulCount,
-        'planExtra': {for (final e in planExtra.entries) e.key.name: e.value},
+        'pocketSaved': pocketSaved,
+        'pocketNeeds': pocketNeeds,
+        'carried': carried,
+        'paidBack': paidBack,
         'dayHistory': dayHistory,
         'legacyCompletedTasks': legacyCompletedTasks,
         'placed': placed,
@@ -1826,7 +2073,7 @@ class GameController extends ChangeNotifier {
 
   void changed() {
     if (bubble?.trigger == 'need_reminder' &&
-        bubble?.id != 'need_${currentNeed?.name}') {
+        !(bubble?.id ?? '').startsWith('need_${currentNeed?.name}')) {
       _bubbleTimer?.cancel();
       soundPlayer?.stopSpeech();
       bubble = null;

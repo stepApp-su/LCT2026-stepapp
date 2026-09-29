@@ -15,9 +15,9 @@ final class PetState {
     required this.cozy,
   });
 
-  static const int satietyFloor = 20;
-  static const int careFloor = 20;
-  static const int moodFloor = 30;
+  static const int satietyFloor = 10;
+  static const int careFloor = 10;
+  static const int moodFloor = 10;
   static const int cap = 100;
 
   factory PetState.create({

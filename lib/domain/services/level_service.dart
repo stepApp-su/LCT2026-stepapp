@@ -39,6 +39,9 @@ final class LevelRun {
     if (stars.length > slots.length) {
       throw ArgumentError.value(stars.length, 'stars', 'больше, чем игр');
     }
+    if (stars.any((value) => value < 0 || value > 3)) {
+      throw ArgumentError.value(stars, 'stars', 'от 0 до 3');
+    }
   }
 
   factory LevelRun.fromJson(Map<String, Object?> json) => LevelRun(
@@ -56,10 +59,29 @@ final class LevelRun {
   final List<LevelSlot> slots;
   final List<int> stars;
 
-  int get done => stars.length;
-  bool get isStarted => done > 0;
-  bool get isFinished => done >= slots.length;
-  LevelSlot? get current => isFinished ? null : slots[done];
+  int get played => stars.length;
+  int get done => stars.where((value) => value > 0).length;
+  bool get isStarted => played > 0;
+  bool get isFinished =>
+      played >= slots.length && stars.every((value) => value > 0);
+
+  int? get currentIndex {
+    if (played < slots.length) return played;
+    final waiting = stars.indexWhere((value) => value == 0);
+    return waiting < 0 ? null : waiting;
+  }
+
+  LevelSlot? get current =>
+      currentIndex == null ? null : slots[currentIndex!];
+
+  bool isWaiting(int index) => index < stars.length && stars[index] == 0;
+
+  int payFor(int index, int earned) =>
+      levelPay(shareOf(index), earned);
+
+  int get paid => [
+        for (var i = 0; i < stars.length; i++) payFor(i, stars[i])
+      ].fold(0, (sum, value) => sum + value);
   int get hardCount => slots.where((slot) => slot.isHard).length;
   int get newCount => slots.where((slot) => slot.isNew).length;
 
@@ -69,11 +91,16 @@ final class LevelRun {
     return base + (index >= slots.length - extra ? 1 : 0);
   }
 
-  LevelRun withStars(int value) => LevelRun(
+  LevelRun withStars(int value) => withResult(played, value);
+
+  LevelRun withResult(int index, int value) => LevelRun(
         number: number,
         coins: coins,
         slots: slots,
-        stars: [...stars, value],
+        stars: [
+          for (var i = 0; i < stars.length; i++) i == index ? value : stars[i],
+          if (index >= stars.length) value,
+        ],
       );
 
   Map<String, Object?> toJson() => {
@@ -84,6 +111,9 @@ final class LevelRun {
       };
 }
 
+int levelPay(int share, int stars) =>
+    (share * stars.clamp(0, 3) / 3).round();
+
 final class LevelRecord {
   const LevelRecord({
     required this.number,
@@ -91,6 +121,8 @@ final class LevelRecord {
     required this.taskIds,
     required this.stars,
     required this.coins,
+    this.salary,
+    this.hard = const [],
   });
 
   factory LevelRecord.fromJson(Map<String, Object?> json) => LevelRecord(
@@ -99,6 +131,8 @@ final class LevelRecord {
         taskIds: (json['taskIds'] as List).cast<String>(),
         stars: (json['stars'] as List).cast<int>(),
         coins: json['coins'] as int? ?? 0,
+        salary: json['salary'] as int?,
+        hard: (json['hard'] as List? ?? const []).cast<int>(),
       );
 
   final int number;
@@ -106,8 +140,38 @@ final class LevelRecord {
   final List<String> taskIds;
   final List<int> stars;
   final int coins;
+  final int? salary;
+  final List<int> hard;
 
   int get totalStars => stars.fold(0, (sum, value) => sum + value);
+
+  int shareOf(int index) {
+    final total = salary ?? stars.length * 3;
+    final base = total ~/ stars.length;
+    final extra = total % stars.length;
+    return base + (index >= stars.length - extra ? 1 : 0);
+  }
+
+  TaskDifficulty difficultyOf(int index) =>
+      hard.contains(index) ? TaskDifficulty.hard : TaskDifficulty.easy;
+
+  LevelRecord improved(int index, int value) {
+    final before = stars[index];
+    if (value <= before) return this;
+    return LevelRecord(
+      number: number,
+      day: day,
+      taskIds: taskIds,
+      stars: [
+        for (var i = 0; i < stars.length; i++) i == index ? value : stars[i]
+      ],
+      coins: coins +
+          levelPay(shareOf(index), value) -
+          levelPay(shareOf(index), before),
+      salary: salary,
+      hard: hard,
+    );
+  }
 
   Map<String, Object?> toJson() => {
         'number': number,
@@ -115,6 +179,8 @@ final class LevelRecord {
         'taskIds': taskIds,
         'stars': stars,
         'coins': coins,
+        if (salary != null) 'salary': salary,
+        if (hard.isNotEmpty) 'hard': hard,
       };
 }
 
