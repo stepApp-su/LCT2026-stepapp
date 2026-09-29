@@ -30,6 +30,26 @@ void main() {
       expect(p.plan.savings, 0);
     });
 
+    test('остаток меньше шага можно разложить, минус сначала округляет вниз', () {
+      final p = PlanService(income: 42);
+      expect(p.setAmount(PlanDirection.mandatory, 40).$1, isTrue);
+      expect(p.setAmount(PlanDirection.savings, 3).$1, isFalse);
+      expect(p.increase(PlanDirection.savings).$1, isTrue);
+      expect(p.plan.savings, 2);
+      expect(p.remainder, 0);
+      expect(p.increase(PlanDirection.savings).$1, isFalse);
+      expect(p.decrease(PlanDirection.savings).$1, isTrue);
+      expect(p.plan.savings, 0);
+      p.decrease(PlanDirection.mandatory);
+      expect(p.plan.mandatory, 35);
+      p.increase(PlanDirection.optional);
+      expect(p.plan.optional, 5);
+      p.increase(PlanDirection.optional);
+      expect(p.plan.optional, 7);
+      p.decrease(PlanDirection.optional);
+      expect(p.plan.optional, 5);
+    });
+
     test('плюс и минус ходят по шагу и не ломают границы', () {
       final p = PlanService(income: 10);
       expect(p.increase(PlanDirection.savings).$1, isTrue); // 5

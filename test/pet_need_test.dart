@@ -53,7 +53,7 @@ void main() {
         game.dismissBubble();
         clock.advance(const Duration(minutes: 4));
         game.stats = stats(
-            food: stat == PetStat.satiety ? 20 : 100,
+            food: stat == PetStat.satiety ? 40 : 100,
             care: stat == PetStat.care ? 20 : 100,
             mood: stat == PetStat.mood ? 30 : 100);
         expect(game.petIsSad, true);
@@ -67,6 +67,17 @@ void main() {
       }
     });
   }
+
+  test('сильный голод — своя просьба купить еду', () {
+    game.createPet('Мони', true);
+    game.acknowledgeCelebration();
+    game.dismissBubble();
+    game.stats = stats(food: 20);
+    expect(game.veryHungry, isTrue);
+    expect(game.remindNeed(), true);
+    expect(game.bubble!.id, 'need_satiety_hungry');
+    expect(game.bubble!.action?.route, 'shop');
+  });
 
   test('reminders respect cooldown and never interrupt another bubble', () {
     game.stats = stats(food: 20);

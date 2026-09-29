@@ -57,7 +57,7 @@
         "title": "Еда",
         "emoji": "🍲",
         "alternatives": ["porridge", "lunchbox"],
-        "missedEffects": [{ "stat": "satiety", "delta": -30 }],
+        "missedEffects": [{ "stat": "satiety", "delta": -15 }],
         "missedReason": "Сегодня не купили еду"
       },
       {
@@ -106,16 +106,26 @@
       }
     ],
     "low": {
-      "satiety": { "atOrBelow": 50, "text": "Хочется перекусить" },
-      "care": { "atOrBelow": 30, "text": "Мне бы умыться" }
+      "satiety": { "atOrBelow": 45, "text": "Хочется перекусить" },
+      "care": { "atOrBelow": 25, "text": "Мне бы умыться" }
+    },
+    "hunger": {
+      "atOrBelow": 25,
+      "text": "Очень хочется кушать! Без еды ночью не подрасту",
+      "noGrowth": "{name} лёг спать голодным и ночью не подрос",
+      "night": {
+        "atOrBelow": 30,
+        "effects": [{ "stat": "mood", "delta": -10 }],
+        "reason": "Ночью хотелось кушать — спалось хуже"
+      }
     },
     "nightly": {
       "effects": [
-        { "stat": "satiety", "delta": -20 },
-        { "stat": "care", "delta": -10 },
-        { "stat": "mood", "delta": -10 }
+        { "stat": "satiety", "delta": -35 },
+        { "stat": "care", "delta": -25 },
+        { "stat": "mood", "delta": -12 }
       ],
-      "reason": "За ночь питомец проголодался и немного заскучал"
+      "reason": "За ночь питомец проголодался, испачкался и заскучал"
     },
     "actions": {
       "pet_tap": {
@@ -132,7 +142,7 @@
       "delight": { "from": 85, "label": "Восторг" },
       "joy": { "from": 65, "label": "Радость" },
       "calm": { "from": 45, "label": "Спокойствие" },
-      "bored": { "from": 30, "label": "Скука" }
+      "bored": { "from": 10, "label": "Скука" }
     },
     "texts": {
       "change": "{stat} {delta}",

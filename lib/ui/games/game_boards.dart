@@ -20,6 +20,40 @@ part 'game_sims.dart';
 String fillText(String template, Map<String, String> values) =>
     fillPlurals(fillTemplate(template, values));
 
+final math.Random _mixer = math.Random();
+
+List<T> mixed<T>(List<T> items,
+    {Object? Function(T item)? groupOf, bool Function(List<T> order)? avoid}) {
+  if (items.length < 2) return [...items];
+  bool same(List<T> order) {
+    for (var i = 0; i < order.length; i++) {
+      if (!identical(order[i], items[i])) return false;
+    }
+    return true;
+  }
+
+  bool clumped(List<T> order) {
+    if (groupOf == null) return false;
+    final groups = {for (final item in order) groupOf(item)}.length;
+    if (groups < 2) return false;
+    var changes = 0;
+    for (var i = 1; i < order.length; i++) {
+      if (groupOf(order[i]) != groupOf(order[i - 1])) changes++;
+    }
+    final half = order.take(order.length ~/ 2 + 1).map(groupOf).toSet();
+    return changes <= groups || half.length < 2;
+  }
+
+  var order = [...items]..shuffle(_mixer);
+  for (var tries = 0;
+      tries < 20 &&
+          (same(order) || clumped(order) || (avoid?.call(order) ?? false));
+      tries++) {
+    order.shuffle(_mixer);
+  }
+  return order;
+}
+
 final class BoardContext {
   const BoardContext({
     required this.task,
@@ -166,6 +200,15 @@ class _SortBoardState extends State<SortBoard> {
   final Map<String, String> placed = {};
   String? selected;
   String? hovered;
+  late List<SortCard> cards = _mix();
+
+  List<SortCard> _mix() => mixed(widget.payload.cards, groupOf: (c) => c.bin);
+
+  @override
+  void didUpdateWidget(SortBoard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.payload, widget.payload)) cards = _mix();
+  }
 
   SortPayload get payload => widget.payload;
   BoardContext get board => widget.board;
@@ -216,7 +259,7 @@ class _SortBoardState extends State<SortBoard> {
   @override
   Widget build(BuildContext context) {
     final waiting = [
-      for (final card in payload.cards)
+      for (final card in cards)
         if (!placed.containsKey(card.id)) card
     ];
     return Column(
@@ -303,7 +346,7 @@ class _SortBoardState extends State<SortBoard> {
         builder: (context, candidates, rejected) {
           final active = hovered == bin || (selected != null && !board.locked);
           final inside = [
-            for (final card in payload.cards)
+            for (final card in cards)
               if (placed[card.id] == bin) card
           ];
           return Semantics(
@@ -950,16 +993,15 @@ class _OrderBoardState extends State<OrderBoard> {
   BoardContext get board => widget.board;
 
   List<OrderItem> _shuffled() {
-    final items = [...payload.items]
-      ..shuffle(math.Random(widget.board.task.id.hashCode));
-    final ranks = [for (final i in items) i.rank];
-    final sorted = [...ranks]..sort();
-    var alreadySorted = true;
-    for (var i = 0; i < ranks.length; i++) {
-      if (ranks[i] != sorted[i]) alreadySorted = false;
+    bool sorted(List<OrderItem> items) {
+      for (var i = 1; i < items.length; i++) {
+        if (items[i].rank < items[i - 1].rank) return false;
+      }
+      return true;
     }
-    if (alreadySorted) return items.reversed.toList();
-    return items;
+
+    final items = mixed(payload.items, avoid: sorted);
+    return sorted(items) ? items.reversed.toList() : items;
   }
 
   @override
@@ -1094,6 +1136,15 @@ class ChoiceBoard extends StatefulWidget {
 
 class _ChoiceBoardState extends State<ChoiceBoard> {
   String? chosen;
+  late List<ChoiceOption> options = mixed(widget.payload.options);
+
+  @override
+  void didUpdateWidget(ChoiceBoard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.payload, widget.payload)) {
+      options = mixed(widget.payload.options);
+    }
+  }
 
   static const List<String> _faces = ['🅰️', '🅱️', '🔹'];
   static const List<Color> _colors = [
@@ -1117,7 +1168,7 @@ class _ChoiceBoardState extends State<ChoiceBoard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-        for (final (i, option) in widget.payload.options.indexed)
+        for (final (i, option) in options.indexed)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: PopIn(
@@ -1179,6 +1230,16 @@ class BasketBoard extends StatefulWidget {
 
 class _BasketBoardState extends State<BasketBoard> {
   final Set<String> basket = {};
+  late List<BasketProduct> products = _mix();
+
+  List<BasketProduct> _mix() =>
+      mixed(widget.payload.products, groupOf: (p) => p.onList);
+
+  @override
+  void didUpdateWidget(BasketBoard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.payload, widget.payload)) products = _mix();
+  }
 
   BasketPayload get payload => widget.payload;
   BoardContext get board => widget.board;
@@ -1303,7 +1364,7 @@ class _BasketBoardState extends State<BasketBoard> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final (i, product) in payload.products.indexed)
+              for (final (i, product) in products.indexed)
                 SizedBox(
                   width: width,
                   child: PopIn(

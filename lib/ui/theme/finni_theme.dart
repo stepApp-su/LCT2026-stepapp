@@ -106,6 +106,14 @@ abstract final class FinniColors {
   static const faceTear = Color(0xFF8FD0F2);
   static const coinFace = Color(0xFFF5C84A);
   static const coinEdge = Color(0xFFB8881C);
+  static const partyGoldLight = Color(0xFFFFF6C8);
+  static const partyGold = Color(0xFFFFD54F);
+  static const partyGoldDeep = Color(0xFFE0A526);
+  static const partyRibbonRed = Color(0xFFD8594A);
+  static const partyRibbonBlue = Color(0xFF4A7FD8);
+  static const partyRay = Color(0x8CFFE6A1);
+  static const partyConfettiCoral = Color(0xFFE07A6A);
+  static const partyConfettiGreen = Color(0xFF6FB38A);
 }
 
 /// Обычные всплески Material, но каждое нажатие ещё и щёлкает:

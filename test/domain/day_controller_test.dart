@@ -210,8 +210,8 @@ void main() {
       expect(night.profile.currentDay.number, 2);
       expect(
           reasons, containsAll([for (final need in needs) need.missedReason]));
-      expect(night.profile.state.satiety, 20);
-      expect(night.profile.state.care, 20);
+      expect(night.profile.state.satiety, PetState.satietyFloor);
+      expect(night.profile.state.care, PetState.careFloor);
       for (final change in night.dayChanges) {
         expect(change.reasonText.trim(), isNotEmpty);
         expect(s.controller.describe(change), isNotEmpty);
@@ -331,7 +331,7 @@ void main() {
             for (final need in _content.economy.pet.needs) need.missedReason
           ]));
       expect(second.profile.state.satiety, first.profile.state.satiety - 50);
-      expect(second.profile.state.care, first.profile.state.care - 30);
+      expect(second.profile.state.care, first.profile.state.care - 45);
     });
 
     test('итоги второго дня считают изменения от утра этого дня', () async {
@@ -347,7 +347,7 @@ void main() {
           if (evening.of(stat) != morning.of(stat))
             stat: evening.of(stat) - morning.of(stat)
       });
-      expect(night2.summary.stateChanges[PetStat.satiety], 20);
+      expect(night2.summary.stateChanges[PetStat.satiety], 5);
     });
 
     test('ночь не трогает цель, вещи, наряды и настройки', () async {
@@ -549,9 +549,9 @@ void main() {
         expect(
             night.summary.explainText, _content.summaries.explain['emptyDay']);
       }
-      expect(satiety, [20, 20, 20, 20, 20]);
-      expect(care, [20, 20, 20, 20, 20]);
-      expect(mood, [60, 50, 40, 30, 30]);
+      expect(satiety, [10, 10, 10, 10, 10]);
+      expect(care, [10, 10, 10, 10, 10]);
+      expect(mood, [48, 26, 10, 10, 10]);
       expect(profile.progress.stage, PetStage.egg);
       expect(profile.progress.earnedTitles, ['novice']);
       expect(profile.wallet.balance, 240);

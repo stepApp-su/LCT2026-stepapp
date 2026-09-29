@@ -183,6 +183,10 @@ final class PetStateService {
       }
     }
     changes.addAll(_applyAll(_rules.nightlyEffects, _rules.nightlyReason));
+    final hunger = _rules.hunger;
+    if (hunger != null && _state.satiety <= hunger.nightAtOrBelow) {
+      changes.addAll(_applyAll(hunger.nightEffects, hunger.nightReason));
+    }
     final counted = <String>{};
     for (final item in ownedItems) {
       if (item.dailyEffects.isEmpty || !counted.add(item.id)) continue;

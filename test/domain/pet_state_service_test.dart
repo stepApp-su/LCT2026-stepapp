@@ -35,8 +35,8 @@ Map<String, Object?> _rulesJson() => {
         },
       ],
       'low': {
-        'satiety': {'atOrBelow': 50, 'text': 'Хочется перекусить'},
-        'care': {'atOrBelow': 30, 'text': 'Мне бы умыться'},
+        'satiety': {'atOrBelow': 45, 'text': 'Хочется перекусить'},
+        'care': {'atOrBelow': 25, 'text': 'Мне бы умыться'},
       },
       'nightly': {
         'effects': [
@@ -63,7 +63,7 @@ Map<String, Object?> _rulesJson() => {
         'delight': {'from': 85, 'label': 'Восторг'},
         'joy': {'from': 65, 'label': 'Радость'},
         'calm': {'from': 45, 'label': 'Спокойствие'},
-        'bored': {'from': 30, 'label': 'Скука'},
+        'bored': {'from': 10, 'label': 'Скука'},
       },
       'texts': {
         'change': '{stat} {delta}',
@@ -92,6 +92,12 @@ Map<String, Object?> _entry(Map<String, Object?> json, String key, String id) =>
 
 Map<String, Object?> _need(Map<String, Object?> json, int index) =>
     ((json['needs'] as List)[index] as Map).cast<String, Object?>();
+
+final PetState _floorState = PetState.create(
+    satiety: PetState.satietyFloor,
+    care: PetState.careFloor,
+    mood: PetState.moodFloor,
+    cozy: 10);
 
 PetState _state(
         {int satiety = 80, int care = 80, int mood = 80, int cozy = 10}) =>
@@ -245,9 +251,9 @@ void main() {
 
     test('на полу пропуск ничего не отнимает, но причина всё равно видна', () {
       final pet = PetStateService(
-          rules: _rules, initial: _state(satiety: 20, care: 20, mood: 30));
+          rules: _rules, initial: _floorState);
       final night = pet.closeDay(boughtItemIds: const []);
-      expect(pet.state, _state(satiety: 20, care: 20, mood: 30));
+      expect(pet.state, _floorState);
       expect(night.changes, hasLength(4));
       for (final change in night.changes) {
         expect(change.delta, 0);
@@ -378,9 +384,9 @@ void main() {
 
     test('после ночи без еды просьба видна сразу, после покупки — исчезает',
         () {
-      final pet = PetStateService(rules: _rules);
+      final pet = PetStateService(rules: _rules, initial: _state(satiety: 75));
       pet.closeDay(boughtItemIds: const ['water_light', 'cleaning']);
-      expect(pet.state.satiety, 50);
+      expect(pet.state.satiety, 45);
       final wish = pet.status.wishes.single;
       expect(wish.stat, PetStat.satiety);
       expect(wish.text, 'Хочется перекусить');
@@ -465,7 +471,8 @@ void main() {
       expect(pet.describe(full), 'Сытость: и так на максимуме');
       final down = pet.closeDay(boughtItemIds: const []).changes.first;
       expect(pet.describe(down), 'Сытость −30');
-      final floor = PetStateService(rules: _rules, initial: _state(mood: 30))
+      final floor = PetStateService(
+              rules: _rules, initial: _state(mood: PetState.moodFloor))
           .closeDay(boughtItemIds: _allNeeds)
           .changes
           .single;
@@ -477,7 +484,7 @@ void main() {
   group('низкое состояние ничего не блокирует', () {
     test('на полу все действия работают как обычно', () {
       final pet = PetStateService(
-          rules: _rules, initial: _state(satiety: 20, care: 20, mood: 30));
+          rules: _rules, initial: _floorState);
       expect(pet.perform(PetRules.taskDone).changes.single.delta, 5);
       expect(pet.perform(PetRules.petTap).changes.single.delta, 2);
       expect(pet.applyPurchase(_treat).changes.single.delta, 8);
@@ -505,7 +512,7 @@ void main() {
         ];
       }
 
-      expect(nominals(_state(satiety: 20, care: 20, mood: 30)),
+      expect(nominals(_floorState),
           nominals(_state(satiety: 50, care: 50, mood: 50)));
     });
   });
@@ -735,12 +742,12 @@ void main() {
 
     test('просьбы по порядку шкал, граница порога включительно', () {
       final status = PetStateService(
-              rules: _rules, initial: _state(satiety: 50, care: 30, mood: 30))
+              rules: _rules, initial: _state(satiety: 45, care: 25, mood: 30))
           .status;
       expect([for (final w in status.wishes) w.text],
           ['Хочется перекусить', 'Мне бы умыться']);
       final fine =
-          PetStateService(rules: _rules, initial: _state(satiety: 51, care: 31))
+          PetStateService(rules: _rules, initial: _state(satiety: 46, care: 26))
               .status;
       expect(fine.wishes, isEmpty);
     });
@@ -799,7 +806,7 @@ void main() {
       expect(_rules.needFor('food')!.missedEffects.single.delta, -30);
       expect(_rules.needFor('treat'), isNull);
       expect(_rules.moodLevels.map((l) => l.level), MoodLevel.values.reversed);
-      expect(_rules.isLow(PetStat.satiety, 50), isTrue);
+      expect(_rules.isLow(PetStat.satiety, 45), isTrue);
       expect(_rules.isLow(PetStat.mood, 30), isFalse);
       expect(petStatFloor(PetStat.cozy), 0);
       expect(petStatCap(PetStat.cozy), isNull);
@@ -821,10 +828,10 @@ void main() {
     final broken = <String, void Function(Map<String, Object?>)>{
       'нет стартового значения': (j) => _section(j, 'initial').remove('cozy'),
       'уют на старте ноль': (j) => _section(j, 'initial')['cozy'] = 0,
-      'старт ниже пола': (j) => _section(j, 'initial')['satiety'] = 10,
+      'старт ниже пола': (j) => _section(j, 'initial')['satiety'] = 5,
       'старт выше потолка': (j) => _section(j, 'initial')['mood'] = 120,
       'питомец начинает с просьбы': (j) =>
-          _section(j, 'initial')['satiety'] = 50,
+          _section(j, 'initial')['satiety'] = 45,
       'незнакомая шкала на старте': (j) =>
           _section(j, 'initial')['hunger'] = 50,
       'нет обязательных покупок': (j) => j['needs'] = [],
@@ -840,7 +847,7 @@ void main() {
       'пропуск ни на что не влияет': (j) => _need(j, 0)['missedEffects'] = [],
       'пустая причина пропуска': (j) => _need(j, 1)['missedReason'] = ' ',
       'у снижаемой шкалы нет порога': (j) => _section(j, 'low').remove('care'),
-      'порог ниже пола': (j) => _entry(j, 'low', 'satiety')['atOrBelow'] = 10,
+      'порог ниже пола': (j) => _entry(j, 'low', 'satiety')['atOrBelow'] = 5,
       'порог на потолке': (j) => _entry(j, 'low', 'care')['atOrBelow'] = 100,
       'порог у уюта': (j) =>
           _section(j, 'low')['cozy'] = {'atOrBelow': 10, 'text': 'Пусто'},
@@ -889,6 +896,51 @@ void main() {
         expect(() => _rulesWith(edit), throwsArgumentError);
       });
     }
+  });
+
+  group('сильный голод', () {
+    final hungry = _rulesWith((j) => j['hunger'] = {
+          'atOrBelow': 25,
+          'text': 'Очень хочется кушать',
+          'noGrowth': '{name} ночью не подрос',
+          'night': {
+            'atOrBelow': 30,
+            'effects': [
+              {'stat': 'mood', 'delta': -10}
+            ],
+            'reason': 'Ночью хотелось кушать',
+          },
+        });
+
+    test('проснулся голодным — радость ниже, и причина видна', () {
+      final pet =
+          PetStateService(rules: hungry, initial: _state(satiety: 50, mood: 80));
+      final night =
+          pet.closeDay(boughtItemIds: const ['water_light', 'cleaning']);
+      expect(pet.state.satiety, 20);
+      expect(pet.state.mood, 60);
+      expect(night.changes.last.reasonText, 'Ночью хотелось кушать');
+    });
+
+    test('сытый просыпается без лишней грусти', () {
+      final pet =
+          PetStateService(rules: hungry, initial: _state(satiety: 90, mood: 80));
+      pet.closeDay(boughtItemIds: const ['water_light', 'cleaning']);
+      expect(pet.state.mood, 70);
+    });
+
+    test('сильный голод включительно по порогу и не выше «хочется»', () {
+      expect(hungry.isVeryHungry(_state(satiety: 25)), isTrue);
+      expect(hungry.isVeryHungry(_state(satiety: 26)), isFalse);
+      expect(_rules.isVeryHungry(_floorState), isFalse);
+      expect(
+          () => _rulesWith((j) => j['hunger'] = {
+                'atOrBelow': 60,
+                'text': 'Очень хочется кушать',
+                'noGrowth': 'Не подрос',
+              }),
+          throwsArgumentError);
+    });
   });
 
   group('пять дней подряд', () {

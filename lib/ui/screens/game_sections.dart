@@ -140,31 +140,23 @@ extension _GameSections on _GameShellState {
   void claimGoal() {
     final outcome = s.claimGoal();
     if (outcome is GoalClaimed) {
-      Celebration.show(context,
-          motion: s.motion, emoji: '🏆', text: outcome.goal.title);
-      sheet(
-          'Мечта сбылась!',
-          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Center(child: ItemArt(outcome.goal.id, size: 140)),
-            const SizedBox(height: 16),
-            GameText(outcome.reachedText,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge),
-            if (outcome.unlockedText != null) ...[
-              const SizedBox(height: 12),
-              _Notice(
-                  icon: Icons.auto_awesome_outlined,
-                  text: outcome.unlockedText!),
-            ],
-            const SizedBox(height: 16),
-            FilledButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  chooseGoal();
-                },
-                icon: const Icon(Icons.flag_outlined),
-                label: const GameText('Выбрать новую мечту')),
-          ]));
+      unawaited(showParty(context,
+              state: s,
+              party: Party(
+                kind: PartyKind.dream,
+                kicker: 'Мечта сбылась',
+                title: '${outcome.goal.title} — твоя!',
+                text: [
+                  outcome.reachedText,
+                  if (outcome.unlockedText != null) outcome.unlockedText!,
+                ].join(' '),
+                itemId: outcome.goal.id,
+                button: 'Выбрать новую мечту',
+                second: 'Потом',
+              ))
+          .then((pick) {
+        if (pick && mounted) chooseGoal();
+      }));
     } else if (outcome is GoalRefused) {
       toast(outcome.textRu);
     }
@@ -444,21 +436,32 @@ extension _GameSections on _GameShellState {
 
   Future<void> playDaily() async {
     if (requirePlan()) return;
-    final toPlan = await openDaily(context, s);
+    final toPiggy = await openDaily(context, s);
     if (!mounted) return;
-    if (toPlan) {
-      go(1);
+    if (toPiggy) {
+      savePocketNow();
     } else {
       maybeCoach();
     }
   }
 
+  void savePocketNow() {
+    final coins = s.pocket;
+    if (coins <= 0) return;
+    if (s.savePocket()) {
+      Celebration.show(context, motion: s.motion, emoji: '🐷');
+      toast('Отложили $coins ${ruCoins(coins)} в копилку. Мечта ближе!');
+    } else {
+      toast('Сначала выбери мечту — нажми на неё на главном экране.');
+    }
+  }
+
   Future<void> playLevel() async {
     if (requirePlan()) return;
-    final toPlan = await openLevel(context, s);
+    final toPiggy = await openLevel(context, s);
     if (!mounted) return;
-    if (toPlan) {
-      go(1);
+    if (toPiggy) {
+      savePocketNow();
     } else {
       maybeCoach();
     }
@@ -598,8 +601,9 @@ extension _GameSections on _GameShellState {
   void history() =>
       section('Дневник', (context) => _DiaryPage(state: s), tour: 'diary');
 
-  void room([int tab = 0]) => section(
-      'Гардероб и комната', (context) => _RoomPage(shell: this, tab: tab),
+  void room([int tab = 0, String? tryId]) => section(
+      'Гардероб и комната',
+      (context) => _RoomPage(shell: this, tab: tab, tryId: tryId),
       tour: 'room');
 
   void titles() => section('Звания и рост',
@@ -714,51 +718,15 @@ extension _GameSections on _GameShellState {
   void glossary() => section('Словарик', (context) => _GlossaryPage(state: s),
       tour: 'glossary');
 
-  void adults() {
-    final answer = TextEditingController();
-    final random = math.Random();
-    final a = 6 + random.nextInt(4);
-    final b = 6 + random.nextInt(4);
-    final expected = '${a * b}';
-    String? message;
-    sheet(
-        'Для взрослого',
-        StatefulBuilder(
-            builder: (context, update) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      GameText(
-                          'Чтобы открыть настройки, решите пример: $a × $b.'),
-                      const SizedBox(height: 16),
-                      TextField(
-                          controller: answer,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              labelText: 'Ответ', errorText: message),
-                          onSubmitted: (value) {
-                            if (value.trim() == expected) {
-                              Navigator.pop(context);
-                              adultSettings();
-                            } else {
-                              s.fx('not_enough');
-                              update(() => message = 'Попробуйте ещё раз');
-                            }
-                          }),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                          onPressed: () {
-                            if (answer.text.trim() == expected) {
-                              Navigator.pop(context);
-                              adultSettings();
-                            } else {
-                              s.fx('not_enough');
-                              update(() => message = 'Попробуйте ещё раз');
-                            }
-                          },
-                          icon: const Icon(Icons.lock_open_rounded),
-                          label: const GameText('Открыть настройки')),
-                    ]))).whenComplete(answer.dispose);
-  }
+  void adults() => sheet(
+      'Для взрослого',
+      _AdultGate(
+        onWrong: () => s.fx('not_enough'),
+        onPass: (context) {
+          Navigator.pop(context);
+          adultSettings();
+        },
+      ));
 
   void adultSettings() =>
       section('Для взрослого', (context) => _AdultView(shell: this));
@@ -899,4 +867,57 @@ class _TourStarterState extends State<_TourStarter> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+class _AdultGate extends StatefulWidget {
+  const _AdultGate({required this.onWrong, required this.onPass});
+
+  final VoidCallback onWrong;
+  final void Function(BuildContext context) onPass;
+
+  @override
+  State<_AdultGate> createState() => _AdultGateState();
+}
+
+class _AdultGateState extends State<_AdultGate> {
+  final answer = TextEditingController();
+  final random = math.Random();
+  late final int a = 6 + random.nextInt(4);
+  late final int b = 6 + random.nextInt(4);
+  String? message;
+
+  @override
+  void dispose() {
+    answer.dispose();
+    super.dispose();
+  }
+
+  void _check() {
+    if (answer.text.trim() == '${a * b}') {
+      widget.onPass(context);
+    } else {
+      widget.onWrong();
+      setState(() => message = 'Попробуйте ещё раз');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          GameText('Чтобы открыть настройки, решите пример: $a × $b.'),
+          const SizedBox(height: 16),
+          TextField(
+              controller: answer,
+              keyboardType: TextInputType.number,
+              decoration:
+                  InputDecoration(labelText: 'Ответ', errorText: message),
+              onSubmitted: (_) => _check()),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+              onPressed: _check,
+              icon: const Icon(Icons.lock_open_rounded),
+              label: const GameText('Открыть настройки')),
+        ],
+      );
 }

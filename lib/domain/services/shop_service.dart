@@ -151,6 +151,8 @@ final class ShopService {
   int _tokenCounter = 0;
   int? _pendingToken;
 
+  bool openAll = false;
+
   ShopCatalog get catalog => _catalog;
   int get dayNumber => _day;
   PetStage get stage => _stage;
@@ -208,7 +210,7 @@ final class ShopService {
       showcase().any((i) => !before.contains(i.id));
 
   bool isUnlocked(ShopItem item) =>
-      _stage.index >= item.minStage.index && _day >= item.minDay;
+      openAll || _stage.index >= item.minStage.index && _day >= item.minDay;
 
   /// Витрина: обязательное сначала, дальше по возрастанию цены.
   /// Купленные уникальные вещи остаются на полке с пометкой.

@@ -5,7 +5,7 @@
     "rewardReason": "Уровень {level}: игра «{taskTitle}» — часть зарплаты.",
     "dailyReason": "Задание дня «{taskTitle}» выполнено."
   },
-  "daily": { "coins": 8, "perfectBonus": 4 },
+  "daily": { "coins": 8, "perfectBonus": 4, "slowCoins": 5 },
   "simpleModeDelay": 6,
   "tiers": [
     { "fromLevel": 1, "games": 3, "hard": 0, "coins": 9 },

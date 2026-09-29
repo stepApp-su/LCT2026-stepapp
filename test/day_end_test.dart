@@ -157,7 +157,7 @@ void main() {
     expect(find.text('Доброе утро!'), findsOneWidget);
     expect(find.text('Что изменилось за ночь'), findsOneWidget);
     expect(find.text('Сытость'), findsOneWidget);
-    expect(find.text('+${state.plan.plan.income}'), findsOneWidget);
+    expect(find.text('+${content.economy.params.day.income}'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.ensureVisible(find.text('Составить план на день'));

@@ -347,15 +347,10 @@ class BedtimeScreen extends StatelessWidget {
   }
 
   (String, String) _todoLook(BedtimeTodo todo) => switch (todo) {
-        BedtimeTodo.plan => (
-            '📝',
-            state.plan.isConfirmed
-                ? 'Разложить заработанные монеты'
-                : 'Составить план на день'
-          ),
+        BedtimeTodo.plan => ('📝', 'Составить план на день'),
         BedtimeTodo.needs => (
             '🍲',
-            'Ещё не купили: ${state.unpaidNeeds.map((i) => i.titleAccusative).join(', ')}'
+            'Ещё не купили: ${state.unpaidNeeds.map((i) => i.titleAccusative).join(', ')}${state.veryHungry ? '. Голодным ${state.petName} ночью не подрастёт' : ''}'
           ),
         BedtimeTodo.task => (
             '🧩',

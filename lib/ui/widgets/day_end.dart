@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import '../../domain/models/models.dart';
 import '../game_controller.dart';
 import '../theme/finni_theme.dart';
+import 'day_end_cards.dart';
 import 'emoji_art.dart';
 import 'moni_scene.dart';
+import 'party.dart';
 import 'pet_celebration.dart';
 
 const Map<String, (String, String)> _factorLooks = {
@@ -77,6 +79,16 @@ class _DayEndScreenState extends State<DayEndScreen> {
   }
   Map<String, dynamic> get e => widget.event;
 
+  Map<String, dynamic> get _pocket =>
+      (e['pocket'] as Map?)?.cast<String, dynamic>() ?? const {};
+
+  int _pocketOf(String key) => (_pocket[key] as num?)?.toInt() ?? 0;
+
+  List<List> get _rows => [
+        for (final row in (e['rows'] as List? ?? const []))
+          if (row is List && row.length >= 3) row
+      ];
+
   int _int(String key) => (e[key] as num?)?.toInt() ?? 0;
 
   List<Map<String, dynamic>> _maps(String key) => [
@@ -100,6 +112,24 @@ class _DayEndScreenState extends State<DayEndScreen> {
         }),
       );
       if (!mounted) return;
+    } else {
+      for (final id in e['titles'] as List? ?? const []) {
+        final title = s.content.titles.byId('$id');
+        if (title == null) continue;
+        final wear = await showParty(context,
+            state: s,
+            party: Party(
+              kind: PartyKind.title,
+              kicker: 'Новое звание',
+              title: title.title,
+              text: s.titles.reasonOf(title),
+              icon: titleIconOf(title.iconId),
+              button: 'Ура! Надеть звание',
+              second: 'Позже',
+            ));
+        if (!mounted) return;
+        if (wear) s.chooseTitle(title.id);
+      }
     }
     setState(() => morning = true);
     s.musicTheme('main');
@@ -293,6 +323,30 @@ class _DayEndScreenState extends State<DayEndScreen> {
               GameText('${s.petName} уже совсем взрослый!', style: _soft),
           ]),
         ),
+        if ('${e['hungry'] ?? ''}'.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+                color: FinniColors.nightPeach.withValues(alpha: .18),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                    color: FinniColors.nightPeach.withValues(alpha: .5))),
+            child: Row(children: [
+              const ExcludeSemantics(
+                  child: GameText('🍲', style: TextStyle(fontSize: 24))),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GameText(
+                    '${e['hungry']}. Купи еду — и завтра он снова будет расти.',
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: FinniColors.nightInk)),
+              ),
+            ]),
+          ),
+        ],
         const SizedBox(height: 10),
         LayoutBuilder(builder: (context, constraints) {
           final width = ((constraints.maxWidth - (columns - 1) * 8) / columns)
@@ -302,28 +356,35 @@ class _DayEndScreenState extends State<DayEndScreen> {
               SizedBox(width: width, child: _factorTile(factor)),
           ]);
         }),
+        if (_rows.any((row) => ((row[1] as num?) ?? 0) > 0)) ...[
+          const SizedBox(height: 10),
+          PlanJars(
+            rows: _rows,
+            followed: factors.any(
+                (f) => f['id'] == 'followedPlan' && f['met'] == true),
+            motion: _motion,
+          ),
+        ],
+        if (_pocketOf('earned') > 0) ...[
+          const SizedBox(height: 10),
+          PocketFlow(
+            earned: _pocketOf('earned'),
+            saved: _pocketOf('saved'),
+            needs: _pocketOf('needs'),
+            carry: _pocketOf('carry'),
+            petName: s.petName,
+            motion: _motion,
+          ),
+        ],
         for (final id in titles)
           if (s.content.titles.byId('$id') case final title?)
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: NightGlass(
-                child: Row(children: [
-                  const Icon(Icons.workspace_premium_rounded,
-                      color: FinniColors.honey),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GameText('Новое звание: ${title.title}',
-                              style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w900,
-                                  color: FinniColors.nightInk)),
-                          GameText(s.titles.reasonOf(title), style: _soft),
-                        ]),
-                  ),
-                ]),
+              child: TitleGlass(
+                icon: titleIconOf(title.iconId),
+                title: title.title,
+                reason: s.titles.reasonOf(title),
+                motion: _motion,
               ),
             ),
         if (missed.isNotEmpty) ...[
@@ -399,10 +460,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
   }
 
   void _summary() {
-    final rows = [
-      for (final row in (e['rows'] as List? ?? const []))
-        if (row is List && row.length >= 3) row
-    ];
+    final rows = _rows;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -446,6 +504,18 @@ class _DayEndScreenState extends State<DayEndScreen> {
               for (final (i, row) in rows.indexed) _planRow(i, row),
             ]),
           ),
+          if (_pocketOf('earned') > 0) ...[
+            const SizedBox(height: 10),
+            NightGlass(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              child: Column(children: [
+                _pocketRow('👛 Новые монеты', _pocketOf('earned'), strong: true),
+                _pocketRow('🐷 В копилку', _pocketOf('saved')),
+                _pocketRow('🍎 На нужное', _pocketOf('needs')),
+                _pocketRow('📅 На завтра', _pocketOf('carry')),
+              ]),
+            ),
+          ],
           if ('${e['explain'] ?? ''}'.isNotEmpty) ...[
             const SizedBox(height: 10),
             NightGlass(
@@ -480,6 +550,27 @@ class _DayEndScreenState extends State<DayEndScreen> {
       ),
     );
   }
+
+  Widget _pocketRow(String label, int value, {bool strong = false}) =>
+      Container(
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: strong
+            ? null
+            : const BoxDecoration(
+                border:
+                    Border(top: BorderSide(color: FinniColors.glassLine))),
+        child: Row(children: [
+          Expanded(
+              child: GameText(label,
+                  style: strong
+                      ? _body.copyWith(fontWeight: FontWeight.w900)
+                      : _body)),
+          GameText('$value',
+              style: _body.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: strong ? FinniColors.honey : FinniColors.nightInk)),
+        ]),
+      );
 
   Widget _money(String value, String label) => NightGlass(
         radius: 16,
@@ -598,12 +689,46 @@ class _DayEndScreenState extends State<DayEndScreen> {
                         fontWeight: FontWeight.w800,
                         color: FinniColors.nightInk)),
               ),
-              GameText('+${s.plan.plan.income}',
+              GameText('+${s.content.economy.params.day.income}',
                   style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
                       color: FinniColors.honey)),
             ]),
+            if (s.carried > 0) _incomeRow('👛 Осталось со вчера', s.carried),
+            if (s.paidBack > 0) _incomeRow('🤝 Тебе вернули', s.paidBack),
+            if (s.carried > 0 || s.paidBack > 0) ...[
+              const SizedBox(height: 8),
+              const SizedBox(
+                  height: 1, child: ColoredBox(color: FinniColors.glassLine)),
+              const SizedBox(height: 8),
+              Row(children: [
+                const Expanded(
+                  child: GameText('Можно распланировать',
+                      style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          color: FinniColors.nightInk)),
+                ),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(
+                      begin: _motion
+                          ? s.content.economy.params.day.income.toDouble()
+                          : s.plan.plan.income.toDouble(),
+                      end: s.plan.plan.income.toDouble()),
+                  duration: _motion
+                      ? const Duration(milliseconds: 1100)
+                      : Duration.zero,
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) => GameText(
+                      '${value.round()}',
+                      style: const TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.w900,
+                          color: FinniColors.honey)),
+                ),
+              ]),
+            ],
             for (final entry in fixes.entries)
               Padding(
                 padding: const EdgeInsets.only(top: 10),
@@ -635,6 +760,24 @@ class _DayEndScreenState extends State<DayEndScreen> {
       ],
     );
   }
+
+  Widget _incomeRow(String label, int value) => Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(children: [
+          Expanded(
+            child: GameText(label,
+                style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: FinniColors.nightInk)),
+          ),
+          GameText('+$value',
+              style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: FinniColors.honey)),
+        ]),
+      );
 
   ShopItem? _restorer(String stat) {
     final wanted = PetStat.values.where((v) => v.name == stat).firstOrNull;

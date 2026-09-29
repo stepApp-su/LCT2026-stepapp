@@ -17,7 +17,7 @@ import '../widgets/finni_ui.dart';
 import '../widgets/moni_scene.dart';
 import 'game_boards.dart';
 
-enum GameMode { practice, level, daily }
+enum GameMode { practice, level, daily, improve }
 
 class GameScreen extends StatefulWidget {
   const GameScreen({
@@ -25,11 +25,13 @@ class GameScreen extends StatefulWidget {
     required this.state,
     required this.taskId,
     this.mode = GameMode.practice,
+    this.slot = 0,
   });
 
   final GameController state;
   final String taskId;
   final GameMode mode;
+  final int slot;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -54,6 +56,7 @@ class _GameScreenState extends State<GameScreen> {
       GameMode.practice => s.startGame(widget.taskId),
       GameMode.level => s.startLevelGame(),
       GameMode.daily => s.startDailyGame(),
+      GameMode.improve => s.startImprove(widget.slot),
     };
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -98,6 +101,8 @@ class _GameScreenState extends State<GameScreen> {
         final result = s.finishLevelGame(session);
         step = result;
         return result.reward;
+      case GameMode.improve:
+        return s.finishImprove(widget.slot, session);
     }
   }
 
@@ -381,7 +386,8 @@ class _GameScreenState extends State<GameScreen> {
       ];
     }
     if (run == null) return const [];
-    final position = reward == null ? run.done + 1 : run.done;
+    final position =
+        reward == null ? (run.currentIndex ?? run.played) + 1 : run.done;
     return ['Уровень ${run.number}', '$position из ${run.slots.length}'];
   }
 
@@ -466,6 +472,18 @@ class _GameScreenState extends State<GameScreen> {
     };
   }
 
+  String _noCoins(GameReward earned) => switch (widget.mode) {
+        GameMode.level =>
+          'Эта игра подождёт. Вернись к ней после остальных — будет новое задание.',
+        GameMode.daily =>
+          'Задание дня можно пройти ещё раз сегодня. Попробуй!',
+        GameMode.improve => earned.stars == 0
+            ? 'Ничего страшного: звёзды остались прежними. Можно попробовать ещё раз.'
+            : 'Звёзд не больше, чем было, поэтому монет нет. Попробуй ещё!',
+        GameMode.practice =>
+          'Это тренировка: монет нет, зато звёзды и опыт остаются.',
+      };
+
   Widget _rewardLine(GameReward earned) => FinniCard(
         color: FinniColors.paper,
         padding: 12,
@@ -479,15 +497,14 @@ class _GameScreenState extends State<GameScreen> {
                   final LevelRecord done =>
                     'Уровень пройден! За весь уровень — ${done.coins} ${ruCoins(done.coins)}.',
                   _ when inLevel =>
-                    'Часть зарплаты уже в кошельке. Идём дальше!',
+                    'Звезда = монета: ${earned.stars} из 3. Идём дальше!',
+                  _ when widget.mode == GameMode.improve =>
+                    'Новые звёзды — новые монеты!',
                   _ => 'Монеты уже в кошельке.',
                 }),
               ),
             ] else
-              const Expanded(
-                child: GameText(
-                    'Это тренировка: монет нет, зато звёзды и опыт остаются.'),
-              ),
+              Expanded(child: GameText(_noCoins(earned))),
           ],
         ),
       );
@@ -515,7 +532,7 @@ class _GameScreenState extends State<GameScreen> {
           Expanded(
             child: OutlinedButton(
               onPressed: _giveUp,
-              child: const GameText('Дальше без ответа'),
+              child: GameText(inLevel ? 'Отложить игру' : 'Дальше без ответа'),
             ),
           ),
           const SizedBox(width: 10),
