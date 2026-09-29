@@ -20,7 +20,7 @@ final class SoundService {
   }
 
   /// Записанная озвучка реплики, если она есть для этого вида питомца.
-  /// Нет записи — вернётся null, и реплику «проговорит» бормотание.
+  /// Нет записи — вернётся null, и питомец отзовётся своим голоском.
   String? voiceFor(String phraseId,
       {required String species, required bool soundOn}) {
     if (!soundOn) return null;
@@ -37,34 +37,13 @@ final class SoundService {
     return musicOn ? assetRoot + file : null;
   }
 
-  /// «Бормотание»: по сэмплу на слог текста, в тембре своего питомца.
-  /// Выбор детерминирован сидом — та же реплика звучит одинаково.
-  List<String> babbleFor(String text,
-      {required String species, required int seed, required bool soundOn}) {
-    if (!soundOn) return const [];
-    final samples = _scheme.babble[species];
-    if (samples == null) {
-      throw ArgumentError.value(species, 'species', 'нет тембра бормотания');
-    }
-    final syllables =
-        _syllables(text).clamp(1, _scheme.babbleMaxSyllables);
-    // домен без Random: свой детерминированный шаг от сида
-    var mix = seed & 0x7fffffff;
-    return List.unmodifiable([
-      for (var i = 0; i < syllables; i++)
-        assetRoot +
-            samples[(mix = (mix * 1103515245 + 12345 + i) & 0x7fffffff) %
-                samples.length]
-    ]);
-  }
-
-  static const String _vowels = 'аеёиоуыэюяaeiouy';
-
-  int _syllables(String text) {
-    var count = 0;
-    for (final code in text.toLowerCase().runes) {
-      if (_vowels.contains(String.fromCharCode(code))) count++;
-    }
-    return count;
+  /// Голосок питомца (смешок, писк, «гав») — на реплику без записи
+  /// и на поглаживание. Варианты чередуются по номеру [turn].
+  /// Вид без голоска молчит, а не ломает реплику.
+  String? petSound(String species, {required int turn, required bool soundOn}) {
+    if (!soundOn) return null;
+    final files = _scheme.pets[species];
+    if (files == null) return null;
+    return assetRoot + files[turn.abs() % files.length];
   }
 }

@@ -85,7 +85,7 @@ class RoomScene extends StatelessWidget {
                 stage: state.stage,
                 motion: state.motion,
                 sad: state.petIsSad,
-                onPet: () => state.fx('pet_tap'),
+                onPet: state.petVoice,
                 equipped: state.equipped,
                 outfit: state.outfit)),
         if (pieces == null) item('toy', .20, .985, .12),

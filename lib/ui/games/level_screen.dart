@@ -427,7 +427,7 @@ class _Header extends StatelessWidget {
                 motion: state.motion,
                 stage: state.stage,
                 outfit: state.outfit,
-                onPet: () => state.fx('pet_tap')),
+                onPet: state.petVoice),
           ),
           const SizedBox(width: 8),
           Expanded(
