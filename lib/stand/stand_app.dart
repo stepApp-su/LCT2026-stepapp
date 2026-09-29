@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../content/content_repository.dart';
+import '../data/sound_player.dart';
 import '../domain/models/models.dart';
 import '../domain/services/phrase_service.dart';
 import '../domain/services/plan_service.dart';
+import '../domain/services/sound_service.dart';
 import '../ui/app.dart';
 import '../ui/game_controller.dart';
 import '../ui/pet_appearance.dart';
@@ -12,15 +14,22 @@ import 'stand_style.dart';
 import 'stand_repository.dart';
 
 class StandApp extends StatefulWidget {
-  const StandApp({super.key, required this.content, required this.config});
+  const StandApp(
+      {super.key, required this.content, required this.config, this.sounds});
   final ContentBundle content;
   final Map<String, dynamic> config;
+  final SoundScheme? sounds;
   @override
   State<StandApp> createState() => _StandAppState();
 }
 
 class _StandAppState extends State<StandApp> {
   late GameController game;
+  // один плеер на все сценарии: музыка не рвётся при смене профиля
+  late final SoundPlayer? player =
+      widget.sounds == null ? null : SoundPlayer();
+  late final SoundService? sound =
+      widget.sounds == null ? null : SoundService(scheme: widget.sounds!);
   int revision = 0;
   bool playing = false, busy = false;
   double phoneWidth = 390;
@@ -67,7 +76,9 @@ class _StandAppState extends State<StandApp> {
       GameController(widget.config,
           content: widget.content,
           repository: repository ?? StandRepository(),
-          saved: saved);
+          saved: saved,
+          sounds: sound,
+          soundPlayer: player);
 
   void record(String message) {
     if (!message.startsWith('Не выполнено:')) return;
@@ -213,6 +224,7 @@ class _StandAppState extends State<StandApp> {
   void dispose() {
     game.removeListener(refresh);
     game.dispose();
+    player?.dispose();
     super.dispose();
   }
 

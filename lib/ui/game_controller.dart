@@ -94,11 +94,16 @@ class GameController extends ChangeNotifier {
       GameRepository? repository,
       GameClock? clock,
       this.sounds,
-      this.soundPlayer})
+      this.soundPlayer,
+      bool ownsSoundPlayer = false})
       : repository = repository ?? LocalGameRepository(),
-        clock = clock ?? RealClock() {
+        clock = clock ?? RealClock(),
+        _ownsSoundPlayer = ownsSoundPlayer {
     _restore(saved);
-    TapSound.attach(() => fx('tap'));
+    TapSound.attach(() {
+      fx('tap');
+      if (sound && music) soundPlayer?.resumeMusic();
+    });
   }
 
   late PetAppearance appearance;
@@ -153,7 +158,6 @@ class GameController extends ChangeNotifier {
   late Set<String> passedVariants;
   late bool motion, simpleMode, onboarded, sound, music;
   String _musicTheme = 'main';
-  String? _musicPlaying;
   late String petName;
   PhraseLine? bubble;
   String? storageError;
@@ -164,6 +168,8 @@ class GameController extends ChangeNotifier {
   // звук опционален: без схемы и плеера (в тестах) все точки молчат
   final SoundService? sounds;
   final SoundPlayer? soundPlayer;
+  // чужой плеер (стенд меняет контроллеры на лету) не закрываем
+  final bool _ownsSoundPlayer;
 
   static Future<GameController> load() async {
     const loader = ContentLoader();
@@ -175,7 +181,8 @@ class GameController extends ChangeNotifier {
         saved: await repository.load(),
         repository: repository,
         sounds: SoundService(scheme: await loader.loadSoundScheme()),
-        soundPlayer: SoundPlayer());
+        soundPlayer: SoundPlayer(),
+        ownsSoundPlayer: true);
   }
 
   void _restore(Map<String, dynamic>? saved) {
@@ -1601,10 +1608,8 @@ class GameController extends ChangeNotifier {
 
   void _applyMusic() {
     final on = sound && music;
-    final path = on ? sounds?.musicFor(_musicTheme, musicOn: true) : null;
-    if (path == _musicPlaying) return;
-    _musicPlaying = path;
-    soundPlayer?.music(path);
+    soundPlayer
+        ?.music(on ? sounds?.musicFor(_musicTheme, musicOn: true) : null);
   }
 
   ({int days, int earned, int mandatory, int optional, int saved}) get report {
@@ -1772,7 +1777,11 @@ class GameController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _bubbleTimer?.cancel();
-    soundPlayer?.dispose();
+    if (_ownsSoundPlayer) {
+      soundPlayer?.dispose();
+    } else {
+      soundPlayer?.stopSpeech();
+    }
     super.dispose();
   }
 }

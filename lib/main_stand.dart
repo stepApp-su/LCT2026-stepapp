@@ -6,9 +6,13 @@ import 'stand/stand_app.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    final content = await const ContentLoader().loadAll();
+    const loader = ContentLoader();
+    final content = await loader.loadAll();
     final config = await GameContent.load();
-    runApp(StandApp(content: content, config: config));
+    runApp(StandApp(
+        content: content,
+        config: config,
+        sounds: await loader.loadSoundScheme()));
   } catch (_) {
     runApp(const MaterialApp(
         home: Scaffold(
