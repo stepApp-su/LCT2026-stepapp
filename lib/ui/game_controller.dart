@@ -1504,12 +1504,22 @@ class GameController extends ChangeNotifier {
     player.stopSpeech();
     if (voice != null) {
       player.speak([voice]);
-    } else {
+    } else if (_cheerful.contains(line.emotion)) {
       petVoice();
     }
   }
 
+  // смешок уместен только в радостной реплике; сочувствие и сон — тишина
+  static const _cheerful = {
+    PhraseEmotion.happy,
+    PhraseEmotion.proud,
+    PhraseEmotion.celebrate,
+    PhraseEmotion.surprised,
+  };
+
   void greet() {
+    // во время церемонии роста приветствие звучит поверх фанфар
+    if (celebration != null) return;
     if (currentNeed != null) {
       remindNeed();
     } else {
