@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../tap_sound.dart';
+
 abstract final class FinniColors {
   static const background = Color(0xFFF7F8F3);
   static const paper = Color(0xFFFFFFFF);
@@ -106,9 +108,46 @@ abstract final class FinniColors {
   static const coinEdge = Color(0xFFB8881C);
 }
 
+/// Обычные всплески Material, но каждое нажатие ещё и щёлкает:
+/// одна точка озвучивает все кнопки, чипы и плитки приложения.
+class _TapSplashFactory extends InteractiveInkFeatureFactory {
+  const _TapSplashFactory();
+
+  @override
+  InteractiveInkFeature create({
+    required MaterialInkController controller,
+    required RenderBox referenceBox,
+    required Offset position,
+    required Color color,
+    required TextDirection textDirection,
+    bool containedInkWell = false,
+    RectCallback? rectCallback,
+    BorderRadius? borderRadius,
+    ShapeBorder? customBorder,
+    double? radius,
+    VoidCallback? onRemoved,
+  }) {
+    TapSound.tap();
+    return InkRipple.splashFactory.create(
+      controller: controller,
+      referenceBox: referenceBox,
+      position: position,
+      color: color,
+      textDirection: textDirection,
+      containedInkWell: containedInkWell,
+      rectCallback: rectCallback,
+      borderRadius: borderRadius,
+      customBorder: customBorder,
+      radius: radius,
+      onRemoved: onRemoved,
+    );
+  }
+}
+
 ThemeData finniTheme() => ThemeData(
       useMaterial3: true,
       fontFamily: 'Nunito',
+      splashFactory: const _TapSplashFactory(),
       scaffoldBackgroundColor: FinniColors.background,
       colorScheme: ColorScheme.fromSeed(
         seedColor: FinniColors.primary,

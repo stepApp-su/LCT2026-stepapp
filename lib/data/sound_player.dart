@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 final class SoundPlayer {
   final AudioPlayer _effects = AudioPlayer();
   final AudioPlayer _voice = AudioPlayer();
+  final AudioPlayer _music = AudioPlayer();
 
   /// Короткий эффект; null (звук выключен) молча пропускается.
   Future<void> effect(String? assetPath) async {
@@ -22,9 +23,22 @@ final class SoundPlayer {
 
   Future<void> stopSpeech() => _voice.stop();
 
+  /// Бесконечная фоновая тема; null (музыка выключена) останавливает её.
+  Future<void> music(String? assetPath) async {
+    if (assetPath == null) {
+      await _music.stop();
+      return;
+    }
+    await _music.stop();
+    await _music.setReleaseMode(ReleaseMode.loop);
+    await _music.setVolume(0.35);
+    await _music.play(AssetSource(_relative(assetPath)));
+  }
+
   void dispose() {
     _effects.dispose();
     _voice.dispose();
+    _music.dispose();
   }
 
   // AssetSource ждёт путь без префикса assets/

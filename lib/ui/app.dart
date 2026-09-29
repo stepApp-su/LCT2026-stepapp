@@ -71,6 +71,7 @@ class _FinniAppState extends State<FinniApp> {
                     body: Center(child: CircularProgressIndicator()));
               }
               final state = snapshot.data!;
+              state.startMusic();
               return AnimatedBuilder(
                   animation: state,
                   builder: (context, _) => state.onboarded

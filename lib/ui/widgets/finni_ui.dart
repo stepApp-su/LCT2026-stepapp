@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import '../tap_sound.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../domain/services/phrase_service.dart';
@@ -157,7 +159,12 @@ class _SquishState extends State<Squish> {
         onTapDown: widget.enabled ? (_) => _set(true) : null,
         onTapCancel: () => _set(false),
         onTapUp: widget.enabled ? (_) => _set(false) : null,
-        onTap: widget.enabled ? widget.onTap : null,
+        onTap: widget.enabled
+            ? () {
+                if (widget.onTap != null) TapSound.tap();
+                widget.onTap?.call();
+              }
+            : null,
         child: AnimatedScale(
           scale: pressed ? .94 : 1,
           duration: const Duration(milliseconds: 110),

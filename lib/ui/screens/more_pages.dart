@@ -1957,6 +1957,12 @@ class _AdultView extends StatelessWidget {
                   value: s.sound,
                   onChanged: s.setSound),
               SwitchListTile(
+                  title: const Text('Музыка',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: const Text('Фоновая мелодия игры'),
+                  value: s.music,
+                  onChanged: s.setMusic),
+              SwitchListTile(
                   title: const Text('Анимации питомца',
                       style: TextStyle(fontWeight: FontWeight.w800)),
                   subtitle: const Text(

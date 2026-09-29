@@ -9,6 +9,7 @@ final class SoundScheme {
     required this.babble,
     required this.babbleMaxSyllables,
     required this.voice,
+    required this.music,
   });
 
   /// События, которые обязаны быть озвучены.
@@ -43,6 +44,7 @@ final class SoundScheme {
     if (babble.isEmpty) {
       throw ArgumentError.value(rawBabble, 'babble', 'нет ни одного питомца');
     }
+    final music = jsonTexts(json['music'] ?? const {}, 'music');
     final rawVoice = jsonMap(json['voice'] ?? const {}, 'voice');
     final voice = {
       for (final entry in rawVoice.entries)
@@ -55,6 +57,7 @@ final class SoundScheme {
       babbleMaxSyllables:
           jsonInt(json['babbleMaxSyllables'] ?? 8, 'babbleMaxSyllables', min: 1),
       voice: Map.unmodifiable(voice),
+      music: music,
     );
   }
 
@@ -71,9 +74,13 @@ final class SoundScheme {
   /// Вид питомца -> (id реплики -> файл озвучки).
   final Map<String, Map<String, String>> voice;
 
+  /// Фоновая музыка: имя темы -> файл.
+  final Map<String, String> music;
+
   /// Все файлы схемы одним списком — для проверки, что каждый существует.
   List<String> get allFiles => List.unmodifiable([
         ...events.values,
+        ...music.values,
         for (final files in babble.values) ...files,
         for (final byPhrase in voice.values) ...byPhrase.values,
       ]);
