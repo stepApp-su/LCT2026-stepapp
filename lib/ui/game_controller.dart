@@ -767,18 +767,21 @@ class GameController extends ChangeNotifier {
       .where((t) =>
           t.dayNumber == day &&
           t.type == TransactionType.expense &&
-          t.category == category)
+          t.category == category &&
+          !t.sourceId.startsWith('goal:'))
       .fold(0, (sum, t) => sum + t.amount);
 
-  int get _savedToday => wallet.journal.where((t) => t.dayNumber == day).fold(
-      0,
-      (sum, t) =>
-          sum +
-          (t.type == TransactionType.toSavings
-              ? t.amount
-              : t.type == TransactionType.fromSavings
-                  ? -t.amount
-                  : 0));
+  int get _savedToday => wallet.journal
+      .where((t) => t.dayNumber == day && !t.sourceId.startsWith('goal:'))
+      .fold(
+          0,
+          (sum, t) =>
+              sum +
+              (t.type == TransactionType.toSavings
+                  ? t.amount
+                  : t.type == TransactionType.fromSavings
+                      ? -t.amount
+                      : 0));
 
   int planLeft(PlanDirection direction) {
     final full = fullPlan;
@@ -1665,6 +1668,7 @@ class GameController extends ChangeNotifier {
         case TransactionType.income:
           earned += t.amount;
         case TransactionType.expense:
+          if (t.sourceId.startsWith('goal:')) break;
           if (t.category == ExpenseCategory.mandatory) {
             mandatory += t.amount;
           } else {

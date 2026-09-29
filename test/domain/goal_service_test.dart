@@ -414,6 +414,28 @@ void main() {
       expect(service.current, isNull);
     });
 
+    test('мечта покупается на накопленное: копилка пустеет, баланс не растёт',
+        () {
+      final wallet = _wallet(balance: 150, deposits: {1: 120});
+      final service = _goals(catalog, wallet: wallet, day: 2);
+      expect(wallet.wallet, Wallet.create(balance: 30, savings: 120));
+
+      final claimed = service.claim(at: _at) as GoalClaimed;
+      expect(wallet.wallet, Wallet.create(balance: 30, savings: 0));
+      expect(claimed.wallet, wallet.wallet);
+      final [withdraw, spend] = wallet.journal.skip(1).toList();
+      expect(withdraw.type, TransactionType.fromSavings);
+      expect(withdraw.reasonText, 'Взяли 120 монет из копилки.');
+      expect(spend.type, TransactionType.expense);
+      expect(spend.reasonText, 'Купили самокат на накопленные монеты!');
+      for (final t in [withdraw, spend]) {
+        expect(t.sourceId, 'goal:scooter');
+        expect(t.amount, 120);
+        expect(t.dayNumber, 2);
+      }
+      expect(claimed.transaction, spend);
+    });
+
     test('третья цель открывает большие', () {
       final service = _goals(
         catalog,

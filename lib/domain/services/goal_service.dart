@@ -544,12 +544,16 @@ final class GoalService {
     if (saved < goal.price) return GoalRefused(texts.notEnoughSavings);
 
     final before = {for (final g in available()) g.id};
-    final outcome = _wallet.fromSavings(
+    final outcome = _wallet.spendSavings(
       amount: goal.price,
       at: at,
       dayNumber: _day,
       sourceId: 'goal:${goal.id}',
-      reasonText: fillTemplate(texts.journal.goalReached, {
+      withdrawReason: fillTemplate(texts.journal.fromSavings, {
+        'amount': '${goal.price}',
+        'coin': ruCoins(goal.price),
+      }),
+      spendReason: fillTemplate(texts.journal.goalReached, {
         'title': goal.title,
         'titleAccusative': goal.titleAccusative,
         'price': '${goal.price}',

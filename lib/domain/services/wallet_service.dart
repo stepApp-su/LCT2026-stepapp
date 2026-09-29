@@ -204,4 +204,36 @@ final class WalletService {
     _journal.add(tx);
     return WalletOk(wallet: _wallet, transaction: tx);
   }
+
+  WalletOutcome spendSavings({
+    required int amount,
+    required String sourceId,
+    required String withdrawReason,
+    required String spendReason,
+    required DateTime at,
+    required int dayNumber,
+  }) {
+    final withdrawn = fromSavings(
+      amount: amount,
+      at: at,
+      dayNumber: dayNumber,
+      reasonText: withdrawReason,
+      sourceId: sourceId,
+    );
+    if (withdrawn is! WalletOk) return withdrawn;
+    final tx = Transaction.create(
+      id: _nextId(dayNumber),
+      type: TransactionType.expense,
+      amount: amount,
+      sourceId: sourceId,
+      category: ExpenseCategory.optional,
+      reasonText: spendReason,
+      at: at,
+      dayNumber: dayNumber,
+    );
+    _wallet = Wallet.create(
+        balance: _wallet.balance - amount, savings: _wallet.savings);
+    _journal.add(tx);
+    return WalletOk(wallet: _wallet, transaction: tx);
+  }
 }

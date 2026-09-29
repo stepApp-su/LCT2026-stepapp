@@ -153,6 +153,36 @@ void main() {
       expect(p.wallet.balance, greaterThanOrEqualTo(0));
     });
 
+    test('разумный: мечта куплена на накопленное, монеты не вернулись', () {
+      final p = prudent.profile;
+      final price = content.goals.byId('constructor')!.price;
+      final dream = [
+        for (final t in p.allTransactions)
+          if (t.sourceId == 'goal:constructor') (t.type, t.amount)
+      ];
+      expect(dream, [
+        (TransactionType.fromSavings, price),
+        (TransactionType.expense, price),
+      ]);
+      var balance = 0;
+      var savings = 0;
+      for (final t in p.allTransactions) {
+        switch (t.type) {
+          case TransactionType.income:
+            balance += t.amount;
+          case TransactionType.expense:
+            balance -= t.amount;
+          case TransactionType.toSavings:
+            balance -= t.amount;
+            savings += t.amount;
+          case TransactionType.fromSavings:
+            balance += t.amount;
+            savings -= t.amount;
+        }
+      }
+      expect(p.wallet, Wallet.create(balance: balance, savings: savings));
+    });
+
     test('разумный: мечта достигнута, не меньше трёх званий', () {
       final p = prudent.profile;
       expect(p.reachedGoalIds, contains('constructor'));

@@ -8,6 +8,8 @@ import '../game_clock.dart';
 import '../models/models.dart';
 import '../profile_codec.dart';
 import '../profile_repository.dart';
+import '../ru_words.dart';
+import '../text_template.dart';
 import 'day_controller.dart';
 import 'day_summary_service.dart';
 import 'pet_state_service.dart';
@@ -197,12 +199,18 @@ final class DemoService {
     }
     if (script.claimGoal) {
       final goal = _goals.goals.firstWhere((g) => g.id == goalIdNow);
-      final outcome = wallet.fromSavings(
+      final outcome = wallet.spendSavings(
         amount: goal.price,
         at: at,
         dayNumber: day,
         sourceId: 'goal:${goal.id}',
-        reasonText: 'Мечта сбылась: ${goal.title}.',
+        withdrawReason: fillTemplate(_goals.texts.journal.fromSavings,
+            {'amount': '${goal.price}', 'coin': ruCoins(goal.price)}),
+        spendReason: fillTemplate(_goals.texts.journal.goalReached, {
+          'title': goal.title,
+          'titleAccusative': goal.titleAccusative,
+          'price': '${goal.price}',
+        }),
       );
       if (outcome is! WalletOk) throw StateError('копилки мало для мечты');
       pet.applyGoalReward(goal);

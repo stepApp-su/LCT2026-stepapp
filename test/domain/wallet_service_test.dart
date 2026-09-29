@@ -124,6 +124,79 @@ void main() {
     });
   });
 
+  group('покупка из копилки', () {
+    WalletOutcome buy(WalletService wallet, int amount) => wallet.spendSavings(
+          amount: amount,
+          sourceId: 'goal:scooter',
+          withdrawReason: 'Взяли 120 монет из копилки.',
+          spendReason: 'Купили самокат на накопленные монеты!',
+          at: _at,
+          dayNumber: 3,
+        );
+
+    test('копилка уменьшается, баланс не растёт, в журнале снятие и трата', () {
+      final wallet =
+          WalletService(initial: Wallet.create(balance: 10, savings: 120));
+      final outcome = buy(wallet, 120) as WalletOk;
+
+      expect(outcome.wallet, Wallet.create(balance: 10, savings: 0));
+      expect(wallet.wallet, outcome.wallet);
+      final [withdraw, spend] = wallet.journal;
+      expect(withdraw.type, TransactionType.fromSavings);
+      expect(withdraw.amount, 120);
+      expect(withdraw.sourceId, 'goal:scooter');
+      expect(withdraw.reasonText, 'Взяли 120 монет из копилки.');
+      expect(withdraw.dayNumber, 3);
+      expect(spend.type, TransactionType.expense);
+      expect(spend.amount, 120);
+      expect(spend.sourceId, 'goal:scooter');
+      expect(spend.category, ExpenseCategory.optional);
+      expect(spend.reasonText, 'Купили самокат на накопленные монеты!');
+      expect(spend.dayNumber, 3);
+      expect(spend.id, isNot(withdraw.id));
+      expect(outcome.transaction, spend);
+    });
+
+    test('копилки мало — отказ, ничего не списано и не записано', () {
+      final wallet =
+          WalletService(initial: Wallet.create(balance: 500, savings: 100));
+      final outcome = buy(wallet, 120) as WalletNotEnough;
+      expect(outcome.gap, 20);
+      expect(wallet.wallet, Wallet.create(balance: 500, savings: 100));
+      expect(wallet.journal, isEmpty);
+    });
+
+    test('баланс и копилка по-прежнему сходятся с журналом', () {
+      final wallet = WalletService()
+        ..earn(
+            amount: 200,
+            sourceId: 'day_income',
+            reasonText: 'Монеты на день',
+            at: _at,
+            dayNumber: 3)
+        ..toSavings(amount: 150, at: _at, dayNumber: 3);
+      buy(wallet, 120);
+      var balance = 0;
+      var savings = 0;
+      for (final t in wallet.journal) {
+        switch (t.type) {
+          case TransactionType.income:
+            balance += t.amount;
+          case TransactionType.expense:
+            balance -= t.amount;
+          case TransactionType.toSavings:
+            balance -= t.amount;
+            savings += t.amount;
+          case TransactionType.fromSavings:
+            balance += t.amount;
+            savings -= t.amount;
+        }
+      }
+      expect(wallet.wallet, Wallet.create(balance: balance, savings: savings));
+      expect(wallet.wallet, Wallet.create(balance: 50, savings: 30));
+    });
+  });
+
   group('журнал', () {
     test('только для чтения снаружи', () {
       final s = WalletService();
