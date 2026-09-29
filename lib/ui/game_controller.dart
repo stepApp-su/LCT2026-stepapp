@@ -1490,7 +1490,9 @@ class GameController extends ChangeNotifier {
   /// Питомец отзывается своим голоском: смешок лисёнка, писк робота…
   void petVoice() {
     final path = sounds?.petSound(character, turn: _petTurn++, soundOn: sound);
-    if (path != null) soundPlayer?.effect(path);
+    if (path == null) return;
+    soundPlayer?.stopSpeech();
+    soundPlayer?.speak([path]);
   }
 
   int _petTurn = 0;
@@ -1501,10 +1503,11 @@ class GameController extends ChangeNotifier {
     final player = soundPlayer;
     if (scheme == null || player == null || !sound) return;
     final voice = scheme.voiceFor(line.id, species: character, soundOn: sound);
-    player.stopSpeech();
     if (voice != null) {
+      player.stopSpeech();
       player.speak([voice]);
-    } else if (_cheerful.contains(line.emotion)) {
+    } else if (_cheerful.contains(line.emotion) && !player.speaking) {
+      // голосок не перебивает недоговорённую записанную фразу
       petVoice();
     }
   }
