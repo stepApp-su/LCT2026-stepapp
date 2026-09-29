@@ -32,6 +32,7 @@ flutter:
     - assets/room/
     - assets/pets/shared/
     - assets/audio/sfx/
+    - assets/audio/music/
     - assets/audio/voice/
     - assets/audio/babble/fox/
     - assets/audio/babble/robot/

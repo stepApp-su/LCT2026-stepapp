@@ -11,6 +11,7 @@ import '../content/game_content.dart';
 import '../data/game_repository.dart';
 import '../data/sound_player.dart';
 import '../domain/game_clock.dart';
+import 'tap_sound.dart';
 import '../domain/pet_name.dart';
 import '../domain/ru_words.dart';
 import '../domain/text_template.dart';
@@ -97,6 +98,7 @@ class GameController extends ChangeNotifier {
       : repository = repository ?? LocalGameRepository(),
         clock = clock ?? RealClock() {
     _restore(saved);
+    TapSound.attach(() => fx('tap'));
   }
 
   late PetAppearance appearance;
@@ -149,7 +151,9 @@ class GameController extends ChangeNotifier {
   late Set<String> knownWords;
   late Map<String, int> playCounts;
   late Set<String> passedVariants;
-  late bool motion, simpleMode, onboarded, sound;
+  late bool motion, simpleMode, onboarded, sound, music;
+  String _musicTheme = 'main';
+  String? _musicPlaying;
   late String petName;
   PhraseLine? bubble;
   String? storageError;
@@ -203,6 +207,7 @@ class GameController extends ChangeNotifier {
     stats = PetState.fromJson((data['stats'] as Map).cast<String, Object?>());
     motion = data['motion'] != false;
     sound = data['sound'] != false;
+    music = data['music'] != false;
     simpleMode = data['simpleMode'] != false;
     onboarded = data['onboarded'] == true;
     appearance = PetAppearance.restore(data['character']);
@@ -1574,7 +1579,32 @@ class GameController extends ChangeNotifier {
 
   void setSound(bool value) {
     sound = value;
+    if (!value) soundPlayer?.stopSpeech();
+    _applyMusic();
     changed();
+  }
+
+  void setMusic(bool value) {
+    music = value;
+    _applyMusic();
+    changed();
+  }
+
+  /// Смена фоновой темы (главная — «main», ночь — «calm»).
+  void musicTheme(String name) {
+    if (_musicTheme == name) return;
+    _musicTheme = name;
+    _applyMusic();
+  }
+
+  void startMusic() => _applyMusic();
+
+  void _applyMusic() {
+    final on = sound && music;
+    final path = on ? sounds?.musicFor(_musicTheme, musicOn: true) : null;
+    if (path == _musicPlaying) return;
+    _musicPlaying = path;
+    soundPlayer?.music(path);
   }
 
   ({int days, int earned, int mandatory, int optional, int saved}) get report {
@@ -1679,6 +1709,7 @@ class GameController extends ChangeNotifier {
         'journal': [for (final t in wallet.journal) t.toJson()],
         'motion': motion,
         'sound': sound,
+        'music': music,
         'simpleMode': simpleMode,
         'onboarded': onboarded,
         'petName': petName,

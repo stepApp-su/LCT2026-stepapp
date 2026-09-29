@@ -1125,6 +1125,7 @@ class _ChoiceBoardState extends State<ChoiceBoard> {
               child: Squish(
                 enabled: !board.locked,
                 onTap: () {
+                  board.sound?.call('snap');
                   setState(() => chosen = option.id);
                   board.onSubmit(ChoiceAnswer(option.id));
                 },

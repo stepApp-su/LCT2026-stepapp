@@ -29,7 +29,7 @@ void main() {
         'snap', 'round_win', 'miss', 'not_enough', 'dice', 'level_done',
         'goal_select', 'equip', 'knock', 'page_turn', 'egg_crack',
         'stat_up', 'stat_down', 'bubble', 'tally', 'cozy_up', 'ui_tick',
-        'retry',
+        'retry', 'tap',
       ];
       for (final event in extra) {
         expect(scheme.events[event], isNotNull, reason: event);
@@ -56,6 +56,17 @@ void main() {
       final broken = _raw();
       ((broken['events'] as Map)).remove('coin');
       expect(() => SoundScheme.fromJson(broken), throwsArgumentError);
+    });
+
+    test('фоновые темы на месте и файлы существуют', () {
+      for (final name in const ['main', 'calm']) {
+        expect(scheme.music[name], isNotNull, reason: name);
+      }
+      expect(service.musicFor('main', musicOn: true),
+          'assets/audio/music/main_theme.mp3');
+      expect(service.musicFor('main', musicOn: false), isNull);
+      expect(() => service.musicFor('night', musicOn: true),
+          throwsArgumentError);
     });
 
     test('питомец без сэмплов не принимается', () {
@@ -97,7 +108,7 @@ void main() {
   group('выбор звука', () {
     test('событие даёт путь к ассету, выключенный звук — тишину', () {
       expect(service.forEvent('coin', soundOn: true),
-          'assets/audio/sfx/coin.wav');
+          'assets/audio/sfx/coin.mp3');
       expect(service.forEvent('coin', soundOn: false), isNull);
       expect(() => service.forEvent('boom', soundOn: true),
           throwsArgumentError);

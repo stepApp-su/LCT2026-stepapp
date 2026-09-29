@@ -454,7 +454,10 @@ class _GameShellState extends State<GameShell> {
                           button: true,
                           label: 'Комната питомца',
                           child: GestureDetector(
-                            onTap: () => room(1),
+                            onTap: () {
+                              s.fx('tap');
+                              room(1);
+                            },
                             child: RoomScene(
                                 state: s, largePet: true, pieces: roomPieces),
                           ),

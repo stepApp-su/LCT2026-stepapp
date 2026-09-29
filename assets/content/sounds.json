@@ -6,32 +6,33 @@
     "pregenerated": "Озвучка записана заранее и лежит в assets — на лету ничего не синтезируется"
   },
   "events": {
-    "coin": "sfx/coin.wav",
-    "purchase": "sfx/purchase.wav",
-    "task_done": "sfx/task_done.wav",
-    "goal_reached": "sfx/goal_reached.wav",
-    "stage_up": "sfx/stage_up.wav",
-    "title_earned": "sfx/title_earned.wav",
-    "pet_tap": "sfx/pet_tap.wav",
+    "coin": "sfx/coin.mp3",
+    "purchase": "sfx/purchase.mp3",
+    "task_done": "sfx/task_done.mp3",
+    "goal_reached": "sfx/goal_reached.mp3",
+    "stage_up": "sfx/stage_up.mp3",
+    "title_earned": "sfx/title_earned.mp3",
+    "pet_tap": "sfx/pet_tap.mp3",
     "sleep": "sfx/sleep.wav",
-    "snap": "sfx/snap.wav",
-    "round_win": "sfx/round_win.wav",
-    "miss": "sfx/miss.wav",
-    "not_enough": "sfx/not_enough.wav",
+    "snap": "sfx/snap.mp3",
+    "round_win": "sfx/round_win.mp3",
+    "miss": "sfx/miss.mp3",
+    "not_enough": "sfx/not_enough.mp3",
     "dice": "sfx/dice.wav",
-    "level_done": "sfx/level_done.wav",
-    "goal_select": "sfx/goal_select.wav",
+    "level_done": "sfx/level_done.mp3",
+    "goal_select": "sfx/goal_select.mp3",
     "equip": "sfx/equip.wav",
-    "knock": "sfx/knock.wav",
+    "knock": "sfx/knock.mp3",
     "page_turn": "sfx/page_turn.wav",
     "egg_crack": "sfx/egg_crack.wav",
-    "stat_up": "sfx/stat_up.wav",
+    "stat_up": "sfx/stat_up.mp3",
     "stat_down": "sfx/stat_down.wav",
-    "bubble": "sfx/bubble.wav",
+    "bubble": "sfx/bubble.mp3",
     "tally": "sfx/tally.wav",
-    "cozy_up": "sfx/cozy_up.wav",
-    "ui_tick": "sfx/ui_tick.wav",
-    "retry": "sfx/retry.wav"
+    "cozy_up": "sfx/cozy_up.mp3",
+    "ui_tick": "sfx/ui_tick.mp3",
+    "retry": "sfx/retry.mp3",
+    "tap": "sfx/tap.mp3"
   },
   "babbleMaxSyllables": 8,
   "babble": {
@@ -135,5 +136,9 @@
       "task_try_again": "voice/task_try_again.mp3",
       "task_wrong_again": "voice/task_wrong_again.mp3"
     }
+  },
+  "music": {
+    "main": "music/main_theme.mp3",
+    "calm": "music/calm_theme.mp3"
   }
 }

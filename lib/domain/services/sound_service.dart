@@ -28,6 +28,15 @@ final class SoundService {
     return file == null ? null : assetRoot + file;
   }
 
+  /// Фоновая тема по имени; выключенная музыка — тишина.
+  String? musicFor(String name, {required bool musicOn}) {
+    final file = _scheme.music[name];
+    if (file == null) {
+      throw ArgumentError.value(name, 'name', 'нет такой темы');
+    }
+    return musicOn ? assetRoot + file : null;
+  }
+
   /// «Бормотание»: по сэмплу на слог текста, в тембре своего питомца.
   /// Выбор детерминирован сидом — та же реплика звучит одинаково.
   List<String> babbleFor(String text,

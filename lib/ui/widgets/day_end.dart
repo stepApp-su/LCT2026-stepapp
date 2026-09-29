@@ -66,6 +66,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
   @override
   void initState() {
     super.initState();
+    widget.state.musicTheme('calm');
     final titles = widget.event['titles'] as List? ?? const [];
     if (titles.isNotEmpty) {
       s.fx('title_earned');
@@ -100,6 +101,7 @@ class _DayEndScreenState extends State<DayEndScreen> {
       if (!mounted) return;
     }
     setState(() => morning = true);
+    s.musicTheme('main');
     s.fx('coin');
   }
 
