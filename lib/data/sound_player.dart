@@ -22,19 +22,27 @@ final class SoundPlayer {
   /// Новая реплика обрывает недоговорённую старую.
   Future<void> speak(List<String> assetPaths) async {
     final turn = ++_speech;
-    for (final path in assetPaths) {
-      if (turn != _speech) return;
-      try {
+    _speaking = true;
+    try {
+      for (final path in assetPaths) {
+        if (turn != _speech) return;
         await _voice.play(AssetSource(_relative(path)));
         await _voice.onPlayerComplete.first;
-      } catch (_) {
-        return;
       }
+    } catch (_) {
+      return;
+    } finally {
+      if (turn == _speech) _speaking = false;
     }
   }
 
+  /// Идёт ли сейчас фраза; флаг ставится сразу, до старта воспроизведения.
+  bool get speaking => _speaking;
+  bool _speaking = false;
+
   Future<void> stopSpeech() {
     _speech++;
+    _speaking = false;
     return _voice.stop();
   }
 
