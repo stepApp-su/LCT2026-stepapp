@@ -1,11 +1,23 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 
 /// Проигрыватель звуковой схемы: эффекты и озвучка из assets.
 /// Что играть, решает SoundService — сюда приходят готовые пути.
 final class SoundPlayer {
+  SoundPlayer() {
+    _ready = Future.wait([
+      _effects.setAudioContext(_mixWithMusic),
+      _voice.setAudioContext(_mixWithMusic),
+    ]).then<void>((_) {}, onError: (Object _) {});
+  }
+
+  static final AudioContext _mixWithMusic =
+      AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers).build();
+
   final AudioPlayer _effects = AudioPlayer();
   final AudioPlayer _voice = AudioPlayer();
   final AudioPlayer _music = AudioPlayer();
+  late final Future<void> _ready;
   String? _theme;
   int _speech = 0;
 
@@ -14,6 +26,7 @@ final class SoundPlayer {
     if (assetPath == null) return;
     // до первого касания браузер звук не пускает — такие попытки пропускаем
     try {
+      await _ready;
       await _effects.play(AssetSource(_relative(assetPath)));
     } catch (_) {}
   }
@@ -24,6 +37,7 @@ final class SoundPlayer {
     final turn = ++_speech;
     _speaking = true;
     try {
+      await _ready;
       for (final path in assetPaths) {
         if (turn != _speech) return;
         await _voice.play(AssetSource(_relative(path)));
@@ -60,8 +74,12 @@ final class SoundPlayer {
 
   /// Повтор запуска темы, если браузер не дал начать её без касания.
   Future<void> resumeMusic() async {
-    if (_theme == null || _music.state == PlayerState.playing) return;
-    await _startMusic();
+    if (_theme == null) return;
+    if (_music.state != PlayerState.playing) return _startMusic();
+    if (kIsWeb) return;
+    try {
+      await _music.resume();
+    } catch (_) {}
   }
 
   Future<void> _startMusic() async {
